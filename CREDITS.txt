@@ -1,0 +1,14 @@
+Credits
+=======
+
+* Martijn Faassen (original author)
+
+* Jan-Wijbrand Kolman
+
+* Jan-Jaap Driessen
+
+* Vincent Fretin
+
+* Dan Korostolev
+
+* Guido Wesdorp

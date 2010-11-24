@@ -1,0 +1,25 @@
+TODO
+====
+
+* Sometimes it would be nice to be able to *replace* a resource
+  entirely with another. An example is ``z3c.listjs.listjs_css``,
+  which only defines the CSS for the up and down button. You can
+  currently define a new resource that depends on this which uses CSS
+  rules to override things, and perhaps that's all right, but
+  sometimes replacing the resource entirely would be better (and more
+  efficient for page load times).
+
+* For performance reasons it would be nice if we could somehow support
+  auto-rollup for resources. See also Malthe's ``repoze.squeeze``.
+
+* We have a usecase where a rolled up version exists with a minified
+  mode available while for the individual resources no minified mode
+  is available. It would be nice if we could support this.
+
+* Some CSS only functions correctly if the following doctype is in the
+  page::
+
+  <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+  We could extend the insertion logic to put this in automatically if
+  a CSS resource declares it needs this.
