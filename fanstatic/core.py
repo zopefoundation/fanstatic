@@ -3,7 +3,7 @@ import sys
 import pkg_resources
 import threading
 
-from fanstatic.hash import checksum
+from fanstatic.checksum import checksum
 
 EXTENSIONS = ['.css', '.kss', '.js']
 

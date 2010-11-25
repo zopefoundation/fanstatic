@@ -8,6 +8,8 @@ from fanstatic import (Library, ResourceInclusion,
                        init_current_needed_inclusions)
 from fanstatic import InjectMiddleware
 
+from fanstatic import checksum
+
 def test_inject():
     foo = Library('foo', '')
     x1 = ResourceInclusion(foo, 'a.js')
@@ -50,4 +52,7 @@ def test_no_inject_into_non_html():
     request = webob.Request.blank('/')
     response = request.get_response(wrapped_app)
     assert response.body == '<html><head></head><body</body></html>'
+
+def test_hash_inject():
+    pass
 
