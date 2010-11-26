@@ -7,14 +7,13 @@ setup(
     classifiers=[],
     keywords='',
     author='Fanstatic Developers',
-    author_email='faassen@startifact.com',
+    author_email='fanstatic@googlegroups.com',
     license='BSD',
     url='http://fanstatic.org',
     packages=['fanstatic'],
     include_package_data=True,
     zip_safe=False,
-    install_requires=[
-        'Paste', 'WebOb'],
+    install_requires=['Paste', 'WebOb'],
     extras_require = dict(
         test=['pytest >= 2.0'],
         ),
