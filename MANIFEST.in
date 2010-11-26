@@ -1,0 +1,2 @@
+include *.txt *.cfg
+recursive-include fanstatic *.txt *.py *.in *.css *.js
