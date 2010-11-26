@@ -1,2 +1,3 @@
 include *.txt *.cfg *.py
+exclude .installed.cfg
 recursive-include fanstatic *.txt *.py *.in *.css *.js
