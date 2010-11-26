@@ -15,6 +15,7 @@ def _copy_testdata(tmpdir):
 def test_list_directory(tmpdir):
     testdata_path = str(_copy_testdata(tmpdir))
     prefix = str(tmpdir)
+
     expected = [
         prefix+'/MyPackage/setup.py',
         prefix+'/MyPackage/MANIFEST.in',
@@ -22,9 +23,9 @@ def test_list_directory(tmpdir):
         prefix+'/MyPackage/src/mypackage/resources/style.css',
         ]
     found = list(list_directory(testdata_path))
-    assert found == expected
+    assert sorted(found) == sorted(expected)
     
 def test_checksum(tmpdir):
     testdata_path = str(_copy_testdata(tmpdir))
-    assert checksum(testdata_path) == 'f6685b17a6d884166022c44f1f81aaa6'
+    assert checksum(testdata_path) == '4f671f095fadfec05e79df3fe2fe9a8a'
     

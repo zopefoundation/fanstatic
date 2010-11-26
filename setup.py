@@ -16,7 +16,7 @@ setup(
     install_requires=[
         'Paste', 'WebOb'],
     extras_require = dict(
-        test=['py'],
+        test=['pytest >= 2.0'],
         ),
     entry_points = {
         'paste.filter_app_factory': [
