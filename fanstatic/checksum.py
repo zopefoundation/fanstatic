@@ -39,6 +39,7 @@ def checksum(path):
                     break
                 chcksm.update(chunk)
         finally:
+
             f.close()
     return chcksm.hexdigest()
 

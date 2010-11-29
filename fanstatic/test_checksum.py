@@ -5,6 +5,7 @@ from pkg_resources import resource_filename
 import fanstatic
 
 from fanstatic.checksum import list_directory, checksum
+from fanstatic.checksum import VCS_NAMES, IGNORED_EXTENSIONS
 
 def _copy_testdata(tmpdir):
     src = resource_filename('fanstatic', 'testdata/MyPackage')
@@ -47,7 +48,7 @@ def test_checksum(tmpdir):
     assert checksum(testdata_path) != chksum_start
     tmpdir.join('/MyPackage/B').remove()
 
-    # Moving, or renaming a file should change the checksum too:
+    # Moving, or renaming a file should change the checksum:
     chksum_start = checksum(testdata_path)
     tmpdir.join('/MyPackage/setup.py').rename(
         tmpdir.join('/MyPackage/setup.py.renamed'))
@@ -61,3 +62,62 @@ def test_checksum(tmpdir):
     found = list(list_directory(testdata_path))
     assert sorted(found) == sorted(expected)
     assert checksum(testdata_path) != chksum_start
+
+def test_checksum_no_vcs_name(tmpdir):
+    testdata_path = str(_copy_testdata(tmpdir))
+    prefix = str(tmpdir)
+    tmpdir.join('/MyPackage/.novcs').ensure(dir=True)
+    tmpdir.join('/MyPackage/.novcs/foo').write('Contents of foo')
+    expected = [
+        prefix+'/MyPackage/.novcs/foo',
+        prefix+'/MyPackage/setup.py',
+        prefix+'/MyPackage/MANIFEST.in',
+        prefix+'/MyPackage/src/mypackage/__init__.py',
+        prefix+'/MyPackage/src/mypackage/resources/style.css',
+        ]
+    found = list(list_directory(testdata_path))
+    assert sorted(found) == sorted(expected)
+
+def test_checksum_vcs_name(tmpdir):
+    testdata_path = str(_copy_testdata(tmpdir))
+    prefix = str(tmpdir)
+    for name in VCS_NAMES:
+        tmpdir.join('/MyPackage/%s' % name).ensure(dir=True)
+        tmpdir.join('/MyPackage/%s/foo' % name).write('Contents of foo')
+        expected = [
+            prefix+'/MyPackage/setup.py',
+            prefix+'/MyPackage/MANIFEST.in',
+            prefix+'/MyPackage/src/mypackage/__init__.py',
+            prefix+'/MyPackage/src/mypackage/resources/style.css',
+            ]
+        found = list(list_directory(testdata_path))
+        assert sorted(found) == sorted(expected)
+        tmpdir.join('/MyPackage/%s' % name).remove(rec=True)
+
+def test_checksum_dot_file(tmpdir):
+    testdata_path = str(_copy_testdata(tmpdir))
+    prefix = str(tmpdir)
+    tmpdir.join('/MyPackage/.woekie').ensure()
+    expected = [
+        prefix+'/MyPackage/.woekie',
+        prefix+'/MyPackage/setup.py',
+        prefix+'/MyPackage/MANIFEST.in',
+        prefix+'/MyPackage/src/mypackage/__init__.py',
+        prefix+'/MyPackage/src/mypackage/resources/style.css',
+        ]
+    found = list(list_directory(testdata_path))
+    assert sorted(found) == sorted(expected)
+
+def test_checksum_ignored_extensions(tmpdir):
+    testdata_path = str(_copy_testdata(tmpdir))
+    prefix = str(tmpdir)
+    for ext in IGNORED_EXTENSIONS:
+        tmpdir.join('/MyPackage/bar%s' % ext).ensure()
+        expected = [
+            prefix+'/MyPackage/setup.py',
+            prefix+'/MyPackage/MANIFEST.in',
+            prefix+'/MyPackage/src/mypackage/__init__.py',
+            prefix+'/MyPackage/src/mypackage/resources/style.css',
+            ]
+        found = list(list_directory(testdata_path))
+        assert sorted(found) == sorted(expected)
