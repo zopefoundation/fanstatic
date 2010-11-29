@@ -16,5 +16,5 @@ from fanstatic.core import (init_current_needed_inclusions,
                             UnknownResourceExtension,
                             EXTENSIONS)
 
-from fanstatic.wsgi import InjectMiddleware
+from fanstatic.inject import InjectMiddleware
 
