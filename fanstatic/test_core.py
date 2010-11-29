@@ -56,7 +56,7 @@ def test_convenience_need():
     assert get_current_needed_inclusions().inclusions() == []
 
     y1.need()
-    
+
     assert get_current_needed_inclusions().inclusions() == [x2, x1, y1]
 
 def test_redundant_inclusion():
@@ -64,7 +64,7 @@ def test_redundant_inclusion():
     x1 = ResourceInclusion(foo, 'a.js')
     x2 = ResourceInclusion(foo, 'b.css')
     y1 = ResourceInclusion(foo, 'c.js', depends=[x1, x2])
-    
+
     needed = NeededInclusions()
 
     needed.need(y1)
@@ -82,7 +82,7 @@ def test_redundant_inclusion_reorder():
     x1 = ResourceInclusion(foo, 'a.js')
     x2 = ResourceInclusion(foo, 'b.css')
     y1 = ResourceInclusion(foo, 'c.js', depends=[x1, x2])
-    
+
     needed = NeededInclusions()
     needed.need(x1)
     needed.need(x2)
@@ -90,7 +90,7 @@ def test_redundant_inclusion_reorder():
     assert needed.inclusions() == [x2, x1, y1]
 
 def test_redundant_more_complicated():
-    foo = Library('foo', '')       
+    foo = Library('foo', '')
     a1 = ResourceInclusion(foo, 'a1.js')
     a2 = ResourceInclusion(foo, 'a2.js', depends=[a1])
     a3 = ResourceInclusion(foo, 'a3.js', depends=[a2])
@@ -112,7 +112,7 @@ def test_redundant_more_complicated_reversed():
     needed = NeededInclusions()
     needed.need(a4)
     needed.need(a3)
-    
+
     assert needed.inclusions() == [a1, a4, a2, a3]
 
 def test_redundant_more_complicated_depends_on_all():
@@ -125,7 +125,7 @@ def test_redundant_more_complicated_depends_on_all():
 
     needed = NeededInclusions()
     needed.need(a5)
-    
+
     assert needed.inclusions() == [a1, a4, a2, a3, a5]
 
 def test_redundant_more_complicated_depends_on_all_reorder():
@@ -146,7 +146,7 @@ def test_mode_fully_specified():
     foo = Library('foo', '')
     k_debug = ResourceInclusion(foo, 'k-debug.js')
     k = ResourceInclusion(foo, 'k.js', debug=k_debug)
-    
+
     needed = NeededInclusions()
     needed.need(k)
 
@@ -170,7 +170,7 @@ def test_mode_shortcut():
 
     needed = NeededInclusions(mode='debug')
     needed.need(k)
-    
+
     assert len(needed.inclusions()) == 1
     assert needed.inclusions()[0].relpath == 'k-debug.js'
 
@@ -178,7 +178,7 @@ def test_mode_unknown_default():
     foo = Library('foo', '')
     k_debug = ResourceInclusion(foo, 'k-debug.js')
     k = ResourceInclusion(foo, 'k.js', debug=k_debug)
-    
+
     needed = NeededInclusions(mode='default')
     needed.need(k)
 
@@ -193,7 +193,7 @@ def test_rollup():
     needed = NeededInclusions(rollup=True)
     needed.need(b1)
     needed.need(b2)
-    
+
     assert needed.inclusions() == [giant]
 
 def test_rollup_cannot():
@@ -226,7 +226,7 @@ def test_rollup_larger():
     needed.need(c3)
 
     assert needed.inclusions() == [giant]
-    
+
 def test_rollup_eager():
     foo = Library('foo', '')
     d1 = ResourceInclusion(foo, 'd1.js')
@@ -234,16 +234,16 @@ def test_rollup_eager():
     d3 = ResourceInclusion(foo, 'd3.js')
     giant = ResourceInclusion(foo, 'giant.js', supersedes=[d1, d2, d3],
                               eager_superseder=True)
-    
+
     needed = NeededInclusions(rollup=True)
     needed.need(d1)
     assert needed.inclusions() == [giant]
-    
+
     needed = NeededInclusions(rollup=True)
     needed.need(d1)
     needed.need(d2)
     assert needed.inclusions() == [giant]
-    
+
 def test_rollup_eager_competing():
     foo = Library('foo', '')
     d1 = ResourceInclusion(foo, 'd1.js')
@@ -266,13 +266,13 @@ def test_rollup_eager_noneager_competing():
     d2 = ResourceInclusion(foo, 'd2.js')
     d3 = ResourceInclusion(foo, 'd3.js')
     giant = ResourceInclusion(foo, 'giant.js', supersedes=[d1, d2, d3],
-                              eager_superseder=True)    
+                              eager_superseder=True)
     giant_noneager = ResourceInclusion(foo, 'giant-noneager.js',
                                        supersedes=[d1, d2, d3])
     needed = NeededInclusions(rollup=True)
     needed.need(d1)
     assert needed.inclusions() == [giant]
-    
+
 def test_rollup_size_competing():
     foo = Library('foo', '')
     d1 = ResourceInclusion(foo, 'd1.js')
@@ -295,7 +295,7 @@ def test_rollup_eager_noneager_size_competing():
     d3 = ResourceInclusion(foo, 'd3.js')
     d4 = ResourceInclusion(foo, 'd4.js')
     giant = ResourceInclusion(foo, 'giant.js', supersedes=[d1, d2, d3],
-                              eager_superseder=True)    
+                              eager_superseder=True)
     giant_noneager_bigger = ResourceInclusion(foo, 'giant-noneager.js',
                                               supersedes=[d1, d2, d3, d4])
     needed = NeededInclusions(rollup=True)
@@ -335,9 +335,9 @@ def test_rollup_meaningless_rollup_mode():
     needed.need(g1)
     needed.need(g2)
     assert needed.inclusions() == [giantg]
-    
+
 def test_rollup_without_mode():
-    foo = Library('foo', '')    
+    foo = Library('foo', '')
     h1 = ResourceInclusion(foo, 'h1.js', debug='h1-debug.js')
     h2 = ResourceInclusion(foo, 'h2.js', debug='h2-debug.js')
     gianth = ResourceInclusion(foo, 'gianth.js', supersedes=[h1, h2])
@@ -354,9 +354,9 @@ def test_rollup_without_mode():
     assert len(needed.inclusions()) == 2
     assert needed.inclusions()[0].relpath == 'h1-debug.js'
     assert needed.inclusions()[1].relpath == 'h2-debug.js'
-    
+
 def test_rendering():
-    foo = Library('foo', '')    
+    foo = Library('foo', '')
     x1 = ResourceInclusion(foo, 'a.js')
     x2 = ResourceInclusion(foo, 'b.css')
     y1 = ResourceInclusion(foo, 'c.js', depends=[x1, x2])
@@ -370,21 +370,32 @@ def test_rendering():
 <script type="text/javascript" src="/fanstatic/foo/c.js"></script>'''
 
 def test_rendering_base_url():
-    foo = Library('foo', '')    
+    foo = Library('foo', '')
     x1 = ResourceInclusion(foo, 'a.js')
     x2 = ResourceInclusion(foo, 'b.css')
     y1 = ResourceInclusion(foo, 'c.js', depends=[x1, x2])
 
     needed = NeededInclusions(base_url='http://localhost/static')
     needed.need(y1)
-    
+
     assert needed.render() == '''\
 <link rel="stylesheet" type="text/css" href="http://localhost/static/fanstatic/foo/b.css" />
 <script type="text/javascript" src="http://localhost/static/fanstatic/foo/a.js"></script>
 <script type="text/javascript" src="http://localhost/static/fanstatic/foo/c.js"></script>'''
 
+def test_empty_base_url_and_publisher_signature():
+    ''' When the base_url and publisher_signature are both empty strings,
+    render a URL without them. '''
+    foo = Library('foo', '')
+    x1 = ResourceInclusion(foo, 'a.js')
+    needed = NeededInclusions(base_url='', publisher_signature='')
+    needed.need(x1)
+
+    assert needed.render() == '''\
+<script type="text/javascript" src="/foo/a.js"></script>'''
+
 def test_rendering_base_url_assign():
-    foo = Library('foo', '')    
+    foo = Library('foo', '')
     x1 = ResourceInclusion(foo, 'a.js')
     x2 = ResourceInclusion(foo, 'b.css')
     y1 = ResourceInclusion(foo, 'c.js', depends=[x1, x2])
@@ -393,12 +404,12 @@ def test_rendering_base_url_assign():
     needed.need(y1)
 
     needed.base_url = 'http://localhost/static'
-    
+
     assert needed.render() == '''\
 <link rel="stylesheet" type="text/css" href="http://localhost/static/fanstatic/foo/b.css" />
 <script type="text/javascript" src="http://localhost/static/fanstatic/foo/a.js"></script>
 <script type="text/javascript" src="http://localhost/static/fanstatic/foo/c.js"></script>'''
-    
+
 def test_rendering_publisher_signature():
     foo = Library('foo', '')
 
@@ -407,7 +418,7 @@ def test_rendering_publisher_signature():
     assert needed.library_url(foo) == '/waku/foo'
 
 def test_html_insert():
-    foo = Library('foo', '')    
+    foo = Library('foo', '')
     x1 = ResourceInclusion(foo, 'a.js')
     x2 = ResourceInclusion(foo, 'b.css')
     y1 = ResourceInclusion(foo, 'c.js', depends=[x1, x2])
@@ -425,9 +436,9 @@ def test_html_insert():
 <script type="text/javascript" src="/fanstatic/foo/a.js"></script>
 <script type="text/javascript" src="/fanstatic/foo/c.js"></script>
 something more</head></html>'''
-    
+
 def test_html_top_bottom():
-    foo = Library('foo', '')    
+    foo = Library('foo', '')
     x1 = ResourceInclusion(foo, 'a.js')
     x2 = ResourceInclusion(foo, 'b.css')
     y1 = ResourceInclusion(foo, 'c.js', depends=[x1, x2])
@@ -439,11 +450,11 @@ def test_html_top_bottom():
     assert top == '''\
 <link rel="stylesheet" type="text/css" href="/fanstatic/foo/b.css" />
 <script type="text/javascript" src="/fanstatic/foo/a.js"></script>
-<script type="text/javascript" src="/fanstatic/foo/c.js"></script>'''   
+<script type="text/javascript" src="/fanstatic/foo/c.js"></script>'''
     assert bottom == ''
 
 def test_html_top_bottom_set_bottom():
-    foo = Library('foo', '')    
+    foo = Library('foo', '')
     x1 = ResourceInclusion(foo, 'a.js')
     x2 = ResourceInclusion(foo, 'b.css')
     y1 = ResourceInclusion(foo, 'c.js', depends=[x1, x2])
@@ -455,11 +466,11 @@ def test_html_top_bottom_set_bottom():
     assert top == '''\
 <link rel="stylesheet" type="text/css" href="/fanstatic/foo/b.css" />
 <script type="text/javascript" src="/fanstatic/foo/a.js"></script>
-<script type="text/javascript" src="/fanstatic/foo/c.js"></script>'''   
+<script type="text/javascript" src="/fanstatic/foo/c.js"></script>'''
     assert bottom == ''
 
-def test_html_top_bottom_force_bottom():    
-    foo = Library('foo', '')    
+def test_html_top_bottom_force_bottom():
+    foo = Library('foo', '')
     x1 = ResourceInclusion(foo, 'a.js')
     x2 = ResourceInclusion(foo, 'b.css')
     y1 = ResourceInclusion(foo, 'c.js', depends=[x1, x2])
@@ -472,11 +483,11 @@ def test_html_top_bottom_force_bottom():
 <link rel="stylesheet" type="text/css" href="/fanstatic/foo/b.css" />'''
     assert bottom == '''\
 <script type="text/javascript" src="/fanstatic/foo/a.js"></script>
-<script type="text/javascript" src="/fanstatic/foo/c.js"></script>'''   
+<script type="text/javascript" src="/fanstatic/foo/c.js"></script>'''
 
 
 def test_html_bottom_safe():
-    foo = Library('foo', '')    
+    foo = Library('foo', '')
     x1 = ResourceInclusion(foo, 'a.js')
     x2 = ResourceInclusion(foo, 'b.css')
     y1 = ResourceInclusion(foo, 'c.js', depends=[x1, x2])
@@ -514,13 +525,13 @@ def test_html_bottom_safe():
 <script type="text/javascript" src="/fanstatic/foo/a.js"></script>
 <script type="text/javascript" src="/fanstatic/foo/c.js"></script>
 <script type="text/javascript" src="/fanstatic/foo/y2.js"></script>'''
-    
+
 # XXX add sanity checks: cannot declare something bottom safe while
 # what it depends on isn't bottom safe
 
 
-def test_top_bottom_insert():    
-    foo = Library('foo', '')    
+def test_top_bottom_insert():
+    foo = Library('foo', '')
     x1 = ResourceInclusion(foo, 'a.js')
     x2 = ResourceInclusion(foo, 'b.css')
     y1 = ResourceInclusion(foo, 'c.js', depends=[x1, x2])
@@ -536,7 +547,7 @@ rest of head</head><body>rest of body<script type="text/javascript" src="/fansta
 <script type="text/javascript" src="/fanstatic/foo/c.js"></script></body></html>'''
 
 def test_generate_source():
-    foo = Library('foo', '')    
+    foo = Library('foo', '')
     i1 = ResourceInclusion(foo, 'i1.js')
     i2 = ResourceInclusion(foo, 'i2.js', depends=[i1])
     i3 = ResourceInclusion(foo, 'i3.js', depends=[i2])
@@ -553,14 +564,14 @@ i2 = ResourceInclusion(foo, 'i2.js', depends=[i1])
 i3 = ResourceInclusion(foo, 'i3.js', depends=[i2])
 i4 = ResourceInclusion(foo, 'i4.js', depends=[i1])
 i5 = ResourceInclusion(foo, 'i5.js', depends=[i4, i3])'''
-    
+
 def test_generate_source_with_modes_and_rollup():
-    foo = Library('foo', '')    
+    foo = Library('foo', '')
     j1 = ResourceInclusion(foo, 'j1.js', debug='j1-debug.js')
     j2 = ResourceInclusion(foo, 'j2.js', debug='j2-debug.js')
     giantj = ResourceInclusion(foo, 'giantj.js', supersedes=[j1, j2],
                                debug='giantj-debug.js')
-    
+
     assert generate_code(j1=j1, j2=j2, giantj=giantj) == '''\
 from fanstatic import Library, ResourceInclusion
 
@@ -571,13 +582,13 @@ j2 = ResourceInclusion(foo, 'j2.js', debug='j2-debug.js')
 giantj = ResourceInclusion(foo, 'giantj.js', supersedes=[j1, j2], debug='giantj-debug.js')'''
 
 def test_generate_source_control_name():
-    foo = Library('foo', '')    
+    foo = Library('foo', '')
     i1 = ResourceInclusion(foo, 'i1.js')
     i2 = ResourceInclusion(foo, 'i2.js', depends=[i1])
     i3 = ResourceInclusion(foo, 'i3.js', depends=[i2])
     i4 = ResourceInclusion(foo, 'i4.js', depends=[i1])
     i5 = ResourceInclusion(foo, 'i5.js', depends=[i4, i3])
-    
+
     assert generate_code(hoi=i1) == '''\
 from fanstatic import Library, ResourceInclusion
 
@@ -594,8 +605,8 @@ hoi = ResourceInclusion(foo, 'i1.js')
 i2 = ResourceInclusion(foo, 'i2.js', depends=[hoi])'''
 
 def test_sorting_inclusions():
-    foo = Library('foo', '')    
-    
+    foo = Library('foo', '')
+
     a1 = ResourceInclusion(foo, 'a1.js')
     a2 = ResourceInclusion(foo, 'a2.js', depends=[a1])
     a3 = ResourceInclusion(foo, 'a3.js', depends=[a2])
@@ -610,7 +621,7 @@ def test_inclusion_renderers():
 
     assert inclusion_renderers['.js']('http://localhost/script.js') == (
          '<script type="text/javascript" src="http://localhost/script.js"></script>')
-        
+
 
 # XXX whole EXTENSIONS business is weird
 def test_add_inclusion_renderer():
@@ -623,14 +634,14 @@ def test_add_inclusion_renderer():
     needed.need(a)
     with py.test.raises(UnknownResourceExtension):
         needed.render()
-    
+
     def render_unknown(url):
         return '<link rel="unknown" href="%s" />' % url
 
     inclusion_renderers['.unknown'] = render_unknown
     assert needed.render() == ('<link rel="unknown" href="/fanstatic/foo/nothing.unknown" />')
-    
-    
+
+
 # XXX tests for hashed resources when this is enabled. Needs some plausible
 # directory to test for hashes
 

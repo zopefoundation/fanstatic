@@ -43,7 +43,7 @@ def _libraries(libs={}):
             'fanstatic.libraries'):
             libs[entry_point.name] = entry_point.load()
     return libs
-    
+
 def libraries():
     return _libraries().itervalues()
 
@@ -240,7 +240,12 @@ class NeededInclusions(object):
         if self.hashing:
             segments.append(library.signature(devmode=self.devmode))
         segments.append(library.name)
-        return '/'.join(segments)
+        result = segments.pop(0)
+        for segment in segments:
+            if not result.endswith('/'):
+                result += '/'
+            result += segment
+        return result
 
     def render(self):
         """Render a set of inclusions.
