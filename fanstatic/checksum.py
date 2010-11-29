@@ -24,9 +24,8 @@ def checksum(path):
     # Ignored extensions.
     chcksm = hashlib.md5()
     for path in list_directory(path):
-        # Use the full path name too for the checksum.
-        # XXX is that needed?
-        # chcksm.update(path)
+        # Use the full path name too for the checksum too to track file renames.
+        chcksm.update(path)
         try:
             f = open(path, 'rb')
         except IOError:

@@ -15,7 +15,6 @@ def _copy_testdata(tmpdir):
 def test_list_directory(tmpdir):
     testdata_path = str(_copy_testdata(tmpdir))
     prefix = str(tmpdir)
-
     expected = [
         prefix+'/MyPackage/setup.py',
         prefix+'/MyPackage/MANIFEST.in',
@@ -24,8 +23,41 @@ def test_list_directory(tmpdir):
         ]
     found = list(list_directory(testdata_path))
     assert sorted(found) == sorted(expected)
-    
+
 def test_checksum(tmpdir):
     testdata_path = str(_copy_testdata(tmpdir))
-    assert checksum(testdata_path) == '4f671f095fadfec05e79df3fe2fe9a8a'
-    
+    # As we cannot rely on a particular sort order of the directories,
+    # and files therein we cannot test against a given md5sum. So
+    # we'll have to do with circumstantial evidence.
+
+    # Compute a first checksum for the test package:
+    chksum_start = checksum(testdata_path)
+    # Add a file (+ contents!) and see the checksum changed:
+    tmpdir.join('/MyPackage/A').write('Contents for A')
+    assert checksum(testdata_path) != chksum_start
+
+    # Remove the file again, the checksum is same as we started with:
+    tmpdir.join('/MyPackage/A').remove()
+    assert checksum(testdata_path) == chksum_start
+
+    # Obviously, changing the contents will change the checksum too:
+    tmpdir.join('/MyPackage/B').write('Contents for B')
+    chksum_start = checksum(testdata_path)
+    tmpdir.join('/MyPackage/B').write('Contents for B have changed')
+    assert checksum(testdata_path) != chksum_start
+    tmpdir.join('/MyPackage/B').remove()
+
+    # Moving, or renaming a file should change the checksum too:
+    chksum_start = checksum(testdata_path)
+    tmpdir.join('/MyPackage/setup.py').rename(
+        tmpdir.join('/MyPackage/setup.py.renamed'))
+    prefix = str(tmpdir)
+    expected = [
+        prefix+'/MyPackage/setup.py.renamed',
+        prefix+'/MyPackage/MANIFEST.in',
+        prefix+'/MyPackage/src/mypackage/__init__.py',
+        prefix+'/MyPackage/src/mypackage/resources/style.css',
+        ]
+    found = list(list_directory(testdata_path))
+    assert sorted(found) == sorted(expected)
+    assert checksum(testdata_path) != chksum_start
