@@ -3,7 +3,8 @@ from fanstatic.core import (Library,
                             library_by_name,
                             ResourceInclusion,
                             GroupInclusion,
-                            NeededInclusions)
+                            NeededInclusions,
+                            DEFAULT_SIGNATURE)
 
 from fanstatic.core import (sort_inclusions_topological,
                             sort_inclusions_by_extension,
@@ -16,5 +17,7 @@ from fanstatic.core import (init_current_needed_inclusions,
                             UnknownResourceExtension,
                             EXTENSIONS)
 
-from fanstatic.inject import InjectMiddleware
+from fanstatic.inject import Inject
+
+from fanstatic.wsgi import Fanstatic
 

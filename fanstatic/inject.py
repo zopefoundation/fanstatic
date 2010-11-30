@@ -8,7 +8,7 @@ import fanstatic
 # would complicate the middleware signicantly, however. We would for
 # instance need to recalculate content_length ourselves.
 
-class InjectMiddleware(object):
+class Inject(object):
 
     def __init__(self, application, **config):
         self.application = application
@@ -42,4 +42,4 @@ def make_inject(app, global_config, **local_config):
     bottom = local_config.get('bottom')
     if bottom is not None:
         local_config['bottom'] = asbool(bottom)
-    return InjectMiddleware(app, **local_config)
+    return Inject(app, **local_config)

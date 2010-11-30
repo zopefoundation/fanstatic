@@ -14,7 +14,7 @@ class FilterHiddenDirectoryApp(DirectoryApp):
         return DirectoryApp.__call__(self, environ, start_response)
 
 class Publisher(object):
-    
+
     def __init__(self):
         self.directory_apps = {}
         for library in fanstatic.libraries():
@@ -37,7 +37,7 @@ class Publisher(object):
                         headers, max_age=10*CACHE_CONTROL.ONE_YEAR)
                     EXPIRES.update(headers, delta=expires)
                 return _start_response(status, headers, exc_info)
-            
+
         # Pop first name, being library name.
         library_name = path_info_pop(environ)
         directory_app = self.directory_apps.get(library_name)
@@ -46,8 +46,8 @@ class Publisher(object):
         return directory_app(environ, start_response)
 
 class Delegator(object):
-    
-    def __init__(self, app, publisher_signature='fanstatic'):
+
+    def __init__(self, app, publisher_signature=fanstatic.DEFAULT_SIGNATURE):
         self.application = app
         self.publisher_signature = publisher_signature
         self.resource_publisher = Publisher()
@@ -59,11 +59,11 @@ class Delegator(object):
         if len(chunks) == 1:
             # The trigger is not in the URL at all, we delegate to the
             # original application.
-            return self.application(environ, start_response) 
+            return self.application(environ, start_response)
         environ = environ.copy()
         environ['PATH_INFO'] = '/%s' % chunks[1]
         return self.resource_publisher(environ, start_response)
 
-def make_publisher(app, global_conf, **local_conf):
-    return Delegator(app, **local_conf)
+def make_publisher(app, global_config, **local_config):
+    return Delegator(app, **local_config)
 
