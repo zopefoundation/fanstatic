@@ -1,3 +1,4 @@
+import inspect
 import webob
 from paste.util.converters import asbool
 
@@ -12,7 +13,25 @@ class Inject(object):
 
     def __init__(self, application, **config):
         self.application = application
+
+        self._check_inclusions_signature(**config)
         self.config = config
+
+    # To get a correct error message on initialize-time, we construct
+    # a function that has the same signature as NeededInclusions(),
+    # but without "self".
+    def _check_inclusions_signature(self, **config):
+        args, varargs, varkw, defaults = inspect.getargspec(
+            fanstatic.NeededInclusions.__init__)
+        argspec = inspect.formatargspec(args[1:], varargs, varkw, defaults)
+        exec("def signature_checker" + argspec + ": pass")
+        try:
+            signature_checker(**config)
+        except TypeError, e:
+            message = e.args[0]
+            message = message.replace(
+                "signature_checker()", fanstatic.NeededInclusions.__name__)
+            raise TypeError(message)
 
     def __call__(self, environ, start_response):
         needed = fanstatic.init_current_needed_inclusions(**self.config)

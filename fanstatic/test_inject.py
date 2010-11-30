@@ -10,6 +10,26 @@ from fanstatic import Inject
 
 from fanstatic import checksum
 
+def test_incorrect_configuration_options():
+    app = None
+    with py.test.raises(TypeError) as e:
+        Inject(app, incorrect='configoption')
+    assert (
+        "NeededInclusions got an unexpected "
+        "keyword argument 'incorrect'") in str(e)
+
+    with py.test.raises(TypeError) as e:
+        Inject(app, mode='qux', incorrect='configoption')
+    assert (
+        "NeededInclusions got an unexpected "
+        "keyword argument 'incorrect'") in str(e)
+
+    with py.test.raises(TypeError) as e:
+        Inject(app, mode='qux', incorrect='configoption', devmode=True)
+    assert (
+        "NeededInclusions got an unexpected "
+        "keyword argument 'incorrect'") in str(e)
+
 def test_inject():
     foo = Library('foo', '')
     x1 = ResourceInclusion(foo, 'a.js')

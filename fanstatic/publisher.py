@@ -49,13 +49,12 @@ class Delegator(object):
 
     def __init__(self, app, publisher_signature=fanstatic.DEFAULT_SIGNATURE):
         self.application = app
-        self.publisher_signature = publisher_signature
+        self.trigger = '/%s/' % publisher_signature
         self.resource_publisher = Publisher()
 
     def __call__(self, environ, start_response):
         path_info = environ['PATH_INFO']
-        trigger = '/%s/' % self.publisher_signature
-        chunks = path_info.split(trigger, 1)
+        chunks = path_info.split(self.trigger, 1)
         if len(chunks) == 1:
             # The trigger is not in the URL at all, we delegate to the
             # original application.
