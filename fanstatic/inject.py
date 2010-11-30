@@ -11,8 +11,8 @@ import fanstatic
 
 class Inject(object):
 
-    def __init__(self, application, **config):
-        self.application = application
+    def __init__(self, app, **config):
+        self.application = app
 
         self._check_inclusions_signature(**config)
         self.config = config
