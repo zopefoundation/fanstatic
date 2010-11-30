@@ -6,7 +6,7 @@ from fanstatic import get_current_needed_inclusions
 
 from fanstatic import (Library, ResourceInclusion,
                        init_current_needed_inclusions)
-from fanstatic import InjectMiddleware
+from fanstatic import Inject
 
 from fanstatic import checksum
 
@@ -15,7 +15,7 @@ def test_inject():
     x1 = ResourceInclusion(foo, 'a.js')
     x2 = ResourceInclusion(foo, 'b.css')
     y1 = ResourceInclusion(foo, 'c.js', depends=[x1, x2])
-    
+
     def app(environ, start_response):
         start_response('200 OK', [])
         needed = get_current_needed_inclusions()
@@ -23,7 +23,7 @@ def test_inject():
         needed.base_url = 'http://testapp'
         return ['<html><head></head><body</body></html>']
 
-    wrapped_app = InjectMiddleware(app)
+    wrapped_app = Inject(app)
 
     request = webob.Request.blank('/')
     response = request.get_response(wrapped_app)
@@ -39,7 +39,7 @@ def test_no_inject_into_non_html():
     x1 = ResourceInclusion(foo, 'a.js')
     x2 = ResourceInclusion(foo, 'b.css')
     y1 = ResourceInclusion(foo, 'c.js', depends=[x1, x2])
-    
+
     def app(environ, start_response):
         start_response('200 OK', [('Content-Type', 'text/plain')])
         needed = get_current_needed_inclusions()
@@ -47,7 +47,7 @@ def test_no_inject_into_non_html():
         needed.base_url = 'http://testapp'
         return ['<html><head></head><body</body></html>']
 
-    wrapped_app = InjectMiddleware(app)
+    wrapped_app = Inject(app)
 
     request = webob.Request.blank('/')
     response = request.get_response(wrapped_app)

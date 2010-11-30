@@ -5,6 +5,8 @@ import threading
 
 from fanstatic.checksum import checksum
 
+DEFAULT_SIGNATURE = 'fanstatic'
+
 EXTENSIONS = ['.css', '.kss', '.js']
 
 NEEDED = 'fanstatic.needed'
@@ -199,7 +201,7 @@ class NeededInclusions(object):
                  force_bottom=False,
                  devmode=False,
                  hashing=False,
-                 publisher_signature='fanstatic'
+                 publisher_signature=DEFAULT_SIGNATURE,
                  ):
         self.base_url = base_url
         self._inclusions = inclusions or []

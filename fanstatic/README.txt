@@ -725,7 +725,7 @@ directory::
   >>> needed = NeededInclusions()
   >>> first_url = needed.library_url(foo)
   >>> first_url
-  '/fanstatic/:hash:.../foo'  
+  '/fanstatic/:hash:.../foo'
 
 If we alter the contents of the directory, the signature segments
 should be different, however only if the ``devmode`` configuration
@@ -746,7 +746,7 @@ resource contents have changed, the signature segment has not::
 
   >>> second_url = needed.library_url(foo)
   >>> second_url
-  '/fanstatic/:hash:.../foo'  
+  '/fanstatic/:hash:.../foo'
 
 The signature segment has **not** changed::
 
@@ -758,7 +758,7 @@ When we set ``devmode=True``, the segment will have changed::
   >>> needed_in_devmode = NeededInclusions(devmode=True)
   >>> third_url = needed_in_devmode.library_url(foo)
   >>> third_url
-  '/fanstatic/:hash:.../foo'  
+  '/fanstatic/:hash:.../foo'
 
 The signature segment has changed::
 
@@ -969,7 +969,7 @@ under the key ``hurry.resource.needed``::
 
 We now wrap this in our middleware, so that the middleware is activated::
 
-  >>> from hurry.resource.wsgi import InjectMiddleWare
+  >>> from hurry.resource.inject import InjectMiddleWare
   >>> wrapped_app = InjectMiddleWare(app)
 
 Now we make a request (using webob for convenience)::
