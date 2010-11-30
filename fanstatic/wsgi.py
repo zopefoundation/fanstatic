@@ -1,7 +1,7 @@
 import fanstatic
 
 def Fanstatic(app, **config):
-    # Wrap the app inside the ijnect middleware, inside the publisher
+    # Wrap the app inside the inject middleware, inside the publisher
     # middleware.
     inject = fanstatic.Inject(app, **config)
     signature = config.get('publisher_signature', fanstatic.DEFAULT_SIGNATURE)
