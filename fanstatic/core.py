@@ -194,24 +194,25 @@ def normalize_inclusion(library, inclusion):
 class NeededInclusions(object):
     def __init__(self,
                  base_url='',
-                 inclusions=None,
-                 mode=None,
-                 rollup=False,
-                 bottom=False,
-                 force_bottom=False,
                  devmode=False,
                  hashing=False,
+                 bottom=False,
+                 force_bottom=False,
+                 inclusions=None,
+                 mode=None,
                  publisher_signature=DEFAULT_SIGNATURE,
+                 rollup=False,
                  ):
         self.base_url = base_url
-        self._inclusions = inclusions or []
-        self._mode = mode
-        self._rollup = rollup
-        self._bottom = bottom
-        self._force_bottom = force_bottom
         self.devmode = devmode
         self.hashing = hashing
-        self.publisher_signature = publisher_signature
+
+        self._bottom = bottom
+        self._force_bottom = force_bottom
+        self._inclusions = inclusions or []
+        self._mode = mode
+        self._publisher_signature = publisher_signature
+        self._rollup = rollup
 
     def __len__(self):
         return len(self._inclusions)
@@ -238,7 +239,7 @@ class NeededInclusions(object):
         return inclusions
 
     def library_url(self, library):
-        segments = [self.base_url, self.publisher_signature]
+        segments = [self.base_url, self._publisher_signature]
         if self.hashing:
             segments.append(library.signature(devmode=self.devmode))
         segments.append(library.name)
