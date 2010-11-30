@@ -2,10 +2,9 @@ import py
 
 import webob
 
-from fanstatic import get_current_needed_inclusions
-
 from fanstatic import (Library, ResourceInclusion,
-                       init_current_needed_inclusions)
+                       init_current_needed_inclusions,
+                       get_current_needed_inclusions)
 from fanstatic import Inject
 
 from fanstatic import checksum
