@@ -18,6 +18,6 @@ from fanstatic.core import (init_current_needed_inclusions,
                             EXTENSIONS)
 
 from fanstatic.inject import Inject
-
+from fanstatic.publisher import Delegator, Publisher
 from fanstatic.wsgi import Fanstatic
 
