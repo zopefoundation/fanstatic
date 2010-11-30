@@ -19,5 +19,7 @@ from fanstatic.core import (init_current_needed_inclusions,
 
 from fanstatic.inject import Inject
 
+from fanstatic.publisher import Delegator, Publisher
+
 from fanstatic.wsgi import Fanstatic
 
