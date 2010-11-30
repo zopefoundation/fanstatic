@@ -1,12 +1,11 @@
 import fanstatic
 
-class Fanstatic():
-    pass
+def Fanstatic(app, **config):
+    # Wrap the app inside the ijnect middleware, inside the publisher
+    # middleware.
+    inject = fanstatic.Inject(app, **config)
+    signature = config.get('publisher_signature', fanstatic.DEFAULT_SIGNATURE)
+    return fanstatic.Delegator(inject, publisher_signature=signature)
 
 def make_fanstatic(app, global_config, **local_config):
-    # Wrap app inside the inject middleware, inside the publisher
-    # middleware for the integrated solution.
-    return fanstatic.make_publisher(
-        fanstatic.make_inject(app, global_conf, **local_config),
-        global_config, **local_config)
-
+    return Fanstatic(**local_config)
