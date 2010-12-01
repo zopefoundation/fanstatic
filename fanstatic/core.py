@@ -72,8 +72,6 @@ class LibraryRegistry(UserDict.DictMixin):
 
 library_registry = LibraryRegistry()
 
-libraries = library_registry.itervalues # poor man's dict.viewvalues()
-
 def library_by_name(name):
     return library_registry[name]
 
