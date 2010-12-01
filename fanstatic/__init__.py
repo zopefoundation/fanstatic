@@ -1,6 +1,5 @@
-from fanstatic.core import (Library,
-                            libraries,
-                            library_by_name,
+from fanstatic.core import (library_registry,
+                            Library,
                             ResourceInclusion,
                             GroupInclusion,
                             NeededInclusions,
@@ -12,10 +11,11 @@ from fanstatic.core import (sort_inclusions_topological,
 
 from fanstatic.core import (init_current_needed_inclusions,
                             get_current_needed_inclusions,
-                            NoNeededInclusions, NEEDED,
                             inclusion_renderers,
+                            NoNeededInclusions,
                             UnknownResourceExtension,
-                            EXTENSIONS)
+                            EXTENSIONS,
+                            NEEDED)
 
 from fanstatic.inject import Inject
 

@@ -52,12 +52,14 @@ class LibraryRegistry(UserDict.DictMixin):
         for entry_point in pkg_resources.iter_entry_points(
             'fanstatic.libraries'):
             self._entry_points[entry_point.name] = entry_point
-        self._libraries.clear()
+            self._libraries[entry_point.name] = None
 
     def __getitem__(self, name):
-        if name in self._libraries:
-            return self._libraries[name]
-        return self._libraries.setdefault(name, self._entry_points[name].load())
+        library = self._libraries.get(name)
+        if library is None:
+            library = self._entry_points[name].load()
+            self._libraries[name] = library
+        return library
 
     def __setitem__(self, name, value):
         self._libraries[name] = value

@@ -17,7 +17,7 @@ class Publisher(object):
 
     def __init__(self):
         self.directory_apps = {}
-        for library in fanstatic.libraries():
+        for library in fanstatic.library_registry.values():
             app = FilterHiddenDirectoryApp(library.path)
             self.directory_apps[library.name] = app
 
