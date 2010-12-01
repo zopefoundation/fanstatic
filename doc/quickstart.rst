@@ -35,11 +35,12 @@ to do this without Fanstatic would be:
 This is fine for simple requirements, but gets hairy once you have a
 lot of pages that need a variety of Javascript libraries (which may
 change dynamically), or if you need a larger selection of Javascript
-libraries with a more involved dependency structure. Soon you'd find
-yourself juggling HTML templates with lots of ``<script>`` tags, and
-organizing a large variety of static resources.
+libraries with a more involved dependency structure. Soon you find
+yourself juggling HTML templates with lots of ``<script>`` tags,
+puzzling over what depends on what, and organizing a large variety of
+static resources.
 
-Now how would we do this with Fanstatic? Like this::
+How would we do this with Fanstatic? Like this::
 
     from js.jquery import jquery
 
@@ -75,11 +76,10 @@ Fanstatic bundles these up as a single WSGI framework component called
   
   fanstatic_app = Fanstatic(app)
 
-You can now import and ``need`` resources all through your
-application, and Fanstatic will make sure that they are served
-correctly and that the right script tags appear on your web page.
-
-Now you can use ``fanstatic_app`` and have Fanstatic handle static
-resources for you. 
+When you use ``fanstatic_app``, Fanstatic will take of serving static
+resources for you, and including them on the web page. You can import
+and ``need`` resources all through your application, and Fanstatic
+will make sure that they are served correctly and that the right
+script tags appear on your web page.
 
 Now you're off and running with Fanstatic!
