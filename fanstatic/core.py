@@ -11,6 +11,10 @@ EXTENSIONS = ['.css', '.kss', '.js']
 
 NEEDED = 'fanstatic.needed'
 
+# Total hack to be able to get the dir the resources will be in.
+def caller_dir():
+    return os.path.dirname(sys._getframe(2).f_globals['__file__'])
+
 class UnknownResourceExtension(Exception):
     """Unknown resource extension"""
 
@@ -35,22 +39,27 @@ class Library(object):
             sig = self._signature
         return ':hash:%s' % sig
 
-# Total hack to be able to get the dir the resources will be in.
-def caller_dir():
-    return os.path.dirname(sys._getframe(2).f_globals['__file__'])
+class LibraryRegistry(dict):
 
-def _libraries(libs={}):
-    if not libs:
+    def __init__(self):
+        super(LibraryRegistry, self).__init__()
+        self.reset()
+
+    def reset(self):
+        # Load all fanstatic.libraries entry points.
         for entry_point in pkg_resources.iter_entry_points(
             'fanstatic.libraries'):
-            libs[entry_point.name] = entry_point.load()
-    return libs
+            self[entry_point.name] = entry_point.load()
 
-def libraries():
-    return _libraries().itervalues()
+    def add(self, library):
+        self[library.name] = library
+
+library_registry = LibraryRegistry()
+
+libraries = library_registry.itervalues # poor man's dict.viewvalues()
 
 def library_by_name(name):
-    return _libraries()[name]
+    return library_registry[name]
 
 class InclusionBase(object):
     pass
