@@ -8,4 +8,4 @@ def Fanstatic(app, **config):
     return fanstatic.Delegator(inject, publisher_signature=signature)
 
 def make_fanstatic(app, global_config, **local_config):
-    return Fanstatic(**local_config)
+    return Fanstatic(app, **local_config)

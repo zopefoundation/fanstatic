@@ -2,6 +2,7 @@ import os
 import sys
 import pkg_resources
 import threading
+import UserDict
 
 from fanstatic.checksum import checksum
 
@@ -39,17 +40,30 @@ class Library(object):
             sig = self._signature
         return ':hash:%s' % sig
 
-class LibraryRegistry(dict):
+class LibraryRegistry(UserDict.DictMixin):
 
     def __init__(self):
-        super(LibraryRegistry, self).__init__()
+        self._entry_points = {}
+        self._libraries = {}
         self.reset()
 
     def reset(self):
         # Load all fanstatic.libraries entry points.
         for entry_point in pkg_resources.iter_entry_points(
             'fanstatic.libraries'):
-            self[entry_point.name] = entry_point.load()
+            self._entry_points[entry_point.name] = entry_point
+        self._libraries.clear()
+
+    def __getitem__(self, name):
+        if name in self._libraries:
+            return self._libraries[name]
+        return self._libraries.setdefault(name, self._entry_points[name].load())
+
+    def __setitem__(self, name, value):
+        self._libraries[name] = value
+
+    def keys(self):
+        return self._libraries.keys()
 
     def add(self, library):
         self[library.name] = library
