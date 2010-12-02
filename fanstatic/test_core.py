@@ -2,11 +2,27 @@ import py
 
 from fanstatic import (Library, ResourceInclusion, NeededInclusions,
                        GroupInclusion, NoNeededInclusions,
+                       library_registry,
                        init_current_needed_inclusions,
                        get_current_needed_inclusions,
                        generate_code, sort_inclusions_topological,
                        inclusion_renderers,
                        UnknownResourceExtension, EXTENSIONS)
+
+def test_library_registry():
+    assert library_registry.keys() == []
+    with py.test.raises(KeyError) as e:
+        library_registry['bar']
+
+    foo = Library('foo', '')
+    library_registry.add(foo)
+    assert library_registry['foo'] is foo
+    assert library_registry.keys() == ['foo']
+
+    baz = Library('baz', '')
+    library_registry[baz.name] = baz
+    assert library_registry['baz'] is baz
+    assert sorted(library_registry.keys()) == ['baz', 'foo']
 
 def test_inclusion():
     foo = Library('foo', '')
