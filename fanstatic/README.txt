@@ -1,4 +1,4 @@
-hurry.resource
+Fanstatic
 **************
 
 Introduction
@@ -24,13 +24,13 @@ be functional. A widget may for instance expect a particular
 Javascript library to loaded. We call this an *inclusion requirement*
 of the component.
 
-``hurry.resource`` provides a simple API to specify resource
+``fanstatic`` provides a simple API to specify resource
 libraries, inclusion and inclusion requirements.
 
 A resource library
 ==================
 
-A hurry.resource Library takes two arguments: the name of the library
+A fanstatic Library takes two arguments: the name of the library
 as it should be published under in a URL and uniquely identify it, and
 a path to the root of the resources (rootpath) that this library
 publishes. In the ``mypackage``, which was installed during setup of
@@ -50,14 +50,14 @@ Entry points
 ============
 
 Libraries can be exposed for registration by whatever web framework
-that hurry.resource is integrated with. This web framework can then
+that fanstatic is integrated with. This web framework can then
 expose the library path on a URL somewhere. This is done using the
-``hurry.resource.libraries`` entry point. To register ``Library``
+``fanstatic.libraries`` entry point. To register ``Library``
 instances ``foo`` and ``bar`` in your package as entry points include
 a section like this in your ``setup.py``::
 
       entry_points={
-        'hurry.resource.libraries': [
+        'fanstatic.libraries': [
             'foo = mypackage.foomodule:foo',
             'bar = mypackage.barmodule:bar',
             ],
@@ -65,17 +65,16 @@ a section like this in your ``setup.py``::
 
 There is an API to help you obtain all registered libraries::
 
-  >>> from hurry.resource import libraries
-  >>> list(libraries())
-  [<hurry.resource.core.Library object at ...>]
+  >>> from fanstatic import library_registry
+  >>> library_registry.values()
+  [<fanstatic.core.Library object at ...>]
 
 A library can be looked-up by name as well::
 
-  >>> from hurry.resource import library_by_name
-  >>> library_by_name('foo')
-  <hurry.resource.core.Library object at ...>
+  >>> library_registry['foo']
+  <fanstatic.core.Library object at ...>
 
-  >>> library_by_name('bar')
+  >>> library_registry['bar']
   Traceback (most recent call last):
   ...
   KeyError: 'bar'
@@ -86,7 +85,7 @@ Inclusion
 We now create an inclusion of a particular resource in a library. This
 inclusion needs ``a.js`` from ``library`` and ``b.js`` as well::
 
-  >>> from hurry.resource import ResourceInclusion
+  >>> from fanstatic import ResourceInclusion
   >>> x1 = ResourceInclusion(foo, 'a.js')
   >>> x2 = ResourceInclusion(foo, 'b.css')
 
@@ -105,7 +104,7 @@ also needs a resource to be included in the page header.
 We have a special object that represents the needed inclusions during
 a certain request cycle::
 
-  >>> from hurry.resource import NeededInclusions
+  >>> from fanstatic import NeededInclusions
   >>> needed = NeededInclusions()
 
 We state that a resource is needed by calling the ``need`` method on
@@ -128,7 +127,7 @@ Grouping resources
 It is also possible to define a group that doesn't get rendered
 itself, but groups other resources together that should be rendered::
 
-  >>> from hurry.resource import GroupInclusion
+  >>> from fanstatic import GroupInclusion
   >>> group = GroupInclusion([x1, x2])
 
 When we need a group, we'll get all inclusions referenced in it::
@@ -172,7 +171,7 @@ So let's try out this spelling to see it fail::
 
 We get an error becasue we haven't initialized a NeededInclusions
 object yet. This is done by calling
-``hurry.resource.init_current_needed_inclusions()``. The
+``fanstatic.init_current_needed_inclusions()``. The
 NeededInclusions object will be thread local variable. This implies
 that the convenience API can only work for frameworks that use threads
 for isolating requests.
@@ -183,13 +182,13 @@ web page that has the inclusions on them.
 
 Let's initialize the NeededInclusions object::
 
-  >>> from hurry.resource import init_current_needed_inclusions
+  >>> from fanstatic import init_current_needed_inclusions
   >>> needed = init_current_needed_inclusions()
 
 There is an API to retrieve the current needed inclusions as well, so
 let's check which resources our request needs currently::
 
-  >>> from hurry.resource import get_current_needed_inclusions
+  >>> from fanstatic import get_current_needed_inclusions
   >>> get_current_needed_inclusions().inclusions()
   []
 
@@ -212,7 +211,7 @@ A note on optimization
 ======================
 
 There are various optimizations for resource inclusion that
-``hurry.resource`` supports. Because some optimizations can make
+``fanstatic`` supports. Because some optimizations can make
 debugging more difficult, the optimizations are disabled by default.
 
 We will summarize the optimization features here and tell you how to
@@ -233,12 +232,12 @@ enable them. Later sections below go into more details.
 * javascript inclusions at the bottom of the web page. If your
   framework integration uses the special ``render_topbottom`` method,
   you can enable the inclusion of javascript files at the bottom by
-  calling ``hurry.resource.bottom()``. This will only include
+  calling ``fanstatic.bottom()``. This will only include
   resources at the bottom that have explicitly declared themselves to
   be *bottom-safe*. XXX You can declare a resource bottom safe by passing
   ``bottom=True`` when constructing a ``ResourceInclusion``. If you
   want to force all javascript to be including at the bottom of the
-  page by default, you can call ``hurry.resource.bottom(force=True)``.
+  page by default, you can call ``fanstatic.bottom(force=True)``.
 
 To find out more about these and other optimizations, please read this
 `best practices article`_ that describes some common optimizations to
@@ -419,7 +418,7 @@ return its default resource instead::
   >>> needed.inclusions()
   [<ResourceInclusion 'k.js' in library 'foo'>]
 
-``hurry.resource`` suggests resource libraries follow the following
+``fanstatic`` suggests resource libraries follow the following
 conventions for modes:
 
   * default - the original source text, non-minified, and without any
@@ -440,8 +439,8 @@ mode is equal to the minified mode, like this::
   >>> example = ResourceInclusion(foo, 'k.js', minified='k.js')
 
 If the developer wants to debug, he will need to disable rolling up
-(by calling ``hurry.resource.rollup(disable=True)``, or by simply
-never calling ``hurry.resource.rollup()`` in the request cycle). XXX
+(by calling ``fanstatic.rollup(disable=True)``, or by simply
+never calling ``fanstatic.rollup()`` in the request cycle). XXX
 
 "Rollups"
 =========
@@ -957,19 +956,19 @@ that will serve as our WSGI application.
 
 We create a simple WSGI application. In our application we declare
 that we need a resource (``y1``) and put that in the WSGI ``environ``
-under the key ``hurry.resource.needed``::
+under the key ``fanstatic.needed``::
 
-  >>> import hurry.resource
+  >>> import fanstatic
   >>> def app(environ, start_response):
   ...    start_response('200 OK', [])
-  ...    needed = hurry.resource.get_current_needed_inclusions()
+  ...    needed = fanstatic.get_current_needed_inclusions()
   ...    needed.need(y1)
   ...    needed.base_url = 'http://testapp'
   ...    return ['<html><head></head><body</body></html>']
 
 We now wrap this in our middleware, so that the middleware is activated::
 
-  >>> from hurry.resource.inject import InjectMiddleWare
+  >>> from fanstatic.inject import InjectMiddleWare
   >>> wrapped_app = InjectMiddleWare(app)
 
 Now we make a request (using webob for convenience)::
@@ -1015,9 +1014,9 @@ resource inclusions::
   >>> i4 = ResourceInclusion(foo, 'i4.js', depends=[i1])
   >>> i5 = ResourceInclusion(foo, 'i5.js', depends=[i4, i3])
 
-  >>> from hurry.resource import generate_code
+  >>> from fanstatic import generate_code
   >>> print generate_code(i1=i1, i2=i2, i3=i3, i4=i4, i5=i5)
-  from hurry.resource import Library, ResourceInclusion
+  from fanstatic import Library, ResourceInclusion
   <BLANKLINE>
   foo = Library('foo', 'resources')
   <BLANKLINE>
@@ -1035,7 +1034,7 @@ Let's look at a more complicated example with modes and superseders::
   ...                            debug='giantj-debug.js')
 
   >>> print generate_code(j1=j1, j2=j2, giantj=giantj)
-  from hurry.resource import Library, ResourceInclusion
+  from fanstatic import Library, ResourceInclusion
   <BLANKLINE>
   foo = Library('foo', 'resources')
   <BLANKLINE>
@@ -1047,14 +1046,14 @@ We can control the name the inclusion will get in the source code by
 using keyword parameters::
 
   >>> print generate_code(hoi=i1)
-  from hurry.resource import Library, ResourceInclusion
+  from fanstatic import Library, ResourceInclusion
   <BLANKLINE>
   foo = Library('foo', 'resources')
   <BLANKLINE>
   hoi = ResourceInclusion(foo, 'i1.js')
 
   >>> print generate_code(hoi=i1, i2=i2)
-  from hurry.resource import Library, ResourceInclusion
+  from fanstatic import Library, ResourceInclusion
   <BLANKLINE>
   foo = Library('foo', 'resources')
   <BLANKLINE>
@@ -1070,7 +1069,7 @@ other reasons you would like to sort resource inclusions that come in
 some arbitrary order into one where the dependency relation makes
 sense, you can use ``sort_inclusions_topological``::
 
-  >>> from hurry.resource import sort_inclusions_topological
+  >>> from fanstatic import sort_inclusions_topological
 
 Let's make a list of resource inclusions not sorted by dependency::
 
@@ -1091,7 +1090,7 @@ that are simple functions registered per extension.
 
 Renderers are registered in the ``inclusion_renderers`` dictionary:
 
-  >>> from hurry.resource.core import inclusion_renderers
+  >>> from fanstatic.core import inclusion_renderers
   >>> sorted(inclusion_renderers)
   ['.css', '.js', '.kss']
 
@@ -1103,7 +1102,7 @@ Renderers render HTML fragments using given resource URL:
 Let's create an inclusion of unknown resource:
 
   >>> a6 = ResourceInclusion(foo, 'nothing.unknown')
-  >>> from hurry.resource.core import EXTENSIONS
+  >>> from fanstatic.core import EXTENSIONS
   >>> EXTENSIONS.append('.unknown')
 
   >>> needed = NeededInclusions()
@@ -1127,10 +1126,10 @@ Now let's add a renderer for our ".unknown" extension and try again:
 Resource publisher middleware
 =============================
 
-The hurry.resource.publisher is a WSGI component that publishes registered
+The fanstatic.publisher is a WSGI component that publishes registered
 resource libraries.
 
-  >>> from hurry.resource.publisher import Publisher
+  >>> from fanstatic.publisher import Publisher
   >>> from paste.fixture import TestApp
   >>> from paste.httpexceptions import HTTPNotFound
   >>> app = TestApp(Publisher())
