@@ -72,9 +72,6 @@ class LibraryRegistry(UserDict.DictMixin):
 
 library_registry = LibraryRegistry()
 
-def library_by_name(name):
-    return library_registry[name]
-
 class InclusionBase(object):
     pass
 
