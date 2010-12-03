@@ -9,6 +9,7 @@ Contents:
    intro
    quickstart
    concepts
+   paste_deploy
    api
 
 Indices and tables
