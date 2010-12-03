@@ -3,6 +3,9 @@ API Overview
 
 .. py:module:: fanstatic
 
+.. autoclass:: fanstatic.Library
+  :members:
+
 Library
 -------
 
@@ -103,6 +106,11 @@ ResourceInclusion
        the minified file). In this case :py:class:`ResourceInclusion`
        instance is constructed that has the same library as this
        inclusion.
+
+GroupInclusion
+--------------
+
+.. py:class:: GroupInclusion
 
 NeededInclusions
 ----------------
