@@ -3,11 +3,11 @@ from fanstatic.core import (library_registry,
                             ResourceInclusion,
                             GroupInclusion,
                             NeededInclusions,
-                            DEFAULT_SIGNATURE)
+                            DEFAULT_SIGNATURE,
+                            sort_inclusions_topological,
+                            sort_inclusions_by_extension)
 
-from fanstatic.core import (sort_inclusions_topological,
-                            sort_inclusions_by_extension,
-                            generate_code)
+from fanstatic.codegen import (generate_code)
 
 from fanstatic.core import (init_current_needed_inclusions,
                             get_current_needed_inclusions,
