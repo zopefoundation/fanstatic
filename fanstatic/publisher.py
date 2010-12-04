@@ -45,7 +45,8 @@ class Publisher(object):
 
     All static resources contained in the libraries will be published
     to the web. If a step prefixed with ``:hash:`` appears in the URL,
-    this will be automatically skipped.
+    this will be automatically skipped, and the HTTP response will
+    indicate the resource can be cached forever.
 
     This WSGI component is used automatically by the
     :py:func:`Fanstatic` WSGI framework component, but can also be

@@ -3,13 +3,28 @@ Developing Fanstatic
 
 You want to contribute to Fanstatic? Great!
 
+Please talk to us our on our :ref:`mailing list <mailing list>` about
+your plans!
+
+Sources
+-------
+
 Fanstatic's source code is maintained on bitbucket:
 http://bitbucket.org/fanstatic
 
-Please talk to us our on our :ref:`mailing list <mailing list>`.
+You can check out fanstatic using `Mercurial`_ (hg); see the bitbucket_
+documentation for more information as well.
 
-Feel free to fork Fanstatic if you want to hack on it, and send us a
-pull request when you want us to merge your improvements. 
+.. _`Mercurial`: http://mercurial.selenic.com/
+
+.. _`bitbucket`: http://bitbucket.org
+
+Feel free to fork Fanstatic on bitbucket if you want to hack on it,
+and send us a pull request when you want us to merge your
+improvements.
+
+Development install of Fanstatic
+--------------------------------
 
 Fanstatic requires Python 2.6. 
 
@@ -30,6 +45,9 @@ dependencies for Fanstatic.
 
 .. _Setuptools: http://pypi.python.org/pypi/setuptools
 
+Tests
+-----
+
 To run the tests::
 
   $ bin/py.test
@@ -39,6 +57,9 @@ to contribute. There are many examples of tests in the ``test_*.py``
 modules.
 
 .. _`py.test`: http://pytest.org/
+
+Building the documentation
+--------------------------
 
 To build the documentation using Sphinx_::
 
@@ -52,11 +73,23 @@ extracted from the Fanstatic source code. The docs source is in
 ``doc``, the built documentation will be available in
 ``doc/_build/html``.
 
-To get a Python prompt with Fanstatic importable (if you want to
-experiment on the command-line)::
+Python with Fanstatic on the sys.path
+-------------------------------------
+
+It's often useful to have a project and its dependencies available for
+import on a Python prompt for experimentation:
 
   $ bin/devpython
 
-You can also run scripts with this if you like::
+You can now import fanstatic::
 
-  $ bin/devpython fanstatictest.py
+  >>> import fanstatic
+
+You can also run your own scripts with this custom interpreter if you
+like::
+
+  $ bin/devpython somescript.py
+
+This can be useful for quick experimentation. When you want to use
+Fanstatic in your own projects you would normally include it in your
+project's ``setup.py`` dependencies instead.

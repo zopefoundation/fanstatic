@@ -19,6 +19,17 @@ Python way, along these lines::
      foo/
        __init__.py
 
+Making Fanstatic available in your project
+------------------------------------------
+
+In order to be able to import from ``fanstatic`` in your project,
+you need to make it available first. The standard way is to include it
+in ``setup.py``, like this::
+
+    install_requires=[
+        'fanstatic',
+    ]
+
 Adding the resource directory
 -----------------------------
 
