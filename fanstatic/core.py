@@ -331,10 +331,29 @@ class NeededInclusions(object):
       the bottom of a web page, even if they aren't marked bottom
       safe.
 
+    :param mode: A string that indicates the mode. A resource may
+      exist in certain different alternative forms, such as ``minified``,
+      ``debug``, etc. This specifies which alternative to prefer (if
+      available). By default and if not available the "main" (non-named)
+      mode alternative of the resource will be served.
+      
+    :param rollup: If set to True (default is False) rolled up
+      combined resources will be served if they exist and supersede
+      existing resources that are needed.
+    
     :param base_url: This URL will be prefixed in front of all resource
       URLs. This can be useful if your web framework wants the resources
       to be published on a sub-URL. Note that this can also be set
       as an attribute on an ``NeededInclusions`` instance.
+
+    :param publisher_signature: The name under which resource libraries
+      should be served in the URL. By default this is ``fanstatic``, so
+      URLs to resources will start with ``/fanstatic/``.
+
+    :param inclusions: Optionally, a list of resources we want to
+      include. Normally you specify resources to include by calling
+      ``.need()`` on them, or alternatively by calling ``.need()``
+      on an instance of this class.
       
     """
 
@@ -353,23 +372,23 @@ class NeededInclusions(object):
                  devmode=False,
                  bottom=False,
                  force_bottom=False,
-                 base_url='',
-                 inclusions=None,
                  mode=None,
-                 publisher_signature=DEFAULT_SIGNATURE,
                  rollup=False,
+                 base_url='',
+                 publisher_signature=DEFAULT_SIGNATURE,
+                 inclusions=None,
                  ):
-        self.base_url = base_url
-
-        self._devmode = devmode
         self._hashing = hashing
+        self._devmode = devmode
         self._bottom = bottom
         self._force_bottom = force_bottom
-        self._inclusions = inclusions or []
         self._mode = mode
+        self.base_url = base_url
         self._publisher_signature = publisher_signature
         self._rollup = rollup
 
+        self._inclusions = inclusions or []
+              
     def has_inclusions(self):
         """Returns True if any inclusions are needed.
         """
