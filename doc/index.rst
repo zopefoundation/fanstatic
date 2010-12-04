@@ -10,6 +10,7 @@ Contents:
    quickstart
    library
    concepts
+   configuration
    paste_deploy
    api
    community
