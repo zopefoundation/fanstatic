@@ -1,5 +1,5 @@
-Welcome to Fanstatic's documentation!
-=====================================
+Fanstatic: Resource publishing for Pythonistas
+==============================================
 
 Contents:
 
@@ -11,6 +11,7 @@ Contents:
    concepts
    paste_deploy
    api
+   development.rst
 
 Indices and tables
 ==================
