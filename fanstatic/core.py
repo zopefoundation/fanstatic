@@ -303,10 +303,10 @@ def normalize_inclusion(library, inclusion):
 
 class NeededInclusions(object):
     """The current selection of needed inclusions.
-
+    
     The ``NeededInclusions`` instance maintains a set of needed
     inclusions for a particular web page.
-
+    
     :param hashing: If ``True``, Fanstatic will automatically include
       a hash in all URLs pointing to resources. Since the hash will change
       when you update a resource, the URLs can both be infinitely cached
@@ -336,7 +336,6 @@ class NeededInclusions(object):
       to be published on a sub-URL. Note that this can also be set
       as an attribute on an ``NeededInclusions`` instance.
       
-
     """
 
     base_url = None
@@ -447,8 +446,7 @@ class NeededInclusions(object):
         HTML ((``<script>`` and ``<link>`` tags), suitable for
         inclusion on a web page.
         
-        :param inclusions: A list of :py:class:`ResourceInclusion`
-        instances.
+        :param inclusions: A list of :py:class:`ResourceInclusion` instances.
         """
         result = []
         url_cache = {} # prevent multiple computations for a library in one request

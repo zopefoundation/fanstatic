@@ -3,13 +3,24 @@ from paste.util.converters import asbool
 import fanstatic
 from fanstatic import Inject, Delegator, Publisher, library_registry
 
-def Fanstatic(app, **config):
+def Fanstatic(app,
+              publisher_signature=fanstatic.DEFAULT_SIGNATURE,
+              **config):
+    """Fanstatic WSGI framework component.
+
+    :param app: The WSGI app to wrap with Fanstatic.
+    
+    :param publisher_signature: Optional argument to define the
+      signature of the publisher in a URL. The default is ``fanstatic``.
+      
+    :param ``**config``: Optional keyword arguments. These are
+      those passed to :py:class:`NeededInclusions`.
+    """
     # wrap the app inside the inject middleware, inside the publisher
     # middleware.
-    signature = config.get('publisher_signature', fanstatic.DEFAULT_SIGNATURE)
     return Delegator(Inject(app, **config),
                      Publisher(library_registry.values()),
-                     publisher_signature=signature)
+                     publisher_signature=publisher_signature)
 
 def make_fanstatic(app, global_config, **local_config):
     devmode = local_config.get('devmode')
