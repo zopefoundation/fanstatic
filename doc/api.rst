@@ -9,6 +9,11 @@ Fanstatic
 
 .. autofunction:: fanstatic.Fanstatic
 
+Injector
+--------
+
+.. autoclass:: fanstatic.Injector
+
 Library
 -------
 

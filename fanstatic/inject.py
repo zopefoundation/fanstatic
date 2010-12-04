@@ -5,13 +5,19 @@ from paste.util.converters import asbool
 
 import fanstatic
 
-# TODO: would be nice to make middleware smarter so it could work with
-# a streamed HTML body instead of serializing it out to body. That
-# would complicate the middleware signicantly, however. We would for
-# instance need to recalculate content_length ourselves.
+class Injector(object):
+    """Fanstatic injector WSGI framework component.
 
-class Inject(object):
+    This WSGI component takes care of injecting the proper inclusions
+    into HTML when needed. This is used automatically by the
+    :py:function:`Fanstatic` WSGI framework component, but can
+    also be used independently if you need more control.
+    
+    :param app: The WSGI app to wrap with the injector.
 
+    :param ``**config``: Optional keyword arguments. These are
+      passed to :py:class:`NeededInclusions` when it is constructed.
+    """
     def __init__(self, app, **config):
         self.application = app
 
@@ -61,4 +67,4 @@ def make_inject(app, global_config, **local_config):
     bottom = local_config.get('bottom')
     if bottom is not None:
         local_config['bottom'] = asbool(bottom)
-    return Inject(app, **local_config)
+    return Injector(app, **local_config)

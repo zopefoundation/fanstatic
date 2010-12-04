@@ -1,7 +1,7 @@
 from paste.util.converters import asbool
 
 import fanstatic
-from fanstatic import Inject, Delegator, Publisher, library_registry
+from fanstatic import Injector, Delegator, Publisher, library_registry
 
 def Fanstatic(app,
               publisher_signature=fanstatic.DEFAULT_SIGNATURE,
@@ -14,11 +14,11 @@ def Fanstatic(app,
       signature of the publisher in a URL. The default is ``fanstatic``.
       
     :param ``**config``: Optional keyword arguments. These are
-      those passed to :py:class:`NeededInclusions`.
+      passed to :py:class:`NeededInclusions` when it is constructed.
     """
     # wrap the app inside the inject middleware, inside the publisher
     # middleware.
-    return Delegator(Inject(app, **config),
+    return Delegator(Injector(app, **config),
                      Publisher(library_registry.values()),
                      publisher_signature=publisher_signature)
 

@@ -17,7 +17,7 @@ from fanstatic.core import (init_current_needed_inclusions,
                             EXTENSIONS,
                             NEEDED)
 
-from fanstatic.inject import Inject
+from fanstatic.inject import Injector
 
 from fanstatic.publisher import Delegator, Publisher
 

@@ -5,26 +5,26 @@ import webob
 from fanstatic import (Library, ResourceInclusion,
                        init_current_needed_inclusions,
                        get_current_needed_inclusions)
-from fanstatic import Inject
+from fanstatic import Injector
 
 from fanstatic import checksum
 
 def test_incorrect_configuration_options():
     app = None
     with py.test.raises(TypeError) as e:
-        Inject(app, incorrect='configoption')
+        Injector(app, incorrect='configoption')
     assert (
         "NeededInclusions got an unexpected "
         "keyword argument 'incorrect'") in str(e)
 
     with py.test.raises(TypeError) as e:
-        Inject(app, mode='qux', incorrect='configoption')
+        Injector(app, mode='qux', incorrect='configoption')
     assert (
         "NeededInclusions got an unexpected "
         "keyword argument 'incorrect'") in str(e)
 
     with py.test.raises(TypeError) as e:
-        Inject(app, mode='qux', incorrect='configoption', devmode=True)
+        Injector(app, mode='qux', incorrect='configoption', devmode=True)
     assert (
         "NeededInclusions got an unexpected "
         "keyword argument 'incorrect'") in str(e)
@@ -42,7 +42,7 @@ def test_inject():
         needed.base_url = 'http://testapp'
         return ['<html><head></head><body</body></html>']
 
-    wrapped_app = Inject(app)
+    wrapped_app = Injector(app)
 
     request = webob.Request.blank('/')
     response = request.get_response(wrapped_app)
@@ -66,7 +66,7 @@ def test_no_inject_into_non_html():
         needed.base_url = 'http://testapp'
         return ['<html><head></head><body</body></html>']
 
-    wrapped_app = Inject(app)
+    wrapped_app = Injector(app)
 
     request = webob.Request.blank('/')
     response = request.get_response(wrapped_app)
