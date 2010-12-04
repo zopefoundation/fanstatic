@@ -1,5 +1,6 @@
 import inspect
 import webob
+import webob.dec
 from paste.util.converters import asbool
 
 import fanstatic
@@ -33,23 +34,22 @@ class Inject(object):
                 "signature_checker()", fanstatic.NeededInclusions.__name__)
             raise TypeError(message)
 
-    def __call__(self, environ, start_response):
+    @webob.dec.wsgify
+    def __call__(self, request):
         needed = fanstatic.init_current_needed_inclusions(**self.config)
 
         # Get the response from the wrapped application:
-        request = webob.Request(environ)
         response = request.get_response(self.application)
 
-        # Post-process the response:
         # We only continue if the content-type is appropriate.
         if not response.content_type.lower() in ['text/html', 'text/xml']:
-            return response(environ, start_response)
+            return response
 
         # The wrapped application may have left information in the environment
         # about needed inclusions.
-        if len(needed):
+        if needed.has_inclusions():
             response.body = needed.render_topbottom_into_html(response.body)
-        return response(environ, start_response)
+        return response
 
 def make_inject(app, global_config, **local_config):
     devmode = local_config.get('devmode')

@@ -371,8 +371,10 @@ class NeededInclusions(object):
         self._publisher_signature = publisher_signature
         self._rollup = rollup
 
-    def __len__(self):
-        return len(self._inclusions)
+    def has_inclusions(self):
+        """Returns True if any inclusions are needed.
+        """
+        return bool(self._inclusions)
 
     def need(self, inclusion):
         """Add a particular inclusion to the needed inclusions.

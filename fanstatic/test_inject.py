@@ -73,5 +73,6 @@ def test_no_inject_into_non_html():
     assert response.body == '<html><head></head><body</body></html>'
 
 def test_hash_inject():
+    # XXX
     pass
 
