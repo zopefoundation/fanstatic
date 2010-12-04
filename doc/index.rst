@@ -10,6 +10,7 @@ Contents:
    quickstart
    library
    concepts
+   optimization
    configuration
    paste_deploy
    api

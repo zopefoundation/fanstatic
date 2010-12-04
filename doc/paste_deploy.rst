@@ -1,5 +1,3 @@
-.. _`paste deploy`:
-
 Fanstatic with Paste Deployment
 ===============================
 

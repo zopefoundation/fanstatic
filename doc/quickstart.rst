@@ -6,8 +6,8 @@ a web application.
 
 In this example, we will use Python to hook up Fanstatic to your WSGI
 application, but you could also use a WSGI configuration framework
-like `Paste Deploy`_. For more information about this, see :ref:`our
-Paste Deploy documentation <paste deploy>`.
+like `Paste Deploy`_. For more information about this, see :doc:`our
+Paste Deploy documentation <paste_deploy>`.
 
 .. _`Paste Deploy`: http://pythonpaste.org/deploy/
 

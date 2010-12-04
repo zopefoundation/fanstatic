@@ -6,8 +6,8 @@ Configuration options
 Fanstatic makes available a number of configuration options. These can
 be passed to the py:class:`Fanstatic` WSGI component as keyword
 arguments.  They can also be configured using `Paste Deploy`_
-configuration patterns (see :ref:`our Paste Deploy documentation
-<paste deploy>` for more information on that).
+configuration patterns (see :doc:`our Paste Deploy documentation
+<paste_deploy>` for more information on that).
 
 .. _`Paste Deploy`: http://pythonpaste.org/deploy/
 
@@ -97,6 +97,40 @@ If you enable ``force_bottom`` (default it's disabled) then if you
 enable ``bottom``, *all* Javascript resources will be included at the
 bottom of a web page, even if they're not marked "bottom safe".
 
+mode
+----
+
+By default, the resource URLs included will be in the normal
+human-readable (and debuggable) format for that resource.
+
+When creating :py:class:`ResourceInclusion` instances, you can specify
+alternative modes for the resource, such as minified and debug
+versions, by passing keyword arguments. The keyword argument name will
+be the mode, and the argument is a resource path or resource inclusion
+that represents the resource in that alternative mode.
+
+You can configure Fanstatic so that it prefers a certain mode when
+creating resource URLs, such as ``minified``. In this case Fanstatic
+will preferentially serve minified alternatives for resources, if
+available. If no minified version is available, the default resource
+will be served.
+
+rollup
+------
+
+A performance optimization to reduce the amount of requests sent by a
+client is to roll up several resources into a bundle, so that all
+those resources are retrieved in a single request. This way a whole
+collection of resources can be served in one go.
+
+You can create special :py:class:`ResourceInclusion` instances that
+declare they supersede a collection of other resources. If ``rollup``
+is enabled, Fanstatic will serve a combined resource if it finds out
+that all individual resources that it supersedes are needed. If you
+also declare that a resource is an ``eager_superseder``, the rolled up
+resource will actually always be served, even if only some of the
+superseded resources are needed.
+
 base_url
 --------
 
@@ -106,7 +140,17 @@ be published on a sub-URL. By default, there is no ``base_url``, and
 resources are served in the script root.
 
 Note that this can also be set as an attribute on an
-:py:class:`NeededInclusions`` instance during run-time, as this URL is
+:py:class:`NeededInclusions` instance during run-time, as this URL is
 generally not known when :py:class:`NeededInclusions` is instantiated.
 
 .. [#well] Well, for 10 years into the future at least.
+
+publisher_signature
+-------------------
+
+The default publisher signature is ``fanstatic``. What this means is
+that the :py:func:`Fanstatic` WSGI component will look for the string
+``/fanstatic/`` in the URL path, and if it's there, will take over to
+publish resources. If you would like the root for resource publication
+to be something else in your application (such as ``resources``), you
+can change this to another string.
