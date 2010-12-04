@@ -426,13 +426,65 @@ def test_rendering_base_url_assign():
 <script type="text/javascript" src="http://localhost/static/fanstatic/foo/a.js"></script>
 <script type="text/javascript" src="http://localhost/static/fanstatic/foo/c.js"></script>'''
 
-def test_rendering_publisher_signature():
+
+def test_library_url_default_publisher_signature():
+    foo = Library('foo', '')
+
+    needed = NeededInclusions()
+
+    assert needed.library_url(foo) == '/fanstatic/foo'
+    
+def test_library_url_publisher_signature():
     foo = Library('foo', '')
 
     needed = NeededInclusions(publisher_signature='waku')
 
     assert needed.library_url(foo) == '/waku/foo'
 
+def test_library_url_base_url():
+    foo = Library('foo', '')
+
+    needed = NeededInclusions(base_url="http://example.com/something")
+
+    assert (needed.library_url(foo) ==
+            'http://example.com/something/fanstatic/foo')
+
+def test_library_url_hashing(tmpdir):
+    foo = Library('foo', tmpdir.strpath)
+
+    needed = NeededInclusions(hashing=True)
+
+    assert (needed.library_url(foo) ==
+            '/fanstatic/foo/:hash:d41d8cd98f00b204e9800998ecf8427e')
+
+def test_library_url_hashing_nodevmode(tmpdir):
+    foo = Library('foo', tmpdir.strpath)
+
+    needed = NeededInclusions(hashing=True)
+
+    url = needed.library_url(foo)
+
+    # now create a file
+    resource = tmpdir.join('test.js')
+    resource.write('/* test */')
+
+    # since we're not in devmode, the hash in the URL won't change
+    assert needed.library_url(foo) == url
+    
+def test_library_url_hashing_devmode(tmpdir):
+    foo = Library('foo', tmpdir.strpath)
+
+    needed = NeededInclusions(hashing=True, devmode=True)
+
+    url = needed.library_url(foo)
+
+    # now create a file
+    resource = tmpdir.join('test.js')
+    resource.write('/* test */')
+
+    # in devmode the hash is recalculated now, so it changes
+    assert needed.library_url(foo) != url
+    
 def test_html_insert():
     foo = Library('foo', '')
     x1 = ResourceInclusion(foo, 'a.js')

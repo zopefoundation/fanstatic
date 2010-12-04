@@ -419,9 +419,9 @@ class NeededInclusions(object):
         :param library: A :py:class:`Library` instance.
         """
         segments = [self.base_url, self._publisher_signature]
+        segments.append(library.name)
         if self._hashing:
             segments.append(library.signature(devmode=self._devmode))
-        segments.append(library.name)
         result = segments.pop(0)
         for segment in segments:
             if not result.endswith('/'):

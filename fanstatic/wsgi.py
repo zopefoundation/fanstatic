@@ -1,13 +1,15 @@
 from paste.util.converters import asbool
 
 import fanstatic
+from fanstatic import Inject, Delegator, Publisher, library_registry
 
 def Fanstatic(app, **config):
-    # Wrap the app inside the inject middleware, inside the publisher
+    # wrap the app inside the inject middleware, inside the publisher
     # middleware.
-    inject = fanstatic.Inject(app, **config)
     signature = config.get('publisher_signature', fanstatic.DEFAULT_SIGNATURE)
-    return fanstatic.Delegator(inject, publisher_signature=signature)
+    return Delegator(Inject(app, **config),
+                     Publisher(library_registry.values()),
+                     publisher_signature=signature)
 
 def make_fanstatic(app, global_config, **local_config):
     devmode = local_config.get('devmode')
