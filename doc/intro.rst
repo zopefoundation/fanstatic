@@ -1,18 +1,24 @@
 Introduction
 ============
 
-Fanstatic is a small but powerful framework, written in Python, for
-the automatic publication of resources on a web page. Think Javascript
-and CSS. It just serves static content, but it does it really well.
+Fanstatic is a small but powerful framework for the automatic
+publication of resources on a web page. Think Javascript and CSS. It
+just serves static content, but it does it really well.
 
-Can you use it in your project? Yes: Fanstatic is web-framework
-agnostic, and will work with any web framework that supports WSGI.
+Can you use it in your project? If you use Python_, yes: Fanstatic is
+web-framework agnostic, and will work with any web framework that
+supports WSGI_.
+
+.. _Python: http://www.python.org
+
+.. _WSGI: http://wsgi.org/wsgi/
 
 Why would you need something like Fanstatic? Can't you just add your
-resources to some statically served directory and forget about them?
-For small projects this is certainly sufficient. But so much more is
-possible in this modern Javascript-heavy world. Fanstatic is able to
-offer a lot of powerful features for projects both small and large.
+static resources to some statically served directory and forget about
+them?  For small projects this is certainly sufficient. But so much
+more is possible and useful in this modern Javascript-heavy
+world. Fanstatic is able to offer a lot of powerful features for
+projects both small and large.
 
 Fanstatic has a lot of cool features:
 
