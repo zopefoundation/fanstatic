@@ -1,5 +1,5 @@
-Fanstatic API
-=============
+API
+===
 
 .. py:module:: fanstatic
 
@@ -16,8 +16,8 @@ WSGI components
 
 .. autoclass:: fanstatic.Delegator
 
-Fanstatic API
--------------
+Python components
+-----------------
 
 .. autoclass:: fanstatic.Library
   :members:

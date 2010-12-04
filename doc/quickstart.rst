@@ -1,32 +1,39 @@
 Fanstatic Quickstart
 ====================
 
-This quickstart will demonstrate how to integrate Fanstatic into a very
-simple web application.
+This quickstart will demonstrate how you can integrate Fanstatic with
+a web application.
 
-A simple WSGI application here will stand in for your web
-application. In this example, we will use Python to hook up Fanstatic
-to the WSGI application, but you could also use a WSGI configuration
-framework like `Paste Deploy`_.
+In this example, we will use Python to hook up Fanstatic to your WSGI
+application, but you could also use a WSGI configuration framework
+like `Paste Deploy`_. For more information about this, see :ref:`our
+Paste Deploy documentation <paste deploy>`.
 
 .. _`Paste Deploy`: http://pythonpaste.org/deploy/
 
-This is our application::
+A simple WSGI application
+-------------------------
+
+A simple WSGI application will stand in for your web application::
 
     def app(environ, start_response):
         start_response('200 OK', [])
         return ['<html><head></head><body</body></html>']
 
-As you can see, it simply produces the following web page::
+As you can see, it simply produces the following web page, no
+matter what kind of request it receives::
 
   <html><head></head><body</body></html>
+
+Including resources without Fanstatic
+-------------------------------------
 
 Let's say we want to start using jQuery in this application. The way
 to do this without Fanstatic would be:
 
-* download jQuery somewhere and install it into your web server, or
-  alternatively use a URL to jQuery already published somewhere on the
-  web using a content distribution network (CDN).
+* download jQuery somewhere and publish it somewhere as a static
+  resource. Alternatively use a URL to jQuery already published
+  somewhere on the web using a content distribution network (CDN).
 
 * modify the ``<head>`` section of the HTML in your code to add a
   ``<script>`` tag that references jQuery, in all HTML pages that need
@@ -40,6 +47,9 @@ yourself juggling HTML templates with lots of ``<script>`` tags,
 puzzling over what depends on what, and organizing a large variety of
 static resources.
 
+Including resources with Fanstatic
+----------------------------------
+
 How would we do this with Fanstatic? Like this::
 
     from js.jquery import jquery
@@ -49,13 +59,22 @@ How would we do this with Fanstatic? Like this::
         jquery.need()
         return ['<html><head></head><body</body></html>']
 
-You also need to make sure that ``js.jquery`` is available in your
+You need to make sure that ``js.jquery`` is available in your
 project using a familiar Python library installation system such as
-pip, easy_install or buildout. This will automatically make the
-Javascript code available on your system.
+`pip`_, `easy_install`_ or `buildout`_. This will automatically make
+the Javascript code available on your system.
 
-You also need to configure your application so that Fanstatic can do two
-things for you:
+.. _pip: http://pip.openplans.org/
+
+.. _easy_install: http://packages.python.org/distribute/easy_install.html
+
+.. _buildout: http://buildout.org
+
+Wrapping your app with Fanstatic
+--------------------------------
+
+To use Fanstatic, you need to configure your application so that
+Fanstatic can do two things for you:
 
 * automatically inject resource
   inclusion requirements (the ``<script>`` tag) into your web page.

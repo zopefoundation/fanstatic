@@ -8,6 +8,7 @@ Contents:
 
    intro
    quickstart
+   library
    concepts
    paste_deploy
    api

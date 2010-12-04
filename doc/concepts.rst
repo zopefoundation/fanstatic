@@ -1,12 +1,19 @@
 Concepts
 ========
 
-To understand Fanstatic, we first need to get a few concepts straight.
+To understand Fanstatic, it's useful to understand the following
+concepts.
+
+Library
+-------
 
 Static resources are files that are used in the display of a web page,
 such as CSS files, Javascript files and images. Often resources are
 packaged as a collection of resources; we call this a *library* of
 resources.
+
+Resource inclusions
+-------------------
 
 Resources can be included in a web page in several ways, by including
 them on the web page. We call this a *resource inclusion*. The most
@@ -36,6 +43,9 @@ on the page as well in order to work.
 Fanstatic takes care of inserting these inclusions on your web page
 for you. It makes sure that inclusions with dependencies have their
 dependencies loaded as well.
+
+Inclusion requirements
+----------------------
 
 How do you tell Fanstatic that you'd like to include jQuery on a web
 page? You do this by making an *inclusion requirement* in Python: you
