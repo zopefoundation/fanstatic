@@ -93,3 +93,13 @@ like::
 This can be useful for quick experimentation. When you want to use
 Fanstatic in your own projects you would normally include it in your
 project's ``setup.py`` dependencies instead.
+
+Releases
+--------
+
+The buildout also installs `zest.releaser`_ which can be used to make
+automatic releases to PyPI (using ``bin/fullrelease``).
+
+.. _`zest.releaser`: http://pypi.python.org/pypi/zest.releaser
+
+
