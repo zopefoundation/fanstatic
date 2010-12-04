@@ -57,29 +57,23 @@ Javascript code available on your system.
 You also need to configure your application so that Fanstatic can do two
 things for you:
 
-* automatically inject resource inclusion requirements (the
-  ``<script>`` tag) into your web page.
+* automatically inject resource
+  inclusion requirements (the ``<script>`` tag) into your web page.
 
-* serve jQuery itself when a resource request is made.
+* serve the static resources (such as jQuery.js) when a request to a
+  resource is made.
 
-You do this using two WSGI framework components that Fanstatic provides::
-
-* the injector injects the inclusion requirements into the HTML.
-
-* the delegator makes sure that resource requests are handled appropriately:
-  the resources are served!
-
-Fanstatic bundles these up as a single WSGI framework component called
-``Fanstatic``. Here is how you use it::
+Fanstatic provides a WSGI framework component called ``Fanstatic``
+that does both of these things for you. Here is how you use it::
 
   from fanstatic import Fanstatic
   
   fanstatic_app = Fanstatic(app)
 
 When you use ``fanstatic_app``, Fanstatic will take of serving static
-resources for you, and including them on the web page. You can import
-and ``need`` resources all through your application, and Fanstatic
-will make sure that they are served correctly and that the right
-script tags appear on your web page.
+resources for you, and includes them on web pages when needed. You can
+import and ``need`` resources all through your application's code, and
+Fanstatic will make sure that they are served correctly and that the
+right script tags appear on your web page.
 
 Now you're off and running with Fanstatic!
