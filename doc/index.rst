@@ -11,7 +11,8 @@ Contents:
    concepts
    paste_deploy
    api
-   development.rst
+   community
+   development
 
 Indices and tables
 ==================

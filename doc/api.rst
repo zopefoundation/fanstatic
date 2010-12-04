@@ -1,39 +1,32 @@
-API Overview
-============
+Fanstatic API
+=============
 
 .. py:module:: fanstatic
 
-
-Fanstatic
----------
+WSGI components
+---------------
 
 .. autofunction:: fanstatic.Fanstatic
 
-Injector
---------
-
 .. autoclass:: fanstatic.Injector
 
-Library
--------
+.. autoclass:: fanstatic.Publisher
+
+.. autoclass:: fanstatic.DirectoryPublisher
+
+.. autoclass:: fanstatic.Delegator
+
+Fanstatic API
+-------------
 
 .. autoclass:: fanstatic.Library
   :members:
 
-ResourceInclusion
------------------
-
 .. autoclass:: fanstatic.ResourceInclusion
   :members:
-  
-GroupInclusion
---------------
 
 .. autoclass:: fanstatic.GroupInclusion
   :members:
-
-NeededInclusions
-----------------
 
 .. autoclass:: fanstatic.NeededInclusions
   :members:

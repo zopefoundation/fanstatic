@@ -9,9 +9,11 @@ class Injector(object):
     """Fanstatic injector WSGI framework component.
 
     This WSGI component takes care of injecting the proper inclusions
-    into HTML when needed. This is used automatically by the
-    :py:function:`Fanstatic` WSGI framework component, but can
-    also be used independently if you need more control.
+    into HTML when needed.
+
+    This WSGI component is used automatically by the
+    :py:func:`Fanstatic` WSGI framework component, but can also be
+    used independently if you need more control.
     
     :param app: The WSGI app to wrap with the injector.
 

@@ -15,6 +15,20 @@ YEAR_IN_SECONDS = DAY_IN_SECONDS * 365
 FOREVER = YEAR_IN_SECONDS * 10
 
 class DirectoryPublisher(DirectoryApp):
+    """Fanstatic directory publisher WSGI application.
+
+    This WSGI application serves a directory of static resources to
+    the web.
+
+    Files or directories that start with a period (``.``) won't be
+    served.
+
+    This WSGI component is used automatically by the
+    :py:func:`Fanstatic` WSGI framework component, but can also be
+    used independently if you need more control.
+
+    :param path: The path to the library's directory on the filesystem.
+    """
     def __call__(self, environ, start_response):
         path_info = environ['PATH_INFO']
         for segment in path_info.split('/'):
@@ -23,6 +37,23 @@ class DirectoryPublisher(DirectoryApp):
         return DirectoryApp.__call__(self, environ, start_response)
     
 class Publisher(object):
+    """Fanstatic publisher WSGI application.
+
+    This WSGI application serves Fanstatic :py:class:`Library`
+    instances. Libraries are published as
+    ``<library_name>/<optional_hash>/path/to/resource.js``.
+
+    All static resources contained in the libraries will be published
+    to the web. If a step prefixed with ``:hash:`` appears in the URL,
+    this will be automatically skipped.
+
+    This WSGI component is used automatically by the
+    :py:func:`Fanstatic` WSGI framework component, but can also be
+    used independently if you need more control.
+
+    :param libraries: a list of :py:class:`Library` instances with those
+      resource libraries that should be published.
+    """
     def __init__(self, libraries):
         directory_publishers = {}
         for library in libraries:
@@ -59,6 +90,27 @@ class Publisher(object):
         return response
 
 class Delegator(object):
+    """Fanstatic delegator WSGI framework component.
+
+    This WSGI component recognizes URLs that point to Fanstatic
+    libraries, and delegates them to the :py:class:`Publisher` WSGI
+    application.
+
+    In order to recognize such URLs it looks for occurrences of the
+    ``publisher_signature`` parameter as a URL step. By default
+    it looks for ``/fanstatic/``.
+
+    This WSGI component is used automatically by the
+    :py:func:`Fanstatic` WSGI framework component, but can also be
+    used independently if you need more control.
+
+    :param app: The WSGI app to wrap with the delegator.
+
+    :param publisher: An instance of the :py:class:`Publisher` component.
+
+    :param publisher_signature: Optional argument to define the
+      signature of the publisher in a URL. The default is ``fanstatic``.
+    """
     def __init__(self, app, publisher,
                  publisher_signature=fanstatic.DEFAULT_SIGNATURE):
         self.app = app

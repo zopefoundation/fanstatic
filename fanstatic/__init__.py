@@ -19,7 +19,7 @@ from fanstatic.core import (init_current_needed_inclusions,
 
 from fanstatic.injector import Injector
 
-from fanstatic.publisher import Delegator, Publisher
+from fanstatic.publisher import Delegator, Publisher, DirectoryPublisher
 
 from fanstatic.wsgi import Fanstatic
 

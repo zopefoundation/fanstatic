@@ -3,16 +3,13 @@ Developing Fanstatic
 
 You want to contribute to Fanstatic? Great!
 
-Please talk to us on the Fanstatic mailing list:
-fanstatic@googlegroups.com
-
-To join us, see: https://groups.google.com/group/fanstatic
-
 Fanstatic's source code is maintained on bitbucket:
 http://bitbucket.org/fanstatic
 
+Please talk to us our on our :ref:`mailing list <mailing list>`.
+
 Feel free to fork Fanstatic if you want to hack on it, and send us a
-pull request.
+pull request when you want us to merge your improvements. 
 
 Fanstatic requires Python 2.6. 
 
@@ -33,7 +30,7 @@ dependencies for Fanstatic.
 
 .. _Setuptools: http://pypi.python.org/pypi/setuptools
 
-To run the tests:
+To run the tests::
 
   $ bin/py.test
 
@@ -43,7 +40,7 @@ modules.
 
 .. _`py.test`: http://pytest.org/
 
-To build the documentation using Sphinx_:
+To build the documentation using Sphinx_::
 
   $ bin/sphinxbuilder
 
