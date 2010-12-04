@@ -22,7 +22,7 @@ buildout::
  $ python bootstrap.py -d
  $ bin/buildout
 
-This uses Buildout_. Don't worry, that's all you need to go to get
+This uses Buildout_. Don't worry, that's all you need to know to get
 going. The ``-d`` option is to use Distribute_ instead of Setuptools_
 and is optional. The buildout process will download and install all
 dependencies for Fanstatic.
