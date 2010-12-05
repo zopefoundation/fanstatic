@@ -1,8 +1,8 @@
-Fanstatic Quickstart
-====================
+Quickstart
+==========
 
 This quickstart will demonstrate how you can integrate Fanstatic with
-a web application.
+a WSGI-based web application.
 
 In this example, we will use Python to hook up Fanstatic to your WSGI
 application, but you could also use a WSGI configuration framework

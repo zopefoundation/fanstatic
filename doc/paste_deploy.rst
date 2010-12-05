@@ -1,9 +1,9 @@
-Fanstatic with Paste Deployment
-===============================
+Paste Deployment
+================
 
 Fanstatic has support for `Paste Deployment`_, a system for
 configuring WSGI applications and servers. You can configure the
-Fanstatic WSGI components using Paste Deploy.
+Fanstatic WSGI component using Paste Deploy.
 
 XXX example goes here.
 

@@ -8,8 +8,8 @@ Contents:
 
    intro
    quickstart
-   library
    concepts
+   library
    optimization
    configuration
    paste_deploy
