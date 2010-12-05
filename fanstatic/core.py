@@ -420,7 +420,8 @@ class NeededInclusions(object):
         for inclusion in self._inclusions:
             inclusions.extend(inclusion.inclusions())
 
-        inclusions = apply_mode(inclusions, self._mode)
+        inclusions = [inclusion.mode(self._mode) for inclusion in inclusions]
+
         if self._rollup:
             inclusions = consolidate(inclusions)
         # sort only by extension, not dependency, as we can rely on
@@ -558,9 +559,6 @@ def get_current_needed_inclusions():
         raise NoNeededInclusions('No NeededInclusions object initialized.')
     return needed
 
-def apply_mode(inclusions, mode):
-    return [inclusion.mode(mode) for inclusion in inclusions]
-
 def remove_duplicates(inclusions):
     """Given a set of inclusions, consolidate them so each only occurs once.
     """
@@ -661,4 +659,3 @@ def render_inclusion(inclusion, url):
             "Unknown resource extension %s for resource inclusion: %s" %
             (inclusion.ext(), repr(inclusion)))
     return renderer(url)
-
