@@ -7,6 +7,9 @@ Fanstatic has support for `Paste Deployment`_, a system for
 configuring WSGI applications and servers. You can configure the
 Fanstatic WSGI components using Paste Deploy.
 
+Fanstatic middleware
+--------------------
+
 Assuming you have configured you application with Paste, you will
 already have a configuration ``.ini`` file, say ``deploy.ini``. You
 can now wrap your application in the :py:func:`Fanstatic` middleware
@@ -71,9 +74,12 @@ A complete ``[filter:fanstatic]`` section could look like this::
   bottom = true
   mode = minified
 
+Injector middleware
+-------------------
+
 The :py:class:`Injector` WSGI component can be configured as a separate
 middleware as well. This implies that the :py:class:`Injector` should
-generate URLs that are served elsewhere::
+generate URLs that are served from elsewhere::
 
   [server:main]
   use = egg:Paste#http
@@ -88,7 +94,15 @@ generate URLs that are served elsewhere::
   use = egg:fanstatic#injector
 
 The ``[filter:injector]`` section accepts the same set of
-configuration parameters as the ``[filter:fanstatic`` section.
+configuration parameters as the ``[filter:fanstatic`` section. A
+complete section thus could look like this::
+
+  [filter:injector]
+  use = egg:fanstatic#injector
+  devmode = false
+  hashing = false
+  bottom = true
+  mode = minified
 
 .. _`Paste Deployment`: http://pythonpaste.org/deploy/
 
