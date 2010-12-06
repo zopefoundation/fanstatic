@@ -72,7 +72,8 @@ class Library(object):
 
 class LibraryRegistry(UserDict.DictMixin):
 
-    def __init__(self, *libraries):
+    def __init__(self, libraries=None):
+        libraries = libraries or []
         self._entry_points = {}
         self._libraries = {}
         # XXX loading entry_points into the registry will be done

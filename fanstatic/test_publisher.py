@@ -12,7 +12,7 @@ def test_resource(tmpdir):
     resource.write('/* a test */')
 
     libraries = LibraryRegistry(
-        Library('foo', foo_library_dir.strpath))
+        [Library('foo', foo_library_dir.strpath)])
 
     app = Publisher(libraries)
 
@@ -32,7 +32,7 @@ def test_just_library(tmpdir):
     resource.write('/* a test */')
 
     libraries = LibraryRegistry(
-        Library('foo', foo_library_dir.strpath))
+        [Library('foo', foo_library_dir.strpath)])
 
     app = Publisher(libraries)
 
@@ -46,7 +46,7 @@ def test_unknown_library(tmpdir):
     resource.write('/* a test */')
 
     libraries = LibraryRegistry(
-        Library('foo', foo_library_dir.strpath))
+        [Library('foo', foo_library_dir.strpath)])
 
     app = Publisher(libraries)
 
@@ -60,7 +60,7 @@ def test_resource_hash_skipped(tmpdir):
     resource.write('/* a test */')
 
     libraries = LibraryRegistry(
-        Library('foo', foo_library_dir.strpath))
+        [Library('foo', foo_library_dir.strpath)])
 
     app = Publisher(libraries)
 
@@ -74,7 +74,7 @@ def test_resource_no_hash_no_cache(tmpdir):
     resource.write('/* a test */')
 
     libraries = LibraryRegistry(
-        Library('foo', foo_library_dir.strpath))
+        [Library('foo', foo_library_dir.strpath)])
 
     app = Publisher(libraries)
 
@@ -90,7 +90,7 @@ def test_resource_hash_cache(tmpdir):
     resource.write('/* a test */')
 
     libraries = LibraryRegistry(
-        Library('foo', foo_library_dir.strpath))
+        [Library('foo', foo_library_dir.strpath)])
 
     app = Publisher(libraries)
 
@@ -110,7 +110,7 @@ def test_resource_cache_only_for_success(tmpdir):
     foo_library_dir = tmpdir.mkdir('foo')
 
     libraries = LibraryRegistry(
-        Library('foo', foo_library_dir.strpath))
+        [Library('foo', foo_library_dir.strpath)])
 
     app = Publisher(libraries)
 
@@ -126,7 +126,7 @@ def test_delegator(tmpdir):
     resource.write('/* a test */')
 
     libraries = LibraryRegistry(
-        Library('foo', foo_library_dir.strpath))
+        [Library('foo', foo_library_dir.strpath)])
 
     publisher = Publisher(libraries)
 
@@ -149,13 +149,13 @@ def test_publisher_ignores(tmpdir):
     tmpdir.join('foo').mkdir('.svn').join('entries').write('secret')
     foo_library = Library('foo', foo_library_dir.strpath)
 
-    publisher = Publisher([foo_library])
+    publisher = Publisher(LibraryRegistry([foo_library]))
     request = webob.Request.blank('/foo/.svn/entries')
     response = request.get_response(publisher)
     assert response.body == 'secret'
 
     foo_library = Library('foo', foo_library_dir.strpath, ignores=['.svn'])
-    publisher = Publisher([foo_library])
+    publisher = Publisher(LibraryRegistry([foo_library]))
     request = webob.Request.blank('/foo/.svn/entries')
     response = request.get_response(publisher)
     assert response.status_int == 404
