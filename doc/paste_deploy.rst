@@ -71,5 +71,24 @@ A complete ``[filter:fanstatic]`` section could look like this::
   bottom = true
   mode = minified
 
+The :py:class:`Injector` WSGI component can be configured as a separate
+middleware as well. This implies that the :py:class:`Injector` should
+generate URLs that are served elsewhere::
+
+  [server:main]
+  use = egg:Paste#http
+
+  [app:my_application]
+  use = egg:myapplication
+
+  [pipeline:main]
+  pipeline = injector my_application
+
+  [filter:injector]
+  use = egg:fanstatic#injector
+
+The ``[filter:injector]`` section accepts the same set of
+configuration parameters as the ``[filter:fanstatic`` section.
+
 .. _`Paste Deployment`: http://pythonpaste.org/deploy/
 
