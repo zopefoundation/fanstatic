@@ -12,6 +12,8 @@ EXTENSIONS = ['.css', '.js']
 
 NEEDED = 'fanstatic.needed'
 
+ENTRY_POINT = 'fanstatic.libraries'
+
 # Total hack to be able to get the dir the resources will be in.
 def caller_dir():
     return os.path.dirname(sys._getframe(2).f_globals['__file__'])
@@ -82,7 +84,7 @@ class LibraryRegistry(dict):
 
 def get_libraries_from_entry_points():
     libraries = []
-    for entry_point in pkg_resources.iter_entry_points('fanstatic.libraries'):
+    for entry_point in pkg_resources.iter_entry_points(ENTRY_POINT):
         libraries.append(entry_point)
     return libraries
     
