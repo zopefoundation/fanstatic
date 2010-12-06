@@ -79,12 +79,17 @@ class Library(object):
 
 class LibraryRegistry(UserDict.DictMixin):
 
-    def __init__(self):
+    def __init__(self, *libraries):
         self._entry_points = {}
         self._libraries = {}
-        self.reset()
+        # XXX loading entry_points into the registry will be done
+        # elsewhere at some point, just not sure yet where and when.
+        self._load_entry_points()
 
-    def reset(self):
+        for library in libraries:
+            self._libraries[library.name] = library
+
+    def _load_entry_points(self):
         # Load all fanstatic.libraries entry points.
         for entry_point in pkg_resources.iter_entry_points(
             'fanstatic.libraries'):
@@ -94,6 +99,10 @@ class LibraryRegistry(UserDict.DictMixin):
     def __getitem__(self, name):
         library = self._libraries.get(name)
         if library is None:
+            # XXX loading entry_points into the registry will be done
+            # elsewhere at some point, just not sure yet where and
+            # when. For now try to load an entry_point name when asked
+            # for.
             library = self._entry_points[name].load()
             self._libraries[name] = library
         return library

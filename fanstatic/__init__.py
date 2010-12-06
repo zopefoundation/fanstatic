@@ -1,4 +1,5 @@
 from fanstatic.core import (library_registry,
+                            LibraryRegistry,
                             Library,
                             ResourceInclusion,
                             GroupInclusion,
