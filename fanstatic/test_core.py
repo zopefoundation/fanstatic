@@ -433,7 +433,7 @@ def test_library_url_default_publisher_signature():
     needed = NeededInclusions()
 
     assert needed.library_url(foo) == '/fanstatic/foo'
-    
+
 def test_library_url_publisher_signature():
     foo = Library('foo', '')
 
@@ -470,7 +470,7 @@ def test_library_url_hashing_nodevmode(tmpdir):
 
     # since we're not in devmode, the hash in the URL won't change
     assert needed.library_url(foo) == url
-    
+
 def test_library_url_hashing_devmode(tmpdir):
     foo = Library('foo', tmpdir.strpath)
 
@@ -484,7 +484,7 @@ def test_library_url_hashing_devmode(tmpdir):
 
     # in devmode the hash is recalculated now, so it changes
     assert needed.library_url(foo) != url
-    
+
 def test_html_insert():
     foo = Library('foo', '')
     x1 = ResourceInclusion(foo, 'a.js')
@@ -627,7 +627,7 @@ def test_sorting_inclusions():
         a1, a4, a2, a3, a5]
 
 def test_inclusion_renderers():
-    assert sorted(inclusion_renderers.keys()) == ['.css', '.js', '.kss']
+    assert sorted(inclusion_renderers.keys()) == ['.css', '.js']
 
     assert inclusion_renderers['.js']('http://localhost/script.js') == (
          '<script type="text/javascript" src="http://localhost/script.js"></script>')

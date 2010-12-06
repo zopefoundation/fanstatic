@@ -8,7 +8,7 @@ from fanstatic.checksum import checksum
 
 DEFAULT_SIGNATURE = 'fanstatic'
 
-EXTENSIONS = ['.css', '.kss', '.js']
+EXTENSIONS = ['.css', '.js']
 
 NEEDED = 'fanstatic.needed'
 
@@ -27,13 +27,13 @@ class Library(object):
     these resources.
 
     :param name: A string that uniquely identifies this library.
-    
+
     :param rootpath: An absolute or relative path to the directory
       that contains the static resources this library publishes. If
       relative, it will be relative to the directory of the module
       that initializes the library.
     """
-    
+
     _signature = None
 
     name = None
@@ -52,7 +52,7 @@ class Library(object):
     The absolute path to the directory which contains the static
     resources this library publishes.
     """
-    
+
     def __init__(self, name, rootpath):
         self.name = name
         self.rootpath = rootpath
@@ -132,13 +132,13 @@ class ResourceInclusion(InclusionBase):
      strings that are paths to resources. If a string is given, a
      :py:class:`ResourceInclusion` instance is constructed that has
      the same library as this inclusion.
-     
+
    :param supersedes: optionally, a list of
      :py:class:`ResourceInclusion` instances that this resource
      inclusion supersedes as a rollup resource. If all these resources
      are required for render a page, the superseding resource will be
      included instead.
-     
+
    :param eager_superseder: normally superseding resources will only
      show up if all resources that the resource supersedes are
      required in a page. If this flag is set, even if only part of the
@@ -303,10 +303,10 @@ def normalize_inclusion(library, inclusion):
 
 class NeededInclusions(object):
     """The current selection of needed inclusions.
-    
+
     The ``NeededInclusions`` instance maintains a set of needed
     inclusions for a particular web page.
-    
+
     :param hashing: If ``True``, Fanstatic will automatically include
       a hash in all URLs pointing to resources. Since the hash will change
       when you update a resource, the URLs can both be infinitely cached
@@ -319,13 +319,13 @@ class NeededInclusions(object):
       development, but slower, so should be turned off during
       deployment. If set to ``False``, the hash URLs will only be
       calculated once after server startup.
-    
+
     :param bottom: If set to ``True``, Fanstatic will include any
       resource inclusion that has been marked as "bottom safe" at the
       bottom of the web page, at the end of ``<body>``, as opposed to
       in the ``<head>`` section. This is useful for optimizing the
       load-time of Javascript resources.
-      
+
     :param force_bottom: If set to ``True`` and ``bottom`` is set to
       ``True`` as well, all Javascript resources will be included at
       the bottom of a web page, even if they aren't marked bottom
@@ -336,11 +336,11 @@ class NeededInclusions(object):
       ``debug``, etc. This specifies which alternative to prefer (if
       available). By default and if not available the "main" (non-named)
       mode alternative of the resource will be served.
-      
+
     :param rollup: If set to True (default is False) rolled up
       combined resources will be served if they exist and supersede
       existing resources that are needed.
-    
+
     :param base_url: This URL will be prefixed in front of all resource
       URLs. This can be useful if your web framework wants the resources
       to be published on a sub-URL. Note that this can also be set
@@ -354,7 +354,7 @@ class NeededInclusions(object):
       include. Normally you specify resources to include by calling
       ``.need()`` on them, or alternatively by calling ``.need()``
       on an instance of this class.
-      
+
     """
 
     base_url = None
@@ -366,7 +366,7 @@ class NeededInclusions(object):
     to change this attribute directly on an already existing
     ``NeededInclusions`` object.
     """
-    
+
     def __init__(self,
                  hashing=False,
                  devmode=False,
@@ -388,7 +388,7 @@ class NeededInclusions(object):
         self._rollup = rollup
 
         self._inclusions = inclusions or []
-              
+
     def has_inclusions(self):
         """Returns True if any inclusions are needed.
         """
@@ -436,7 +436,7 @@ class NeededInclusions(object):
 
         This constructs a URL to a library, obey ``hashing`` and
         ``base_url`` configuration.
-        
+
         :param library: A :py:class:`Library` instance.
         """
         segments = [self.base_url, self._publisher_signature]
@@ -465,7 +465,7 @@ class NeededInclusions(object):
         This renders the listed inclusions and their dependencies as
         HTML ((``<script>`` and ``<link>`` tags), suitable for
         inclusion on a web page.
-        
+
         :param inclusions: A list of :py:class:`ResourceInclusion` instances.
         """
         result = []
@@ -532,7 +532,7 @@ class NeededInclusions(object):
         unless ``force_bottom`` is enabled, in which case all
         Javascript resources will be included in the bottom, just
         before the ``</body>`` tag.
-        
+
         :param html: A string with HTML to render the inclusions into. This
           string must have a ``<head>`` and a ``<body>`` section.
         """
@@ -639,16 +639,12 @@ def render_css(url):
     return ('<link rel="stylesheet" type="text/css" href="%s" />' %
             url)
 
-def render_kss(url):
-    raise NotImplementedError
-
 def render_js(url):
     return ('<script type="text/javascript" src="%s"></script>' %
             url)
 
 inclusion_renderers = {
     '.css': render_css,
-    '.kss': render_kss,
     '.js': render_js,
     }
 
