@@ -52,15 +52,13 @@ class Publisher(object):
     :py:func:`Fanstatic` WSGI framework component, but can also be
     used independently if you need more control.
 
-    :param libraries: a list of :py:class:`Library` instances with those
-      resource libraries that should be published.
+    :param library_registry: an instance of
+      :py:class:`LibraryRegistry` with those resource libraries that
+      should be published.
     """
-    def __init__(self, libraries):
-        directory_publishers = {}
-        for library in libraries:
-            directory_publishers[library.name] = DirectoryPublisher(
-                library.path)
-        self.directory_publishers = directory_publishers
+    def __init__(self, library_registry):
+        self.library_registry = library_registry
+        self.directory_publishers = {}
 
     @webob.dec.wsgify
     def __call__(self, request):
@@ -76,9 +74,13 @@ class Publisher(object):
         else:
             need_caching = False
         directory_publisher = self.directory_publishers.get(library_name)
-        # unknown library
         if directory_publisher is None:
-            raise webob.exc.HTTPNotFound()
+            library = self.library_registry.get(library_name)
+            if library is None:
+                # unknown library
+                raise webob.exc.HTTPNotFound()
+            directory_publisher = self.directory_publishers.setdefault(
+                library_name, DirectoryApp(library.path))
         # we found the library, but we are not looking for a resource in it
         if request.path_info == '':
             raise webob.exc.HTTPForbidden()
