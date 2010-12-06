@@ -23,7 +23,7 @@ def Fanstatic(app,
         publisher_signature=publisher_signature,
         **config)
 
-    publisher = Publisher(library_registry.values())
+    publisher = Publisher(library_registry)
 
     return Delegator(
         injector,
