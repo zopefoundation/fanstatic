@@ -70,47 +70,23 @@ class Library(object):
             sig = self._signature
         return ':hash:%s' % sig
 
-class LibraryRegistry(UserDict.DictMixin):
-
-    def __init__(self, libraries=None):
-        libraries = libraries or []
-        self._entry_points = {}
-        self._libraries = {}
-        # XXX loading entry_points into the registry will be done
-        # elsewhere at some point, just not sure yet where and when.
-        self._load_entry_points()
-
+class LibraryRegistry(dict):
+    def __init__(self, libraries):
+        if libraries is None:
+            return
         for library in libraries:
-            self._libraries[library.name] = library
-
-    def _load_entry_points(self):
-        # Load all fanstatic.libraries entry points.
-        for entry_point in pkg_resources.iter_entry_points(
-            'fanstatic.libraries'):
-            self._entry_points[entry_point.name] = entry_point
-            self._libraries[entry_point.name] = None
-
-    def __getitem__(self, name):
-        library = self._libraries.get(name)
-        if library is None:
-            # XXX loading entry_points into the registry will be done
-            # elsewhere at some point, just not sure yet where and
-            # when. For now try to load an entry_point name when asked
-            # for.
-            library = self._entry_points[name].load()
-            self._libraries[name] = library
-        return library
-
-    def __setitem__(self, name, value):
-        self._libraries[name] = value
-
-    def keys(self):
-        return self._libraries.keys()
+            self[library.name] = library
 
     def add(self, library):
         self[library.name] = library
 
-library_registry = LibraryRegistry()
+def get_libraries_from_entry_points():
+    libraries = []
+    for entry_point in pkg_resources.iter_entry_points('fanstatic.libraries'):
+        libraries.append(entry_point)
+    return libraries
+    
+library_registry = LibraryRegistry(get_libraries_from_entry_points())
 
 class InclusionBase(object):
     pass
