@@ -35,7 +35,7 @@ class DirectoryPublisher(DirectoryApp):
             if segment.startswith('.'):
                 return HTTPNotFound()(environ, start_response)
         return DirectoryApp.__call__(self, environ, start_response)
-    
+
 class Publisher(object):
     """Fanstatic publisher WSGI application.
 
@@ -117,7 +117,7 @@ class Delegator(object):
         self.app = app
         self.publisher = publisher
         self.trigger = '/%s/' % publisher_signature
-        
+
     @webob.dec.wsgify
     def __call__(self, request):
         chunks = request.path_info.split(self.trigger, 1)
@@ -130,8 +130,4 @@ class Delegator(object):
         request = request.copy()
         request.path_info = chunks[1]
         return request.get_response(self.publisher)
-
-# XXX needs to be adjusted so it gets publisher as argument
-def make_publisher(app, global_config, **local_config):
-    return Delegator(app, **local_config)
 
