@@ -38,7 +38,7 @@ class DirectoryPublisher(DirectoryApp):
         for ignore in self.ignores:
             if fnmatch.filter(environ['PATH_INFO'].split('/'), ignore):
                 raise webob.exc.HTTPNotFound()
-        return DirectoryApp.__call__(self, environ, start_response)
+        return super(DirectoryPublisher, self).__call__(environ, start_response)
 
 class Publisher(object):
     """Fanstatic publisher WSGI application.
@@ -84,7 +84,7 @@ class Publisher(object):
                 # unknown library
                 raise webob.exc.HTTPNotFound()
             directory_publisher = self.directory_publishers.setdefault(
-                library_name, DirectoryApp(library.path))
+                library_name, DirectoryPublisher(library.path, library.ignores))
         # we found the library, but we are not looking for a resource in it
         if request.path_info == '':
             raise webob.exc.HTTPForbidden()
