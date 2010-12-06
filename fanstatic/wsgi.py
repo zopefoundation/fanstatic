@@ -9,18 +9,26 @@ def Fanstatic(app,
     """Fanstatic WSGI framework component.
 
     :param app: The WSGI app to wrap with Fanstatic.
-    
+
     :param publisher_signature: Optional argument to define the
       signature of the publisher in a URL. The default is ``fanstatic``.
-      
+
     :param ``**config``: Optional keyword arguments. These are
       passed to :py:class:`NeededInclusions` when it is constructed.
     """
-    # wrap the app inside the inject middleware, inside the publisher
-    # middleware.
-    return Delegator(Injector(app, **config),
-                     Publisher(library_registry.values()),
-                     publisher_signature=publisher_signature)
+    # Wrap the app inside the injector middleware, inside the
+    # delegator middleware.
+    injector = Injector(
+        app,
+        publisher_signature=publisher_signature,
+        **config)
+
+    publisher = Publisher(library_registry.values())
+
+    return Delegator(
+        injector,
+        publisher,
+        publisher_signature=publisher_signature)
 
 def make_fanstatic(app, global_config, **local_config):
     devmode = local_config.get('devmode')
