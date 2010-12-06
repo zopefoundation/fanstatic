@@ -21,6 +21,5 @@ setup(
         'paste.filter_app_factory': [
             'fanstatic = fanstatic.wsgi:make_fanstatic',
             'inject = fanstatic.inject:make_inject',
-            'publisher = fanstatic.publisher:make_publisher',
             ],
     })
