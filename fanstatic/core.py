@@ -32,30 +32,23 @@ class Library(object):
       that contains the static resources this library publishes. If
       relative, it will be relative to the directory of the module
       that initializes the library.
-    """
 
-    _signature = None
-
-    name = None
-    """
-    A string that uniquely identifies this library.
-    """
-
-    rootpath = None
-    """
-    The (relative or absolute) path to the directory that contains the
-    static resources.
+    :param ignores: A list of globs used to determine which files
+      and directories not to publish.
     """
 
     path = None
     """
-    The absolute path to the directory which contains the static
-    resources this library publishes.
+    The absolute path to the directory which contains the static resources
+    this library publishes.
     """
 
-    def __init__(self, name, rootpath):
+    _signature = None
+
+    def __init__(self, name, rootpath, ignores=None):
         self.name = name
         self.rootpath = rootpath
+        self.ignores = ignores or []
         self.path = os.path.join(caller_dir(), rootpath)
 
     def signature(self, devmode=False):
@@ -70,7 +63,7 @@ class Library(object):
             # Always re-compute.
             sig = checksum(self.path)
         elif self._signature is None:
-            # Only compute if not conputed before.
+            # Only compute if not computed before.
             sig = self._signature = checksum(self.path)
         else:
             # Use cached value.
@@ -115,56 +108,56 @@ class InclusionBase(object):
 class ResourceInclusion(InclusionBase):
     """A resource inclusion.
 
-   A resource inclusion specifies how to include a single resource in
-   a library in a web page. This is useful for Javascript and CSS
-   resources in particular. Some static resources such as images are
-   not included in this way and therefore do not have to be defined
-   this way.
+    A resource inclusion specifies how to include a single resource in
+    a library in a web page. This is useful for Javascript and CSS
+    resources in particular. Some static resources such as images are
+    not included in this way and therefore do not have to be defined
+    this way.
 
-   :param library: the :py:class:`Library` this resource is in.
+    :param library: the :py:class:`Library` this resource is in.
 
-   :param relpath: the relative path (from the root of the library
-     path) that indicates the actual resource file.
+    :param relpath: the relative path (from the root of the library
+      path) that indicates the actual resource file.
 
-   :param depends: optionally, a list of resources that this resource
-     depends on. Entries in the list can be
-     :py:class:`ResourceInclusion` instances, or, as a shortcut,
-     strings that are paths to resources. If a string is given, a
-     :py:class:`ResourceInclusion` instance is constructed that has
-     the same library as this inclusion.
+    :param depends: optionally, a list of resources that this resource
+      depends on. Entries in the list can be
+      :py:class:`ResourceInclusion` instances, or, as a shortcut,
+      strings that are paths to resources. If a string is given, a
+      :py:class:`ResourceInclusion` instance is constructed that has
+      the same library as this inclusion.
 
-   :param supersedes: optionally, a list of
-     :py:class:`ResourceInclusion` instances that this resource
-     inclusion supersedes as a rollup resource. If all these resources
-     are required for render a page, the superseding resource will be
-     included instead.
+    :param supersedes: optionally, a list of
+      :py:class:`ResourceInclusion` instances that this resource
+      inclusion supersedes as a rollup resource. If all these resources
+      are required for render a page, the superseding resource will be
+      included instead.
 
-   :param eager_superseder: normally superseding resources will only
-     show up if all resources that the resource supersedes are
-     required in a page. If this flag is set, even if only part of the
-     requirements are met, the superseding resource will show up.
+    :param eager_superseder: normally superseding resources will only
+      show up if all resources that the resource supersedes are
+      required in a page. If this flag is set, even if only part of the
+      requirements are met, the superseding resource will show up.
 
-   :param bottom: indicate that this resource inclusion is "bottom
-     safe": it can be safely included on the bottom of the page (just
-     before ``</body>``). This can be used to improve the performance
-     of page loads when Javascript resources are in use. Not all
-     Javascript-based resources can however be safely included that
-     way, so you have to set this explicitly (or use the
-     ``force_bottom`` option on :py:class:`NeededInclusions`).
+    :param bottom: indicate that this resource inclusion is "bottom
+      safe": it can be safely included on the bottom of the page (just
+      before ``</body>``). This can be used to improve the performance
+      of page loads when Javascript resources are in use. Not all
+      Javascript-based resources can however be safely included that
+      way, so you have to set this explicitly (or use the
+      ``force_bottom`` option on :py:class:`NeededInclusions`).
 
-   :param ``**kw``: keyword parameters can be supplied to indicate
-     alternate resource inclusions. An alternate inclusion is for
-     instance a minified version of this resource. The name of the
-     parameter indicates the type of alternate resource (``debug``,
-     ``minified``, etc), and the value is a
-     :py:class:`ResourceInclusion` instance.
+    :param ``**kw``: keyword parameters can be supplied to indicate
+      alternate resource inclusions. An alternate inclusion is for
+      instance a minified version of this resource. The name of the
+      parameter indicates the type of alternate resource (``debug``,
+      ``minified``, etc), and the value is a
+      :py:class:`ResourceInclusion` instance.
 
-     As a shortcut, a string can be supplied as value that indicates
-     the relative path to a resource in the library (for instance the
-     minified file). In this case :py:class:`ResourceInclusion`
-     instance is constructed that has the same library as this
-     inclusion.
-   """
+      As a shortcut, a string can be supplied as value that indicates
+      the relative path to a resource in the library (for instance the
+      minified file). In this case :py:class:`ResourceInclusion`
+      instance is constructed that has the same library as this
+      inclusion.
+    """
 
     def __init__(self, library, relpath, depends=None,
                  supersedes=None, eager_superseder=False,

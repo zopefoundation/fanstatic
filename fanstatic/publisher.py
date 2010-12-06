@@ -1,3 +1,4 @@
+import fnmatch
 import webob
 import webob.dec
 import webob.exc
@@ -20,22 +21,25 @@ class DirectoryPublisher(DirectoryApp):
     This WSGI application serves a directory of static resources to
     the web.
 
-    Files or directories that start with a period (``.``) won't be
-    served.
-
     This WSGI component is used automatically by the
     :py:func:`Fanstatic` WSGI framework component, but can also be
     used independently if you need more control.
 
     :param path: The path to the library's directory on the filesystem.
+
+    :param ignores: A list of globs to match the requests against. If
+      we have a match, the request will not be served.
     """
+    def __init__(self, path, ignores):
+        self.ignores = ignores
+        super(DirectoryPublisher, self).__init__(path)
+
     def __call__(self, environ, start_response):
-        path_info = environ['PATH_INFO']
-        for segment in path_info.split('/'):
-            if segment.startswith('.'):
-                return HTTPNotFound()(environ, start_response)
+        for ignore in self.ignores:
+            if fnmatch.filter(environ['PATH_INFO'].split('/'), ignore):
+                raise webob.exc.HTTPNotFound()
         return DirectoryApp.__call__(self, environ, start_response)
-    
+
 class Publisher(object):
     """Fanstatic publisher WSGI application.
 
@@ -59,7 +63,7 @@ class Publisher(object):
         directory_publishers = {}
         for library in libraries:
             directory_publishers[library.name] = DirectoryPublisher(
-                library.path)
+                library.path, library.ignores)
         self.directory_publishers = directory_publishers
 
     @webob.dec.wsgify
@@ -117,7 +121,7 @@ class Delegator(object):
         self.app = app
         self.publisher = publisher
         self.trigger = '/%s/' % publisher_signature
-        
+
     @webob.dec.wsgify
     def __call__(self, request):
         chunks = request.path_info.split(self.trigger, 1)
