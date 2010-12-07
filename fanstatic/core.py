@@ -1,8 +1,6 @@
 import os
 import sys
-import pkg_resources
 import threading
-import UserDict
 
 from fanstatic.checksum import checksum
 
@@ -11,12 +9,6 @@ DEFAULT_SIGNATURE = 'fanstatic'
 EXTENSIONS = ['.css', '.js']
 
 NEEDED = 'fanstatic.needed'
-
-ENTRY_POINT = 'fanstatic.libraries'
-
-# Total hack to be able to get the dir the resources will be in.
-def caller_dir():
-    return os.path.dirname(sys._getframe(2).f_globals['__file__'])
 
 class UnknownResourceExtension(Exception):
     """Unknown resource extension"""
@@ -72,23 +64,9 @@ class Library(object):
             sig = self._signature
         return ':hash:%s' % sig
 
-class LibraryRegistry(dict):
-    def __init__(self, libraries):
-        if libraries is None:
-            return
-        for library in libraries:
-            self[library.name] = library
-
-    def add(self, library):
-        self[library.name] = library
-
-def get_libraries_from_entry_points():
-    libraries = []
-    for entry_point in pkg_resources.iter_entry_points(ENTRY_POINT):
-        libraries.append(entry_point)
-    return libraries
-    
-library_registry = LibraryRegistry(get_libraries_from_entry_points())
+# Total hack to be able to get the dir the resources will be in.
+def caller_dir():
+    return os.path.dirname(sys._getframe(2).f_globals['__file__'])
 
 class InclusionBase(object):
     pass

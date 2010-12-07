@@ -1,12 +1,12 @@
-from fanstatic.core import (library_registry,
-                            LibraryRegistry,
-                            Library,
+from fanstatic.core import (Library,
                             ResourceInclusion,
                             GroupInclusion,
                             NeededInclusions,
                             DEFAULT_SIGNATURE,
                             sort_inclusions_topological,
                             sort_inclusions_by_extension)
+
+from fanstatic.registry import library_registry, LibraryRegistry
 
 from fanstatic.codegen import (generate_code)
 
