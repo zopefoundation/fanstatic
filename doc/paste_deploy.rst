@@ -47,7 +47,7 @@ To turn on hashing, accepts "true" or "false"::
 The URL segment that is used in generating URLs to resources and to
 recognize "serve-able" resource URLs::
 
-  publisher_signature = stanfatic
+  publisher_signature = foo
 
 To allow for bottom inclusions, accepts "true" or "false"::
 
@@ -103,6 +103,63 @@ complete section thus could look like this::
   hashing = false
   bottom = true
   mode = minified
+
+Publisher middleware
+--------------------
+
+The publisher middleware is actually a combination of a
+:py:class:`Delegator` and a :py:class:`Publisher` component. The
+delegator is responsible for recognizing what URLs are in fact URLs to
+"serve-able" resources and what URLs should be handled by the wrapped
+application.
+
+URLs that contain the ``publisher_signature`` as a path segment are
+recognized as "serve-able". Configuring only the publisher middleware
+for you application, implies there is some other mechanism that
+injects the correct resources URLs into, for example, web pages.
+
+The publisher middleware accepts one configuration directive::
+
+  [server:main]
+  use = egg:Paste#http
+
+  [app:my_application]
+  use = egg:myapplication
+
+  [pipeline:main]
+  pipeline = publisher my_application
+
+  [filter:publisher]
+  use = egg:fanstatic#publisher
+  publisher_signature = bar
+
+Combining the publisher and the injector
+----------------------------------------
+
+As explained before, the :py:func:`Fanstatic` component combines the
+publisher and injector middlewares. An equivalent configuration using
+the separate components would look like this::
+
+  [server:main]
+  use = egg:Paste#http
+
+  [app:my_application]
+  use = egg:myapplication
+
+  [pipeline:main]
+  pipeline = publisher injector my_application
+
+  [filter:publisher]
+  use = egg:fanstatic#publisher
+  publisher_signature = baz
+
+  [filter:injector]
+  use = egg:fanstatic#injector
+  devmode = false
+  hashing = true
+  bottom = true
+  mode = minified
+  publisher_signature = baz
 
 .. _`Paste Deployment`: http://pythonpaste.org/deploy/
 
