@@ -333,7 +333,7 @@ class NeededInclusions(object):
                  force_bottom=False,
                  mode=None,
                  rollup=False,
-                 base_url='',
+                 base_url=None,
                  publisher_signature=DEFAULT_SIGNATURE,
                  inclusions=None,
                  ):
@@ -398,16 +398,14 @@ class NeededInclusions(object):
 
         :param library: A :py:class:`Library` instance.
         """
-        segments = [self.base_url, self._publisher_signature]
-        segments.append(library.name)
+        path = []
+        path.append(self.base_url or '')
+        if self._publisher_signature:
+            path.append(self._publisher_signature)
+        path.append(library.name)
         if self._hashing:
-            segments.append(library.signature(devmode=self._devmode))
-        result = segments.pop(0)
-        for segment in segments:
-            if not result.endswith('/'):
-                result += '/'
-            result += segment
-        return result
+            path.append(library.signature(devmode=self._devmode))
+        return '/'.join(path)
 
     def render(self):
         """Render needed inclusions.
