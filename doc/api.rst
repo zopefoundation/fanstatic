@@ -30,4 +30,8 @@ Python components
 
 .. autoclass:: fanstatic.NeededInclusions
   :members:
+
+.. autoclass:: fanstatic.LibraryRegistry
+  :members:
+  :show-inheritance:
  
