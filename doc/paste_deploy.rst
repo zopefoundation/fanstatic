@@ -78,7 +78,7 @@ cases. Next, we will go into the details of what the sub-components
 that this component consists of. These should only be useful in
 particular use cases when you want to take over some of the task of
 Fanstatic itself.
-  
+
 Injector WSGI component
 -----------------------
 
@@ -168,8 +168,6 @@ the separate components would look like this::
   bottom = true
   mode = minified
   publisher_signature = baz
-
-XXX this can't be true -- there's no delegator in sight
 
 .. _`Paste Deployment`: http://pythonpaste.org/deploy/
 

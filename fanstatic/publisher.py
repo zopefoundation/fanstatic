@@ -137,3 +137,7 @@ class Delegator(object):
         request.path_info = chunks[1]
         return request.get_response(self.publisher)
 
+def make_publisher(app, global_config,
+                   publisher_signature=fanstatic.DEFAULT_SIGNATURE):
+    publisher = Publisher(fanstatic.library_registry)
+    return Delegator(app, publisher, publisher_signature=publisher_signature)
