@@ -60,6 +60,8 @@ class Injector(object):
         return response
 
 def make_inject(app, global_config, **local_config):
+    # XXX Sanitizing arguments might be factored out somehow. It is
+    # duplicated in the make_fanstatic factory.
     devmode = local_config.get('devmode')
     if devmode is not None:
         local_config['devmode'] = asbool(devmode)
