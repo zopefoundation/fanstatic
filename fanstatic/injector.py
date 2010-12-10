@@ -8,8 +8,8 @@ import fanstatic
 class Injector(object):
     """Fanstatic injector WSGI framework component.
 
-    This WSGI component takes care of injecting the proper inclusions
-    into HTML when needed.
+    This WSGI component takes care of injecting the proper resource
+    inclusions into HTML when needed.
 
     This WSGI component is used automatically by the
     :py:func:`Fanstatic` WSGI framework component, but can also be
@@ -18,20 +18,20 @@ class Injector(object):
     :param app: The WSGI app to wrap with the injector.
 
     :param ``**config``: Optional keyword arguments. These are
-      passed to :py:class:`NeededInclusions` when it is constructed.
+      passed to :py:class:`NeededResources` when it is constructed.
     """
     def __init__(self, app, **config):
         self.application = app
 
-        self._check_inclusions_signature(**config)
+        self._check_signature(**config)
         self.config = config
 
     # To get a correct error message on initialize-time, we construct
-    # a function that has the same signature as NeededInclusions(),
+    # a function that has the same signature as NeededResources(),
     # but without "self".
-    def _check_inclusions_signature(self, **config):
+    def _check_signature(self, **config):
         args, varargs, varkw, defaults = inspect.getargspec(
-            fanstatic.NeededInclusions.__init__)
+            fanstatic.NeededResources.__init__)
         argspec = inspect.formatargspec(args[1:], varargs, varkw, defaults)
         exec("def signature_checker" + argspec + ": pass")
         try:
@@ -39,12 +39,12 @@ class Injector(object):
         except TypeError, e:
             message = e.args[0]
             message = message.replace(
-                "signature_checker()", fanstatic.NeededInclusions.__name__)
+                "signature_checker()", fanstatic.NeededResources.__name__)
             raise TypeError(message)
 
     @webob.dec.wsgify
     def __call__(self, request):
-        needed = fanstatic.init_current_needed_inclusions(**self.config)
+        needed = fanstatic.init_needed(**self.config)
 
         # Get the response from the wrapped application:
         response = request.get_response(self.application)
@@ -54,8 +54,8 @@ class Injector(object):
             return response
 
         # The wrapped application may have left information in the environment
-        # about needed inclusions.
-        if needed.has_inclusions():
+        # about needed resources
+        if needed.has_resources():
             response.body = needed.render_topbottom_into_html(response.body)
         return response
 

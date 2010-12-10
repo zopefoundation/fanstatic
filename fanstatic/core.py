@@ -17,7 +17,7 @@ class Library(object):
     """The resource library.
 
     This object defines which directory is published and can be
-    referred to by :py:class:`ResourceInclusion` objects to describe
+    referred to by :py:class:`Resource` objects to describe
     these resources.
 
     :param name: A string that uniquely identifies this library.
@@ -68,14 +68,14 @@ class Library(object):
 def caller_dir():
     return os.path.dirname(sys._getframe(2).f_globals['__file__'])
 
-class InclusionBase(object):
+class ResourceBase(object):
     pass
 
-class ResourceInclusion(InclusionBase):
-    """A resource inclusion.
+class Resource(ResourceBase):
+    """A resource.
 
-    A resource inclusion specifies how to include a single resource in
-    a library in a web page. This is useful for Javascript and CSS
+    A resource specifies a single resource in a library so that it can
+    be included in a web page. This is useful for Javascript and CSS
     resources in particular. Some static resources such as images are
     not included in this way and therefore do not have to be defined
     this way.
@@ -86,43 +86,40 @@ class ResourceInclusion(InclusionBase):
       path) that indicates the actual resource file.
 
     :param depends: optionally, a list of resources that this resource
-      depends on. Entries in the list can be
-      :py:class:`ResourceInclusion` instances, or, as a shortcut,
-      strings that are paths to resources. If a string is given, a
-      :py:class:`ResourceInclusion` instance is constructed that has
-      the same library as this inclusion.
+      depends on. Entries in the list can be :py:class:`Resource`
+      instances, or, as a shortcut, strings that are paths to
+      resources. If a string is given, a :py:class:`Resource` instance
+      is constructed that has the same library as this resource.
 
-    :param supersedes: optionally, a list of
-      :py:class:`ResourceInclusion` instances that this resource
-      inclusion supersedes as a rollup resource. If all these resources
-      are required for render a page, the superseding resource will be
-      included instead.
+    :param supersedes: optionally, a list of :py:class:`Resource`
+      instances that this resource supersedes as a rollup
+      resource. If all these resources are required for render a page,
+      the superseding resource will be included instead.
 
     :param eager_superseder: normally superseding resources will only
       show up if all resources that the resource supersedes are
       required in a page. If this flag is set, even if only part of the
       requirements are met, the superseding resource will show up.
 
-    :param bottom: indicate that this resource inclusion is "bottom
-      safe": it can be safely included on the bottom of the page (just
-      before ``</body>``). This can be used to improve the performance
-      of page loads when Javascript resources are in use. Not all
+    :param bottom: indicate that this resource is "bottom safe": it
+      can be safely included on the bottom of the page (just before
+      ``</body>``). This can be used to improve the performance of
+      page loads when Javascript resources are in use. Not all
       Javascript-based resources can however be safely included that
       way, so you have to set this explicitly (or use the
-      ``force_bottom`` option on :py:class:`NeededInclusions`).
+      ``force_bottom`` option on :py:class:`NeededResources`).
 
     :param ``**kw``: keyword parameters can be supplied to indicate
-      alternate resource inclusions. An alternate inclusion is for
-      instance a minified version of this resource. The name of the
-      parameter indicates the type of alternate resource (``debug``,
+      alternate resources. An alternate resource is for instance a
+      minified version of this resource. The name of the parameter
+      indicates the type of alternate resource (``debug``,
       ``minified``, etc), and the value is a
-      :py:class:`ResourceInclusion` instance.
+      :py:class:`Resource` instance.
 
       As a shortcut, a string can be supplied as value that indicates
       the relative path to a resource in the library (for instance the
-      minified file). In this case :py:class:`ResourceInclusion`
-      instance is constructed that has the same library as this
-      inclusion.
+      minified file). In this case :py:class:`Resource` instance is
+      constructed that has the same library as this resource.
     """
 
     def __init__(self, library, relpath, depends=None,
@@ -134,42 +131,42 @@ class ResourceInclusion(InclusionBase):
 
         assert not isinstance(depends, basestring)
         depends = depends or []
-        self.depends = normalize_inclusions(library, depends)
+        self.depends = normalize_resources(library, depends)
 
         self.rollups = []
 
         normalized_modes = {}
-        for mode_name, inclusion in kw.items():
-            normalized_modes[mode_name] = normalize_inclusion(
-                library, inclusion)
+        for mode_name, resource in kw.items():
+            normalized_modes[mode_name] = normalize_resource(
+                library, resource)
         self.modes = normalized_modes
 
         assert not isinstance(supersedes, basestring)
         self.supersedes = supersedes or []
         self.eager_superseder = eager_superseder
 
-        # create a reference to the superseder in the superseded inclusion
-        for inclusion in self.supersedes:
-            inclusion.rollups.append(self)
+        # create a reference to the superseder in the superseded resource
+        for resource in self.supersedes:
+            resource.rollups.append(self)
         # also create a reference to the superseding mode in the superseded
         # mode
-        # XXX what if mode is full-fledged resource inclusion which lists
+        # XXX what if mode is full-fledged resource which lists
         # supersedes itself?
         for mode_name, mode in self.modes.items():
-            for inclusion in self.supersedes:
-                superseded_mode = inclusion.mode(mode_name)
+            for resource in self.supersedes:
+                superseded_mode = resource.mode(mode_name)
                 # if there is no such mode, let's skip it
-                if superseded_mode is inclusion:
+                if superseded_mode is resource:
                     continue
                 mode.supersedes.append(superseded_mode)
                 superseded_mode.rollups.append(mode)
 
     def __repr__(self):
-        return "<ResourceInclusion '%s' in library '%s'>" % (
+        return "<Resource '%s' in library '%s'>" % (
             self.relpath, self.library.name)
 
     def ext(self):
-        """The extension of this resource inclusion.
+        """The extension of this resource.
 
         An extension starts with a period. Examples ``.js``, ``.css``.
         """
@@ -177,10 +174,10 @@ class ResourceInclusion(InclusionBase):
         return ext
 
     def mode(self, mode):
-        """Get ResourceInclusion in another mode.
+        """Get Resource in another mode.
 
         If the mode is ``None`` or if the mode cannot be found, this
-        ``ResourceInclusion`` instance is returned instead.
+        ``Resource`` instance is returned instead.
 
         :param mode: a string indicating the mode, or ``None``.
         """
@@ -194,77 +191,76 @@ class ResourceInclusion(InclusionBase):
             return self
 
     def key(self):
-        """A unique key that identifies this ResourceInclusion.
+        """A unique key that identifies this Resource.
         """
         return self.library.name, self.relpath
 
     def need(self):
-        """Need this resource inclusion.
+        """Declare that the application needs this resource.
 
-        If you call ``.need()`` on ``ResourceInclusion`` sometime
-        during the rendering process of your web page, this resource
-        inclusion and all its dependencies will be inserted into the
-        web page.
+        If you call ``.need()`` on ``Resource`` sometime during the
+        rendering process of your web page, this resource and all its
+        dependencies will be inserted as inclusions into the web page.
         """
-        needed = get_current_needed_inclusions()
+        needed = get_needed()
         needed.need(self)
 
-    def inclusions(self):
-        """Get all inclusions needed by this inclusion, including itself.
+    def resources(self):
+        """Get all resources needed by this resource, including itself.
         """
         result = []
         for depend in self.depends:
-            result.extend(depend.inclusions())
+            result.extend(depend.resources())
         result.append(self)
         return result
 
-class GroupInclusion(InclusionBase):
-    """An inclusion used to group resources together.
+class GroupResource(ResourceBase):
+    """A resource used to group resources together.
 
-    It doesn't define a resource inclusion itself, but instead depends on other
-    resource inclusions. When a GroupInclusion is depended on, all the
+    It doesn't define a resource file itself, but instead depends on
+    other resources. When a GroupResources is depended on, all the
     resources grouped together will be included.
 
    :param depends: a list of resources that this resource depends
-     on. Entries in the list can be :py:class:`ResourceInclusion`
-     instances, or :py:class:`GroupInclusion` instances.
+     on. Entries in the list can be :py:class:`Resource` instances, or
+     :py:class:`GroupResource` instances.
     """
     def __init__(self, depends):
         self.depends = depends
 
     def need(self):
-        """Need this group inclusion.
+        """Need this group resource.
 
-        If you call ``.need()`` on ``GroupInclusion`` sometime
+        If you call ``.need()`` on ``GroupResource`` sometime
         during the rendering process of your web page, all dependencies
-        of this group inclusion will be inserted into the web page.
+        of this group resources will be inserted into the web page.
         """
-        needed = get_current_needed_inclusions()
+        needed = get_needed()
         needed.need(self)
 
-    def inclusions(self):
-        """Get all inclusions needed by this inclusion.
+    def resources(self):
+        """Get all resources needed by this resource.
         """
         result = []
         for depend in self.depends:
-            result.extend(depend.inclusions())
+            result.extend(depend.resources())
         return result
 
-def normalize_inclusions(library, inclusions):
-    return [normalize_inclusion(library, inclusion)
-            for inclusion in inclusions]
+def normalize_resources(library, resources):
+    return [normalize_resource(library, resource)
+            for resource in resources]
 
-def normalize_inclusion(library, inclusion):
-    if isinstance(inclusion, InclusionBase):
-        return inclusion
-    assert isinstance(inclusion, basestring)
-    return ResourceInclusion(library, inclusion)
+def normalize_resource(library, resource):
+    if isinstance(resource, ResourceBase):
+        return resource
+    assert isinstance(resource, basestring)
+    return Resource(library, resource)
 
-class NeededInclusions(object):
-    """The current selection of needed inclusions.
+class NeededResources(object):
+    """The current selection of needed resources..
 
-    The ``NeededInclusions`` instance maintains a set of needed
-    inclusions for a particular web page.
+    The ``NeededResources`` instance maintains a set of needed
+    resources for a particular web page.
 
     :param hashing: If ``True``, Fanstatic will automatically include
       a hash in all URLs pointing to resources. Since the hash will change
@@ -280,10 +276,10 @@ class NeededInclusions(object):
       calculated once after server startup.
 
     :param bottom: If set to ``True``, Fanstatic will include any
-      resource inclusion that has been marked as "bottom safe" at the
-      bottom of the web page, at the end of ``<body>``, as opposed to
-      in the ``<head>`` section. This is useful for optimizing the
-      load-time of Javascript resources.
+      resource that has been marked as "bottom safe" at the bottom of
+      the web page, at the end of ``<body>``, as opposed to in the
+      ``<head>`` section. This is useful for optimizing the load-time
+      of Javascript resources.
 
     :param force_bottom: If set to ``True`` and ``bottom`` is set to
       ``True`` as well, all Javascript resources will be included at
@@ -303,13 +299,13 @@ class NeededInclusions(object):
     :param base_url: This URL will be prefixed in front of all resource
       URLs. This can be useful if your web framework wants the resources
       to be published on a sub-URL. Note that this can also be set
-      as an attribute on an ``NeededInclusions`` instance.
+      as an attribute on an ``NeededResources`` instance.
 
     :param publisher_signature: The name under which resource libraries
       should be served in the URL. By default this is ``fanstatic``, so
       URLs to resources will start with ``/fanstatic/``.
 
-    :param inclusions: Optionally, a list of resources we want to
+    :param resources: Optionally, a list of resources we want to
       include. Normally you specify resources to include by calling
       ``.need()`` on them, or alternatively by calling ``.need()``
       on an instance of this class.
@@ -323,7 +319,7 @@ class NeededInclusions(object):
     URLs. This can be useful if your web framework wants the resources
     to be published on a sub-URL. It is allowed for a web framework
     to change this attribute directly on an already existing
-    ``NeededInclusions`` object.
+    ``NeededResources`` object.
     """
 
     def __init__(self,
@@ -335,7 +331,7 @@ class NeededInclusions(object):
                  rollup=False,
                  base_url=None,
                  publisher_signature=DEFAULT_SIGNATURE,
-                 inclusions=None,
+                 resources=None,
                  ):
         self._hashing = hashing
         self._devmode = devmode
@@ -346,49 +342,46 @@ class NeededInclusions(object):
         self._publisher_signature = publisher_signature
         self._rollup = rollup
 
-        self._inclusions = inclusions or []
+        self._resources = resources or []
 
-    def has_inclusions(self):
-        """Returns True if any inclusions are needed.
+    def has_resources(self):
+        """Returns True if any resources are needed.
         """
-        return bool(self._inclusions)
+        return bool(self._resources)
 
-    def need(self, inclusion):
-        """Add a particular inclusion to the needed inclusions.
+    def need(self, resource):
+        """Add a particular resource to the needed resources.
 
         This is an alternative to calling ``.need()`` on the resource
-        inclusion directly.
+        directly.
 
-        :param inclusion: A :py:class:`ResourceInclusion` instance.
+        :param resource: A :py:class:`Resource` instance.
         """
-        self._inclusions.append(inclusion)
+        self._resources.append(resource)
 
-    def _sorted_inclusions(self):
-        return reversed(sorted(self._inclusions, key=lambda i: i.depth()))
+    def resources(self):
+        """Retrieve the list of resources needed.
 
-    def inclusions(self):
-        """Retrieve the list of resource inclusions needed.
+        This returns the needed :py:class:`Resource`
+        instances.  Resources are guaranteed to come earlier in the
+        list than those resources that depend on them.
 
-        This returns the needed :py:class:`ResourceInclusion`
-        instances.  Inclusions are guaranteed to come earlier in the
-        list than those inclusions that depend on them.
-
-        Inclusions are also sorted by extension.
+        Resources are also sorted by extension.
         """
-        inclusions = []
-        for inclusion in self._inclusions:
-            inclusions.extend(inclusion.inclusions())
+        resources = []
+        for resource in self._resources:
+            resources.extend(resource.resources())
 
-        inclusions = [inclusion.mode(self._mode) for inclusion in inclusions]
+        resources = [resource.mode(self._mode) for resource in resources]
 
         if self._rollup:
-            inclusions = consolidate(inclusions)
+            resources = consolidate(resources)
         # sort only by extension, not dependency, as we can rely on
-        # python's stable sort to keep inclusion order intact
-        inclusions = sort_inclusions_by_extension(inclusions)
-        inclusions = remove_duplicates(inclusions)
+        # python's stable sort to keep resource inclusion order intact
+        resources = sort_resources_by_extension(resources)
+        resources = remove_duplicates(resources)
 
-        return inclusions
+        return resources
 
     def library_url(self, library):
         """Construct URL to library.
@@ -408,47 +401,47 @@ class NeededInclusions(object):
         return '/'.join(path)
 
     def render(self):
-        """Render needed inclusions.
+        """Render needed resource inclusions.
 
-        This returns a string with the rendered inclusions
+        This returns a string with the rendered resource inclusions
         (``<script>`` and ``<link>`` tags), suitable for including
         in the ``<head>`` section of a web page.
         """
-        return self.render_inclusions(self.inclusions())
+        return self.render_inclusions(self.resources())
 
-    def render_inclusions(self, inclusions):
-        """Render a set of inclusions.
+    def render_inclusions(self, resources):
+        """Render a set of resources as inclusions.
 
         This renders the listed inclusions and their dependencies as
         HTML ((``<script>`` and ``<link>`` tags), suitable for
         inclusion on a web page.
 
-        :param inclusions: A list of :py:class:`ResourceInclusion` instances.
+        :param inclusions: A list of :py:class:`Resource` instances.
         """
         result = []
         url_cache = {} # prevent multiple computations for a library in one request
-        for inclusion in inclusions:
-            library = inclusion.library
+        for resource in resources:
+            library = resource.library
             library_url = url_cache.get(library.name)
             if library_url is None:
                 library_url = url_cache[library.name] = self.library_url(
                     library)
             result.append(
                 render_inclusion(
-                    inclusion, '%s/%s' %(library_url, inclusion.relpath)))
+                    resource, '%s/%s' %(library_url, resource.relpath)))
         return '\n'.join(result)
 
     def render_into_html(self, html):
-        """Render needed inclusions into HTML.
+        """Render needed resource inclusions into HTML.
 
-        :param html: A string with HTML to render the inclusions into. This
-          string must have a ``<head>`` section.
+        :param html: A string with HTML to render the resource
+          inclusions into. This string must have a ``<head>`` section.
         """
         to_insert = self.render()
         return html.replace('<head>', '<head>\n    %s\n' % to_insert, 1)
 
     def render_topbottom(self):
-        """Render inclusions separately into top and bottom fragments.
+        """Render resource inclusions separately into top and bottom fragments.
 
         Returns a tuple of two HTML snippets, top and bottom.  The top
         one is to be included in a ``<head>`` section, and the bottom
@@ -457,41 +450,42 @@ class NeededInclusions(object):
         unless ``force_bottom`` is enabled, in which case all Javascript
         resources will be included in the bottom.
         """
-        inclusions = self.inclusions()
+        resources = self.resources()
 
         # seperate inclusions in top and bottom inclusions if this is needed
         if self._bottom:
-            top_inclusions = []
-            bottom_inclusions = []
+            top_resources = []
+            bottom_resources = []
             if not self._force_bottom:
-                for inclusion in inclusions:
-                    if inclusion.bottom:
-                        bottom_inclusions.append(inclusion)
+                for resource in resources:
+                    if resource.bottom:
+                        bottom_resources.append(resource)
                     else:
-                        top_inclusions.append(inclusion)
+                        top_resources.append(resource)
             else:
-                for inclusion in inclusions:
-                    if inclusion.ext() == '.js':
-                        bottom_inclusions.append(inclusion)
+                for resource in resources:
+                    if resource.ext() == '.js':
+                        bottom_resources.append(resource)
                     else:
-                        top_inclusions.append(inclusion)
+                        top_resources.append(resource)
         else:
-            top_inclusions = inclusions
-            bottom_inclusions = []
+            top_resources = resources
+            bottom_resources = []
 
-        return (self.render_inclusions(top_inclusions),
-                self.render_inclusions(bottom_inclusions))
+        return (self.render_inclusions(top_resources),
+                self.render_inclusions(bottom_resources))
 
     def render_topbottom_into_html(self, html):
-        """Render needed inclusions into HTML.
+        """Render needed resource inclusions into HTML.
 
         Only bottom safe resources are included in the bottom section,
         unless ``force_bottom`` is enabled, in which case all
         Javascript resources will be included in the bottom, just
         before the ``</body>`` tag.
 
-        :param html: A string with HTML to render the inclusions into. This
-          string must have a ``<head>`` and a ``<body>`` section.
+        :param html: The HTML string in which to insert the rendered
+          resource inclusions.  This string must have a ``<head>`` and
+          a ``<body>`` section.
         """
         top, bottom = self.render_topbottom()
         if top:
@@ -500,49 +494,50 @@ class NeededInclusions(object):
             html = html.replace('</body>', '%s</body>' % bottom, 1)
         return html
 
-class NoNeededInclusions(Exception):
+class NoNeededResources(Exception):
     pass
 
 thread_local_needed_data = threading.local()
 
-def init_current_needed_inclusions(*args, **kw):
-    needed = NeededInclusions(*args, **kw)
+def init_needed(*args, **kw):
+    needed = NeededResources(*args, **kw)
     thread_local_needed_data.__dict__[NEEDED] = needed
     return needed
 
-def get_current_needed_inclusions():
+def get_needed():
     needed = thread_local_needed_data.__dict__.get(NEEDED)
     if needed is None:
-        raise NoNeededInclusions('No NeededInclusions object initialized.')
+        raise NoNeededResources('No NeededResources object initialized.')
     return needed
 
-def remove_duplicates(inclusions):
-    """Given a set of inclusions, consolidate them so each only occurs once.
+def remove_duplicates(resources):
+    """Given a set of resources, consolidate them so each only occurs once.
     """
     seen = set()
     result = []
-    for inclusion in inclusions:
-        if inclusion.key() in seen:
+    for resource in resources:
+        key = resource.key()
+        if key in seen:
             continue
-        seen.add(inclusion.key())
-        result.append(inclusion)
+        seen.add(key)
+        result.append(resource)
     return result
 
-def consolidate(inclusions):
-    # keep track of rollups: rollup key -> set of inclusion keys
+def consolidate(resources):
+    # keep track of rollups: rollup key -> set of resource keys
     potential_rollups = {}
-    for inclusion in inclusions:
-        for rollup in inclusion.rollups:
+    for resource in resources:
+        for rollup in resource.rollups:
             s = potential_rollups.setdefault(rollup.key(), set())
-            s.add(inclusion.key())
+            s.add(resource.key())
 
-    # now go through inclusions, replacing them with rollups if
+    # now go through resources, replacing them with rollups if
     # conditions match
     result = []
-    for inclusion in inclusions:
+    for resource in resources:
         eager_superseders = []
         exact_superseders = []
-        for rollup in inclusion.rollups:
+        for rollup in resource.rollups:
             s = potential_rollups[rollup.key()]
             if rollup.eager_superseder:
                 eager_superseders.append(rollup)
@@ -560,37 +555,35 @@ def consolidate(inclusions):
             result.append(exact_superseders[-1])
         else:
             # nothing to supersede resource so use it directly
-            result.append(inclusion)
+            result.append(resource)
     return result
 
-def sort_inclusions_by_extension(inclusions):
+def sort_resources_by_extension(resources):
+    def key(resource):
+        return EXTENSIONS.index(resource.ext())
+    return sorted(resources, key=key)
 
-    def key(inclusion):
-        return EXTENSIONS.index(inclusion.ext())
-
-    return sorted(inclusions, key=key)
-
-def sort_inclusions_topological(inclusions):
-    """Sort inclusions by dependency and supersedes.
+def sort_resources_topological(resources):
+    """Sort resources by dependency and supersedes.
     """
     dead = {}
     result = []
-    for inclusion in inclusions:
-        dead[inclusion.key()] = False
+    for resource in resources:
+        dead[resource.key()] = False
 
-    for inclusion in inclusions:
-        _visit(inclusion, result, dead)
+    for resource in resources:
+        _visit(resource, result, dead)
     return result
 
-def _visit(inclusion, result, dead):
-    if dead[inclusion.key()]:
+def _visit(resource, result, dead):
+    if dead[resource.key()]:
         return
-    dead[inclusion.key()] = True
-    for depend in inclusion.depends:
+    dead[resource.key()] = True
+    for depend in resource.depends:
         _visit(depend, result, dead)
-    for depend in inclusion.supersedes:
+    for depend in resource.supersedes:
         _visit(depend ,result, dead)
-    result.append(inclusion)
+    result.append(resource)
 
 def render_css(url):
     return ('<link rel="stylesheet" type="text/css" href="%s" />' %
@@ -605,10 +598,10 @@ inclusion_renderers = {
     '.js': render_js,
     }
 
-def render_inclusion(inclusion, url):
-    renderer = inclusion_renderers.get(inclusion.ext(), None)
+def render_inclusion(resource, url):
+    renderer = inclusion_renderers.get(resource.ext(), None)
     if renderer is None:
         raise UnknownResourceExtension(
-            "Unknown resource extension %s for resource inclusion: %s" %
-            (inclusion.ext(), repr(inclusion)))
+            "Unknown resource extension %s for resource: %s" %
+            (resource.ext(), repr(resource)))
     return renderer(url)

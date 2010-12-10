@@ -1,19 +1,19 @@
 from fanstatic.core import (Library,
-                            ResourceInclusion,
-                            GroupInclusion,
-                            NeededInclusions,
+                            Resource,
+                            GroupResource,
+                            NeededResources,
                             DEFAULT_SIGNATURE,
-                            sort_inclusions_topological,
-                            sort_inclusions_by_extension)
+                            sort_resources_topological,
+                            sort_resources_by_extension)
 
 from fanstatic.registry import library_registry, LibraryRegistry
 
 from fanstatic.codegen import generate_code
 
-from fanstatic.core import (init_current_needed_inclusions,
-                            get_current_needed_inclusions,
+from fanstatic.core import (init_needed,
+                            get_needed,
                             inclusion_renderers,
-                            NoNeededInclusions,
+                            NoNeededResources,
                             UnknownResourceExtension,
                             EXTENSIONS,
                             NEEDED)

@@ -1,21 +1,21 @@
-from fanstatic import sort_inclusions_topological, sort_inclusions_by_extension
+from fanstatic import sort_resources_topological, sort_resources_by_extension
 
 def generate_code(**kw):
-    inclusion_to_name = {}
-    inclusions = []
-    for name, inclusion in kw.items():
-        inclusion_to_name[inclusion.key()] = name
-        inclusions.append(inclusion)
+    resource_to_name = {}
+    resources = []
+    for name, resource in kw.items():
+        resource_to_name[resource.key()] = name
+        resources.append(resource)
 
     # libraries with the same name are the same libraries
     libraries = {}
-    for inclusion in inclusions:
-        libraries[inclusion.library.name] = inclusion.library
+    for resource in resources:
+        libraries[resource.library.name] = resource.library
     libraries = sorted(libraries.values())
 
     result = []
     # import on top
-    result.append("from fanstatic import Library, ResourceInclusion")
+    result.append("from fanstatic import Library, Resource")
     result.append("")
     # define libraries
     for library in libraries:
@@ -23,29 +23,29 @@ def generate_code(**kw):
                       (library.name, library.name, library.rootpath))
     result.append("")
 
-    # sort inclusions in the order we want them to be
-    inclusions = sort_inclusions_by_extension(
-        sort_inclusions_topological(inclusions))
+    # sort resources in the order we want them to be
+    resources = sort_resources_by_extension(
+        sort_resources_topological(resources))
 
-    # now generate inclusion code
-    for inclusion in inclusions:
-        s = "%s = ResourceInclusion(%s, '%s'" % (
-            inclusion_to_name[inclusion.key()],
-            inclusion.library.name,
-            inclusion.relpath)
-        if inclusion.depends:
+    # now generate resource code
+    for resource in resources:
+        s = "%s = Resource(%s, '%s'" % (
+            resource_to_name[resource.key()],
+            resource.library.name,
+            resource.relpath)
+        if resource.depends:
             depends_s = ', depends=[%s]' % ', '.join(
-                [inclusion_to_name[d.key()] for d in inclusion.depends])
+                [resource_to_name[d.key()] for d in resource.depends])
             s += depends_s
-        if inclusion.supersedes:
+        if resource.supersedes:
             supersedes_s = ', supersedes=[%s]' % ', '.join(
-                [inclusion_to_name[i.key()] for i in inclusion.supersedes])
+                [resource_to_name[i.key()] for i in resource.supersedes])
             s += supersedes_s
-        if inclusion.modes:
+        if resource.modes:
             items = []
-            for mode_name, mode in inclusion.modes.items():
+            for mode_name, mode in resource.modes.items():
                 items.append((mode_name,
-                              generate_inline_inclusion(mode, inclusion)))
+                              generate_inline_resource(mode, resource)))
             items = sorted(items)
             modes_s = ', %s' % ', '.join(["%s=%s" % (name, mode) for
                                           (name, mode) in items])
@@ -54,10 +54,10 @@ def generate_code(**kw):
         result.append(s)
     return '\n'.join(result)
 
-def generate_inline_inclusion(inclusion, associated_inclusion):
-    if inclusion.library.name == associated_inclusion.library.name:
-        return "'%s'" % inclusion.relpath
+def generate_inline_resource(resource, associated_resource):
+    if resource.library.name == associated_resource.library.name:
+        return "'%s'" % resource.relpath
     else:
-        return "ResourceInclusion(%s, '%s')" % (inclusion.library.name,
-                                                inclusion.relpath)
+        return "Resource(%s, '%s')" % (resource.library.name,
+                                       resource.relpath)
 

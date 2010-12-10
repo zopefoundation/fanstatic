@@ -1,5 +1,5 @@
-from fanstatic import Library, ResourceInclusion
+from fanstatic import Library, Resource
 
 foo = Library('foo', 'resources')
 
-style = ResourceInclusion(foo, 'style.css')
+style = Resource(foo, 'style.css')

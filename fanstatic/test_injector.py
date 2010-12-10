@@ -2,8 +2,8 @@ import py
 
 import webob
 
-from fanstatic import (Library, ResourceInclusion,
-                       get_current_needed_inclusions)
+from fanstatic import (Library, Resource,
+                       get_needed)
 from fanstatic import Injector
 
 def test_incorrect_configuration_options():
@@ -11,30 +11,30 @@ def test_incorrect_configuration_options():
     with py.test.raises(TypeError) as e:
         Injector(app, incorrect='configoption')
     assert (
-        "NeededInclusions got an unexpected "
+        "NeededResources got an unexpected "
         "keyword argument 'incorrect'") in str(e)
 
     with py.test.raises(TypeError) as e:
         Injector(app, mode='qux', incorrect='configoption')
     assert (
-        "NeededInclusions got an unexpected "
+        "NeededResources got an unexpected "
         "keyword argument 'incorrect'") in str(e)
 
     with py.test.raises(TypeError) as e:
         Injector(app, mode='qux', incorrect='configoption', devmode=True)
     assert (
-        "NeededInclusions got an unexpected "
+        "NeededResources got an unexpected "
         "keyword argument 'incorrect'") in str(e)
 
 def test_inject():
     foo = Library('foo', '')
-    x1 = ResourceInclusion(foo, 'a.js')
-    x2 = ResourceInclusion(foo, 'b.css')
-    y1 = ResourceInclusion(foo, 'c.js', depends=[x1, x2])
+    x1 = Resource(foo, 'a.js')
+    x2 = Resource(foo, 'b.css')
+    y1 = Resource(foo, 'c.js', depends=[x1, x2])
 
     def app(environ, start_response):
         start_response('200 OK', [])
-        needed = get_current_needed_inclusions()
+        needed = get_needed()
         needed.need(y1)
         needed.base_url = 'http://testapp'
         return ['<html><head></head><body</body></html>']
@@ -52,13 +52,13 @@ def test_inject():
 
 def test_no_inject_into_non_html():
     foo = Library('foo', '')
-    x1 = ResourceInclusion(foo, 'a.js')
-    x2 = ResourceInclusion(foo, 'b.css')
-    y1 = ResourceInclusion(foo, 'c.js', depends=[x1, x2])
+    x1 = Resource(foo, 'a.js')
+    x2 = Resource(foo, 'b.css')
+    y1 = Resource(foo, 'c.js', depends=[x1, x2])
 
     def app(environ, start_response):
         start_response('200 OK', [('Content-Type', 'text/plain')])
-        needed = get_current_needed_inclusions()
+        needed = get_needed()
         needed.need(y1)
         needed.base_url = 'http://testapp'
         return ['<html><head></head><body</body></html>']
@@ -68,8 +68,4 @@ def test_no_inject_into_non_html():
     request = webob.Request.blank('/')
     response = request.get_response(wrapped_app)
     assert response.body == '<html><head></head><body</body></html>'
-
-def test_hash_inject():
-    # XXX
-    pass
 
