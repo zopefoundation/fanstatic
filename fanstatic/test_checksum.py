@@ -1,3 +1,4 @@
+import os.path
 import pprint
 import shutil
 from pkg_resources import resource_filename
@@ -15,12 +16,11 @@ def _copy_testdata(tmpdir):
 
 def test_list_directory(tmpdir):
     testdata_path = str(_copy_testdata(tmpdir))
-    prefix = str(tmpdir)
     expected = [
-        prefix+'/MyPackage/setup.py',
-        prefix+'/MyPackage/MANIFEST.in',
-        prefix+'/MyPackage/src/mypackage/__init__.py',
-        prefix+'/MyPackage/src/mypackage/resources/style.css',
+        tmpdir.join('MyPackage/setup.py').strpath,
+        tmpdir.join('MyPackage/MANIFEST.in').strpath,
+        tmpdir.join('MyPackage/src/mypackage/__init__.py').strpath,
+        tmpdir.join('MyPackage/src/mypackage/resources/style.css').strpath,
         ]
     found = list(list_directory(testdata_path))
     assert sorted(found) == sorted(expected)
@@ -52,12 +52,11 @@ def test_checksum(tmpdir):
     chksum_start = checksum(testdata_path)
     tmpdir.join('/MyPackage/setup.py').rename(
         tmpdir.join('/MyPackage/setup.py.renamed'))
-    prefix = str(tmpdir)
     expected = [
-        prefix+'/MyPackage/setup.py.renamed',
-        prefix+'/MyPackage/MANIFEST.in',
-        prefix+'/MyPackage/src/mypackage/__init__.py',
-        prefix+'/MyPackage/src/mypackage/resources/style.css',
+        tmpdir.join('MyPackage/setup.py.renamed').strpath,
+        tmpdir.join('MyPackage/MANIFEST.in').strpath,
+        tmpdir.join('MyPackage/src/mypackage/__init__.py').strpath,
+        tmpdir.join('MyPackage/src/mypackage/resources/style.css').strpath,
         ]
     found = list(list_directory(testdata_path))
     assert sorted(found) == sorted(expected)
@@ -65,30 +64,28 @@ def test_checksum(tmpdir):
 
 def test_checksum_no_vcs_name(tmpdir):
     testdata_path = str(_copy_testdata(tmpdir))
-    prefix = str(tmpdir)
     tmpdir.join('/MyPackage/.novcs').ensure(dir=True)
     tmpdir.join('/MyPackage/.novcs/foo').write('Contents of foo')
     expected = [
-        prefix+'/MyPackage/.novcs/foo',
-        prefix+'/MyPackage/setup.py',
-        prefix+'/MyPackage/MANIFEST.in',
-        prefix+'/MyPackage/src/mypackage/__init__.py',
-        prefix+'/MyPackage/src/mypackage/resources/style.css',
+        tmpdir.join('MyPackage/.novcs/foo').strpath,
+        tmpdir.join('MyPackage/setup.py').strpath,
+        tmpdir.join('MyPackage/MANIFEST.in').strpath,
+        tmpdir.join('MyPackage/src/mypackage/__init__.py').strpath,
+        tmpdir.join('MyPackage/src/mypackage/resources/style.css').strpath,
         ]
     found = list(list_directory(testdata_path))
     assert sorted(found) == sorted(expected)
 
 def test_checksum_vcs_name(tmpdir):
     testdata_path = str(_copy_testdata(tmpdir))
-    prefix = str(tmpdir)
     for name in VCS_NAMES:
         tmpdir.join('/MyPackage/%s' % name).ensure(dir=True)
         tmpdir.join('/MyPackage/%s/foo' % name).write('Contents of foo')
         expected = [
-            prefix+'/MyPackage/setup.py',
-            prefix+'/MyPackage/MANIFEST.in',
-            prefix+'/MyPackage/src/mypackage/__init__.py',
-            prefix+'/MyPackage/src/mypackage/resources/style.css',
+            tmpdir.join('MyPackage/setup.py').strpath,
+            tmpdir.join('MyPackage/MANIFEST.in').strpath,
+            tmpdir.join('MyPackage/src/mypackage/__init__.py').strpath,
+            tmpdir.join('MyPackage/src/mypackage/resources/style.css').strpath,
             ]
         found = list(list_directory(testdata_path))
         assert sorted(found) == sorted(expected)
@@ -96,28 +93,26 @@ def test_checksum_vcs_name(tmpdir):
 
 def test_checksum_dot_file(tmpdir):
     testdata_path = str(_copy_testdata(tmpdir))
-    prefix = str(tmpdir)
     tmpdir.join('/MyPackage/.woekie').ensure()
     expected = [
-        prefix+'/MyPackage/.woekie',
-        prefix+'/MyPackage/setup.py',
-        prefix+'/MyPackage/MANIFEST.in',
-        prefix+'/MyPackage/src/mypackage/__init__.py',
-        prefix+'/MyPackage/src/mypackage/resources/style.css',
+        tmpdir.join('MyPackage/.woekie').strpath,
+        tmpdir.join('MyPackage/setup.py').strpath,
+        tmpdir.join('MyPackage/MANIFEST.in').strpath,
+        tmpdir.join('MyPackage/src/mypackage/__init__.py').strpath,
+        tmpdir.join('MyPackage/src/mypackage/resources/style.css').strpath,
         ]
     found = list(list_directory(testdata_path))
     assert sorted(found) == sorted(expected)
 
 def test_checksum_ignored_extensions(tmpdir):
     testdata_path = str(_copy_testdata(tmpdir))
-    prefix = str(tmpdir)
     for ext in IGNORED_EXTENSIONS:
         tmpdir.join('/MyPackage/bar%s' % ext).ensure()
         expected = [
-            prefix+'/MyPackage/setup.py',
-            prefix+'/MyPackage/MANIFEST.in',
-            prefix+'/MyPackage/src/mypackage/__init__.py',
-            prefix+'/MyPackage/src/mypackage/resources/style.css',
+            tmpdir.join('MyPackage/setup.py').strpath,
+            tmpdir.join('MyPackage/MANIFEST.in').strpath,
+            tmpdir.join('MyPackage/src/mypackage/__init__.py').strpath,
+            tmpdir.join('MyPackage/src/mypackage/resources/style.css').strpath,
             ]
         found = list(list_directory(testdata_path))
         assert sorted(found) == sorted(expected)
