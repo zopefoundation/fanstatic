@@ -10,3 +10,5 @@ develop-eggs
 dist
 doc/_build
 .coverage
+htmlcov
+

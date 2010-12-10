@@ -61,9 +61,16 @@ modules.
 Test coverage
 -------------
 
-To run test coverage::
+To get a test coverage report::
 
   $ bin/py.test --cov fanstatic
+
+To get a report with more details::
+
+   bin/py.test --cov-report html --cov fanstatic
+
+The results will be stored in a subdirectory ``htmlcov``. You can point
+a web browser to its ``index.html`` to get a detailed coverage report.
 
 Building the documentation
 --------------------------
