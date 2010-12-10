@@ -58,6 +58,13 @@ modules.
 
 .. _`py.test`: http://pytest.org/
 
+Test coverage
+-------------
+
+To run test coverage::
+
+  $ bin/py.test --cov fanstatic
+
 Building the documentation
 --------------------------
 
