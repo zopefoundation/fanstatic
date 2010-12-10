@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='fanstatic',
-    version='0.11dev',
+    version='0.9dev',
     description="Flexible static resources for web applications.",
     classifiers=[],
     keywords='',
