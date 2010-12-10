@@ -8,7 +8,7 @@ from fanstatic.core import (Library,
 
 from fanstatic.registry import library_registry, LibraryRegistry
 
-from fanstatic.codegen import (generate_code)
+from fanstatic.codegen import generate_code
 
 from fanstatic.core import (init_current_needed_inclusions,
                             get_current_needed_inclusions,
