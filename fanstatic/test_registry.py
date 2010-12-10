@@ -9,8 +9,8 @@ def test_library_registry():
 
     # this is a real library, not an entry point
     assert isinstance(library_registry['foo'], Library)
-    
-    with py.test.raises(KeyError) as e:
+
+    with py.test.raises(KeyError):
         library_registry['bar']
 
     bar = Library('bar', '')

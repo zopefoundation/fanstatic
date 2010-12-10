@@ -1,9 +1,5 @@
-import os.path
-import pprint
 import shutil
 from pkg_resources import resource_filename
-
-import fanstatic
 
 from fanstatic.checksum import list_directory, checksum
 from fanstatic.checksum import VCS_NAMES, IGNORED_EXTENSIONS

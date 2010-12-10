@@ -2,8 +2,7 @@ import webob
 
 from datetime import datetime, timedelta
 
-from fanstatic import (
-    LibraryRegistry, Library, ResourceInclusion, Publisher, Delegator)
+from fanstatic import LibraryRegistry, Library, Publisher, Delegator
 from fanstatic.publisher import FOREVER
 
 def test_resource(tmpdir):

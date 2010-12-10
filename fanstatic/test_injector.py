@@ -3,11 +3,8 @@ import py
 import webob
 
 from fanstatic import (Library, ResourceInclusion,
-                       init_current_needed_inclusions,
                        get_current_needed_inclusions)
 from fanstatic import Injector
-
-from fanstatic import checksum
 
 def test_incorrect_configuration_options():
     app = None

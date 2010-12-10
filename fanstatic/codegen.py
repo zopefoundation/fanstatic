@@ -1,7 +1,6 @@
 from fanstatic import sort_inclusions_topological, sort_inclusions_by_extension
 
 def generate_code(**kw):
-    name_to_inclusion = kw
     inclusion_to_name = {}
     inclusions = []
     for name, inclusion in kw.items():

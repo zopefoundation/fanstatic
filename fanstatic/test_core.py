@@ -2,7 +2,6 @@ import py
 
 from fanstatic import (Library, ResourceInclusion, NeededInclusions,
                        GroupInclusion, NoNeededInclusions,
-                       library_registry,
                        init_current_needed_inclusions,
                        get_current_needed_inclusions,
                        inclusion_renderers,
@@ -25,7 +24,6 @@ def test_group_inclusion():
     foo = Library('foo', '')
     x1 = ResourceInclusion(foo, 'a.js')
     x2 = ResourceInclusion(foo, 'b.css')
-    y1 = ResourceInclusion(foo, 'c.js', depends=[x1, x2])
     group = GroupInclusion([x1, x2])
 
     needed = NeededInclusions()

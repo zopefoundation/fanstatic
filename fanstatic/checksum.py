@@ -1,7 +1,5 @@
 import os
-import zlib
 import hashlib
-import fnmatch
 
 VCS_NAMES = ['.svn', '.git', '.bzr', '.hg']
 IGNORED_EXTENSIONS = ['.swp', '.tmp', '.pyc', '.pyo']
