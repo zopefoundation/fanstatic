@@ -20,9 +20,9 @@ benefits are potentially huge and it's safe to do so. See also
 ``devmode`` if you want to use hashing during development.
 
 If you turn on hashing, Fanstatic will automatically include a hash in
-all resource inclusion URLs it generates and injects onto web
-pages. Fanstatic will respond to any resource URLs with a hash in it
-to cache them forever [#well]_.
+all resource URLs it generates and injects onto web pages. Fanstatic
+will respond to any resource URLs with a hash in it to cache them
+forever [#well]_.
 
 The benefit is that all resources will be cached forever by web
 browsers. This means that a web browser will never talk to the server
@@ -84,7 +84,7 @@ this may lead to a better user experience.
 
 Not all Javascript files can be loaded at this time however: some
 depend on being included as early as possible. You can mark a
-:py:class:`ResourceInclusion` as "bottom safe" if they are safe to
+:py:class:`Resource` as "bottom safe" if they are safe to
 load at the bottom of the web page. If you then enable ``bottom``,
 those Javascript resources will be loaded there. If ``bottom`` is
 turned off (the default), all Javascript resources will be included
@@ -103,11 +103,11 @@ mode
 By default, the resource URLs included will be in the normal
 human-readable (and debuggable) format for that resource.
 
-When creating :py:class:`ResourceInclusion` instances, you can specify
+When creating :py:class:`Resource` instances, you can specify
 alternative modes for the resource, such as minified and debug
 versions, by passing keyword arguments. The keyword argument name will
-be the mode, and the argument is a resource path or resource inclusion
-that represents the resource in that alternative mode.
+be the mode, and the argument is a resource path or resource that
+represents the resource in that alternative mode.
 
 You can configure Fanstatic so that it prefers a certain mode when
 creating resource URLs, such as ``minified``. In this case Fanstatic
@@ -123,11 +123,11 @@ client is to roll up several resources into a bundle, so that all
 those resources are retrieved in a single request. This way a whole
 collection of resources can be served in one go.
 
-You can create special :py:class:`ResourceInclusion` instances that
-declare they supersede a collection of other resources. If ``rollup``
-is enabled, Fanstatic will serve a combined resource if it finds out
-that all individual resources that it supersedes are needed. If you
-also declare that a resource is an ``eager_superseder``, the rolled up
+You can create special :py:class:`Resource` instances that declare
+they supersede a collection of other resources. If ``rollup`` is
+enabled, Fanstatic will serve a combined resource if it finds out that
+all individual resources that it supersedes are needed. If you also
+declare that a resource is an ``eager_superseder``, the rolled up
 resource will actually always be served, even if only some of the
 superseded resources are needed.
 
@@ -140,8 +140,8 @@ be published on a sub-URL. By default, there is no ``base_url``, and
 resources are served in the script root.
 
 Note that this can also be set as an attribute on an
-:py:class:`NeededInclusions` instance during run-time, as this URL is
-generally not known when :py:class:`NeededInclusions` is instantiated.
+:py:class:`NeededResources` instance during run-time, as this URL is
+generally not known when :py:class:`NeededResources` is instantiated.
 
 .. [#well] Well, for 10 years into the future at least.
 

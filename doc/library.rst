@@ -91,31 +91,31 @@ default URLS are::
 
   /fanstatic/bar/b.js
 
-Declaring resource inclusions
------------------------------
+Declaring resources for inclusion
+---------------------------------
 
 While now the resources can be served, we can't actually yet
 ``.need()`` them, so that we can have Fanstatic include them on web
-pages for us. For this, we need to create
-:py:class:`ResourceInclusion` instances. Let's modify our original
-``__init__.py`` to read like this::
+pages for us. For this, we need to create :py:class:`Resource`
+instances. Let's modify our original ``__init__.py`` to read like
+this::
 
-  from fanstatic import Library, ResourceInclusion
+  from fanstatic import Library, Resource
 
   bar_library = Library('bar', 'bar_resources')
 
-  a = ResourceInclusion(bar, 'a.css')
+  a = Resource(bar, 'a.css')
  
-  b = ResourceInclusion(bar, 'b.js')
+  b = Resource(bar, 'b.js')
 
 Now we're done!
 
-Using resource inclusions
--------------------------
+Depending on resources
+----------------------
 
-We can start using the resource inclusions in our code now. To
-make sure ``b.js`` is included in our web page, we can do this anywhere
-in our code::
+We can start using the resources in our code now. To make sure
+``b.js`` is included in our web page, we can do this anywhere in our
+code::
 
   from foo import b
 
@@ -139,10 +139,10 @@ It's also available on PyPI:
 Bonus: shipping the library
 ---------------------------
 
-You can declare any number of libraries and resource inclusions in
-your application. What if you want to reuse a library in multiple
+You can declare any number of libraries and resources in your
+application. What if you want to reuse a library in multiple
 applications? That's easy too: you just put your library, library
-entry point, resource inclusions and resource files in a separate
+entry point, resource definitions and resource files in a separate
 Python project. You can then use this in your application projects. If
 it's useful to other as well, you can also publish it on PyPi_! The
 various ``js.*`` projects that we are maintaining for Fanstatic, such
@@ -156,13 +156,13 @@ Bonus: dependencies between resources
 What if we really want to include ``a.css`` whenever we pull in
 ``b.js``, as code in ``b.js`` depends on it? Change your code to this::
 
-  from fanstatic import Library, ResourceInclusion
+  from fanstatic import Library, Resource
 
   bar_library = Library('bar', 'bar_resources')
 
-  a = ResourceInclusion(bar, 'a.css')
+  a = Resource(bar, 'a.css')
  
-  b = ResourceInclusion(bar, 'b.js', depends=[a])
+  b = Resource(bar, 'b.js', depends=[a])
 
 Whenever you ``.need()`` ``b`` now, you'll also get ``a`` included on
 your page.
@@ -174,13 +174,13 @@ What if you have a minified version of your ``b.js`` Javascript called
 ``b.min.js`` available in the ``bar_resources`` directory and you want
 to let Fanstatic know about it? You just write this::
 
-  from fanstatic import Library, ResourceInclusion
+  from fanstatic import Library, Resource
 
   bar_library = Library('bar', 'bar_resources')
 
-  a = ResourceInclusion(bar, 'a.css')
+  a = Resource(bar, 'a.css')
  
-  b = ResourceInclusion(bar, 'b.js', minified='b.min.js')
+  b = Resource(bar, 'b.js', minified='b.min.js')
 
 If you now configure Fanstatic to use the ``minified`` mode, it will
 automatically pull in ``b.min.js`` instead of ``b.js`` whenever you do

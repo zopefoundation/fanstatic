@@ -22,8 +22,8 @@ projects both small and large.
 
 Fanstatic has a lot of cool features:
 
-Always the right inclusions
-----------------------------
+Always the right resources
+--------------------------
 
 * **Import Javascript as easily as Python**: Javascript dependencies
   are a Python import statement away. Importing Python code is easy,

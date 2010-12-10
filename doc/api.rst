@@ -22,13 +22,13 @@ Python components
 .. autoclass:: fanstatic.Library
   :members:
 
-.. autoclass:: fanstatic.ResourceInclusion
+.. autoclass:: fanstatic.Resource
   :members:
 
-.. autoclass:: fanstatic.GroupInclusion
+.. autoclass:: fanstatic.GroupResource
   :members:
 
-.. autoclass:: fanstatic.NeededInclusions
+.. autoclass:: fanstatic.NeededResources
   :members:
 
 .. autoclass:: fanstatic.LibraryRegistry

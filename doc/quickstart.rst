@@ -76,8 +76,8 @@ Wrapping your app with Fanstatic
 To use Fanstatic, you need to configure your application so that
 Fanstatic can do two things for you:
 
-* automatically inject resource
-  inclusion requirements (the ``<script>`` tag) into your web page.
+* automatically inject resource inclusion requirements (the
+  ``<script>`` tag) into your web page.
 
 * serve the static resources (such as jQuery.js) when a request to a
   resource is made.

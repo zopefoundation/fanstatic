@@ -48,11 +48,11 @@ to resources and to recognize "serve-able" resource URLs::
 
   publisher_signature = foo
 
-To allow for bottom inclusions::
+To allow for bottom inclusion of resources::
 
   bottom = true
 
-To force *all* Javascript to be bottom-included::
+To force *all* Javascript to be included at the bottom::
 
   force_bottom = true
 
