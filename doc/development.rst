@@ -26,7 +26,7 @@ improvements.
 Development install of Fanstatic
 --------------------------------
 
-Fanstatic requires Python 2.6. 
+Fanstatic requires Python 2.6.
 
 To install Fanstatic for development, first check it out, then run the
 buildout::
@@ -91,7 +91,7 @@ Python with Fanstatic on the sys.path
 -------------------------------------
 
 It's often useful to have a project and its dependencies available for
-import on a Python prompt for experimentation:
+import on a Python prompt for experimentation::
 
   $ bin/devpython
 
