@@ -139,5 +139,5 @@ class Delegator(object):
 
 def make_publisher(app, global_config,
                    publisher_signature=fanstatic.DEFAULT_SIGNATURE):
-    publisher = Publisher(fanstatic.library_registry)
+    publisher = Publisher(fanstatic.get_library_registry())
     return Delegator(app, publisher, publisher_signature=publisher_signature)

@@ -1,8 +1,9 @@
 import py.test
 
-from fanstatic import library_registry, Library
+from fanstatic import get_library_registry, Library
 
 def test_library_registry():
+    library_registry = get_library_registry()
     # the 'foo' library has been placed here by the test buildout
     # fixtures/MyPackage by the entry point mechanism
     assert library_registry.keys() == ['foo']

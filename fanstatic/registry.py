@@ -10,8 +10,8 @@ class LibraryRegistry(dict):
     library ``name``.
 
     Normally there is only a single global LibraryRegistry,
-    the ``library_registry`` instance.
-
+    obtained by calling ``get_library_registry()``.
+    
     :param libraries: a sequence of libraries
     """    
     def __init__(self, libraries):
@@ -32,11 +32,20 @@ def get_libraries_from_entry_points():
     for entry_point in pkg_resources.iter_entry_points(ENTRY_POINT):
         libraries.append(entry_point.load())
     return libraries
+
+_library_registry = None
+
+def get_library_registry():
+    '''Get the global :py:class:`LibraryRegistry`.
+
+    It gets filled with the libraries registered using the fanstatic
+    entry point.
     
-library_registry = LibraryRegistry(get_libraries_from_entry_points())
-'''The global :py:class:`LibraryRegistry`.
+    You can also add libraries to it later.
+    '''
+    global _library_registry
+    if _library_registry is not None:
+        return _library_registry
+    _library_registry = LibraryRegistry(get_libraries_from_entry_points())
+    return _library_registry
 
-It gets filled with the libraries registered using the fanstatic entry point.
-
-You can also add libraries to it later.
-'''

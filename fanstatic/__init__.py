@@ -6,7 +6,7 @@ from fanstatic.core import (Library,
                             sort_resources_topological,
                             sort_resources_by_extension)
 
-from fanstatic.registry import library_registry, LibraryRegistry
+from fanstatic.registry import get_library_registry, LibraryRegistry
 
 from fanstatic.codegen import generate_code
 

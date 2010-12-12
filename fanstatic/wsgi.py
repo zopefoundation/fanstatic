@@ -1,7 +1,7 @@
 from paste.util.converters import asbool
 
 import fanstatic
-from fanstatic import Injector, Delegator, Publisher, library_registry
+from fanstatic import Injector, Delegator, Publisher, get_library_registry
 
 def Fanstatic(app,
               publisher_signature=fanstatic.DEFAULT_SIGNATURE,
@@ -23,7 +23,7 @@ def Fanstatic(app,
         publisher_signature=publisher_signature,
         **config)
 
-    publisher = Publisher(library_registry)
+    publisher = Publisher(get_library_registry())
 
     return Delegator(
         injector,
