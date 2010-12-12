@@ -19,7 +19,8 @@ setup(
         ),
     entry_points = {
         'paste.filter_app_factory': [
-            'fanstatic = fanstatic.wsgi:make_fanstatic',
-            'inject = fanstatic.inject:make_inject',
+            'fanstatic = fanstatic:make_fanstatic',
+            'publisher = fanstatic:make_publisher',
+            'injector = fanstatic:make_injector',
             ],
     })

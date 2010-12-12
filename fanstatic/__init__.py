@@ -18,9 +18,10 @@ from fanstatic.core import (init_needed,
                             EXTENSIONS,
                             NEEDED)
 
-from fanstatic.injector import Injector
+from fanstatic.injector import Injector, make_injector
 
-from fanstatic.publisher import Delegator, Publisher, DirectoryPublisher
+from fanstatic.publisher import (Publisher, Delegator, make_publisher,
+                                 DirectoryPublisher)
 
-from fanstatic.wsgi import Fanstatic
+from fanstatic.wsgi import Fanstatic, make_fanstatic
 

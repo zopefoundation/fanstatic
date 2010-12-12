@@ -13,7 +13,7 @@ def generate_code(**kw):
         libraries[resource.library.name] = resource.library
         for mode_name, mode_resource in resource.modes.items():
             libraries[mode_resource.library.name] = mode_resource.library
-    libraries = sorted(libraries.values())
+    libraries = sorted(libraries.values(), key=lambda library: library.name)
 
     result = []
     # import on top
