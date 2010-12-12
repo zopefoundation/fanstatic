@@ -131,3 +131,11 @@ The buildout also installs `zest.releaser`_ which can be used to make
 automatic releases to PyPI (using ``bin/fullrelease``).
 
 .. _`zest.releaser`: http://pypi.python.org/pypi/zest.releaser
+
+Pre-packaged libraries
+----------------------
+
+The pre-packaged libraries are maintained on bitbucket:
+
+http://bitbucket.org/fanstatic
+

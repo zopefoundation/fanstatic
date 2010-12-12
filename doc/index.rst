@@ -14,6 +14,7 @@ Contents:
    configuration
    paste_deploy
    api
+   libraries
    community
    development
 
