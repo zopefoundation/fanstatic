@@ -1,8 +1,11 @@
-import py.test
+import pytest
 
 from fanstatic import get_library_registry, Library
 
 def test_library_registry():
+    # Skip this test if the test fixtures has not been installed.
+    pytest.importorskip('mypackage')
+
     library_registry = get_library_registry()
     # the 'foo' library has been placed here by the test buildout
     # fixtures/MyPackage by the entry point mechanism
@@ -11,7 +14,7 @@ def test_library_registry():
     # this is a real library, not an entry point
     assert isinstance(library_registry['foo'], Library)
 
-    with py.test.raises(KeyError):
+    with pytest.raises(KeyError):
         library_registry['bar']
 
     bar = Library('bar', '')
