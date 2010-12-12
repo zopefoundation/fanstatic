@@ -72,6 +72,13 @@ To get a report with more details::
 The results will be stored in a subdirectory ``htmlcov``. You can point
 a web browser to its ``index.html`` to get a detailed coverage report.
 
+Buildbot
+--------
+
+The fanstatic tests are run daily on the `THA buildbot <http://dev.thehealthagency.com/buildbot/>`_.
+We are working on a pretty overview of the buildbot status.
+For now, just search for ``fanstatic`` in the `list of projects <http://dev.thehealthagency.com/buildbot/one_box_per_builder>`_.
+
 Building the documentation
 --------------------------
 
