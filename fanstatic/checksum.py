@@ -26,9 +26,6 @@ def checksum(path):
         chcksm.update(path)
         try:
             f = open(path, 'rb')
-        except IOError:
-            pass
-        else:
             while True:
                 # 256kb chunks.
                 # XXX how to optimize chunk size?
@@ -37,7 +34,6 @@ def checksum(path):
                     break
                 chcksm.update(chunk)
         finally:
-
             f.close()
     return chcksm.hexdigest()
 
