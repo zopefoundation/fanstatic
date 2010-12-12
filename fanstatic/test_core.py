@@ -59,6 +59,21 @@ def test_convenience_need():
 
     assert get_needed().resources() == [x2, x1, y1]
 
+def test_convenience_group_resource_need():
+    foo = Library('foo', '')
+    x1 = Resource(foo, 'a.js')
+    x2 = Resource(foo, 'b.css')
+    y1 = Resource(foo, 'c.js')
+    group = GroupResource([x1, x2, y1])
+    
+    needed = init_needed()
+    assert get_needed() == needed
+    assert get_needed().resources() == []
+
+    group.need()
+
+    assert get_needed().resources() == [x2, x1, y1]
+
 def test_redundant_resource():
     foo = Library('foo', '')
     x1 = Resource(foo, 'a.js')
