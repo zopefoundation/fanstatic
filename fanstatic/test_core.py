@@ -206,7 +206,8 @@ def test_rollup_cannot():
     needed = NeededResources(rollup=True)
     needed.need(b1)
     assert needed.resources() == [b1]
-
+    assert giant not in needed.resources()
+    
 def test_rollup_larger():
     foo = Library('foo', '')
     c1 = Resource(foo, 'c1.css')
@@ -259,7 +260,8 @@ def test_rollup_eager_competing():
     needed = NeededResources(rollup=True)
     needed.need(d1)
     assert needed.resources() == [giant_bigger]
-
+    assert giant not in needed.resources()
+    
 def test_rollup_eager_noneager_competing():
     foo = Library('foo', '')
     d1 = Resource(foo, 'd1.js')
@@ -272,7 +274,8 @@ def test_rollup_eager_noneager_competing():
     needed = NeededResources(rollup=True)
     needed.need(d1)
     assert needed.resources() == [giant]
-
+    assert giant_noneager not in needed.resources()
+    
 def test_rollup_size_competing():
     foo = Library('foo', '')
     d1 = Resource(foo, 'd1.js')
@@ -287,7 +290,8 @@ def test_rollup_size_competing():
     needed.need(d2)
     needed.need(d3)
     assert needed.resources() == [giant_bigger]
-
+    assert giant not in needed.resources()
+    
 def test_rollup_eager_noneager_size_competing():
     foo = Library('foo', '')
     d1 = Resource(foo, 'd1.js')
@@ -301,7 +305,8 @@ def test_rollup_eager_noneager_size_competing():
     needed = NeededResources(rollup=True)
     needed.need(d1)
     assert needed.resources() == [giant]
-
+    assert giant_noneager_bigger not in needed.resources()
+    
 def test_rollup_modes():
     foo = Library('foo', '')
     f1 = Resource(foo, 'f1.js', debug='f1-debug.js')
