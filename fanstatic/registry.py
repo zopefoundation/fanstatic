@@ -15,8 +15,6 @@ class LibraryRegistry(dict):
     :param libraries: a sequence of libraries
     """    
     def __init__(self, libraries):
-        if libraries is None:
-            return
         for library in libraries:
             self[library.name] = library
 
