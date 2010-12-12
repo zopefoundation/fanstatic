@@ -1,4 +1,4 @@
-import py
+import pytest
 
 import webob
 
@@ -33,7 +33,7 @@ def test_inject():
 
 def test_incorrect_configuration_options():
     app = None
-    with py.test.raises(TypeError) as e:
+    with pytest.raises(TypeError) as e:
         Fanstatic(app, incorrect='configoption')
     assert (
         "__init__() got an unexpected "

@@ -1,4 +1,4 @@
-import py
+import pytest
 
 from fanstatic import (Library, Resource, NeededResources,
                        GroupResource, NoNeededResources,
@@ -40,9 +40,9 @@ def test_convenience_need_not_initialized():
     x2 = Resource(foo, 'b.css')
     y1 = Resource(foo, 'c.js', depends=[x1, x2])
 
-    with py.test.raises(NoNeededResources):
+    with pytest.raises(NoNeededResources):
         y1.need()
-    with py.test.raises(NoNeededResources):
+    with pytest.raises(NoNeededResources):
         get_needed()
 
 def test_convenience_need():
@@ -65,7 +65,7 @@ def test_convenience_group_resource_need():
     x2 = Resource(foo, 'b.css')
     y1 = Resource(foo, 'c.js')
     group = GroupResource([x1, x2, y1])
-    
+
     needed = init_needed()
     assert get_needed() == needed
     assert get_needed().resources() == []
@@ -222,7 +222,7 @@ def test_rollup_cannot():
     needed.need(b1)
     assert needed.resources() == [b1]
     assert giant not in needed.resources()
-    
+
 def test_rollup_larger():
     foo = Library('foo', '')
     c1 = Resource(foo, 'c1.css')
@@ -271,12 +271,12 @@ def test_rollup_eager_competing():
     giant_bigger = Resource(foo, 'giant-bigger.js',
                             supersedes=[d1, d2, d3, d4],
                             eager_superseder=True)
-    
+
     needed = NeededResources(rollup=True)
     needed.need(d1)
     assert needed.resources() == [giant_bigger]
     assert giant not in needed.resources()
-    
+
 def test_rollup_eager_noneager_competing():
     foo = Library('foo', '')
     d1 = Resource(foo, 'd1.js')
@@ -290,7 +290,7 @@ def test_rollup_eager_noneager_competing():
     needed.need(d1)
     assert needed.resources() == [giant]
     assert giant_noneager not in needed.resources()
-    
+
 def test_rollup_size_competing():
     foo = Library('foo', '')
     d1 = Resource(foo, 'd1.js')
@@ -299,14 +299,14 @@ def test_rollup_size_competing():
     giant = Resource(foo, 'giant.js', supersedes=[d1, d2])
     giant_bigger = Resource(foo, 'giant-bigger.js',
                             supersedes=[d1, d2, d3])
-    
+
     needed = NeededResources(rollup=True)
     needed.need(d1)
     needed.need(d2)
     needed.need(d3)
     assert needed.resources() == [giant_bigger]
     assert giant not in needed.resources()
-    
+
 def test_rollup_eager_noneager_size_competing():
     foo = Library('foo', '')
     d1 = Resource(foo, 'd1.js')
@@ -321,7 +321,7 @@ def test_rollup_eager_noneager_size_competing():
     needed.need(d1)
     assert needed.resources() == [giant]
     assert giant_noneager_bigger not in needed.resources()
-    
+
 def test_rollup_modes():
     foo = Library('foo', '')
     f1 = Resource(foo, 'f1.js', debug='f1-debug.js')
@@ -646,7 +646,7 @@ def test_add_inclusion_renderer():
 
     needed = NeededResources()
     needed.need(a)
-    with py.test.raises(UnknownResourceExtension):
+    with pytest.raises(UnknownResourceExtension):
         needed.render()
 
     def render_unknown(url):

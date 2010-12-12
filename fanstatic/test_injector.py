@@ -1,4 +1,4 @@
-import py
+import pytest
 
 import webob
 
@@ -8,19 +8,19 @@ from fanstatic import Injector
 
 def test_incorrect_configuration_options():
     app = None
-    with py.test.raises(TypeError) as e:
+    with pytest.raises(TypeError) as e:
         Injector(app, incorrect='configoption')
     assert (
         "__init__() got an unexpected "
         "keyword argument 'incorrect'") in str(e)
 
-    with py.test.raises(TypeError) as e:
+    with pytest.raises(TypeError) as e:
         Injector(app, mode='qux', incorrect='configoption')
     assert (
         "__init__() got an unexpected "
         "keyword argument 'incorrect'") in str(e)
 
-    with py.test.raises(TypeError) as e:
+    with pytest.raises(TypeError) as e:
         Injector(app, mode='qux', incorrect='configoption', devmode=True)
     assert (
         "__init__() got an unexpected "
