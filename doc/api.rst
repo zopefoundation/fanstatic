@@ -35,3 +35,7 @@ Python components
   :members:
   :show-inheritance:
  
+Functions
+---------
+
+.. autofunction:: fanstatic.get_library_registry

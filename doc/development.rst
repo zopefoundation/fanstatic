@@ -26,7 +26,9 @@ improvements.
 Development install of Fanstatic
 --------------------------------
 
-Fanstatic requires Python 2.6.
+Fanstatic requires Python 2.6. We believe that the Fanstatic
+development installation is a good example of how to install a lot of
+useful tools into a project's sandbox automatically; read on.
 
 To install Fanstatic for development, first check it out, then run the
 buildout::
@@ -34,10 +36,15 @@ buildout::
  $ python bootstrap.py -d
  $ bin/buildout
 
-This uses Buildout_. Don't worry, that's all you need to know to get
-going. The ``-d`` option is to use Distribute_ instead of Setuptools_
-and is optional. The buildout process will download and install all
-dependencies for Fanstatic.
+This uses Buildout_. The buildout process will download and install
+all dependencies for Fanstatic, including development tools. 
+
+Don't worry, that's all you need to know about buildout to get going
+-- you only need to run ``bin/buildout`` again if something changes in
+Fanstatic's ``buildout.cfg`` or ``setup.py``.
+
+The ``-d`` option is to instruct buildout to use Distribute_ instead
+of Setuptools_ and is optional.
 
 .. _Buildout: http://buildout.org
 
@@ -71,6 +78,15 @@ To get a report with more details::
 
 The results will be stored in a subdirectory ``htmlcov``. You can point
 a web browser to its ``index.html`` to get a detailed coverage report.
+
+pyflakes
+--------
+
+To run pyflakes_, you can type::
+
+  $ bin/pyflakes fanstatic
+
+.. _pyflakes: http://divmod.org/trac/wiki/DivmodPyflakes
 
 Building the documentation
 --------------------------
@@ -115,5 +131,3 @@ The buildout also installs `zest.releaser`_ which can be used to make
 automatic releases to PyPI (using ``bin/fullrelease``).
 
 .. _`zest.releaser`: http://pypi.python.org/pypi/zest.releaser
-
-
