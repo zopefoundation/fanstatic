@@ -39,9 +39,6 @@ def test_generate_source_control_name():
     foo = Library('foo', '')
     i1 = Resource(foo, 'i1.js')
     i2 = Resource(foo, 'i2.js', depends=[i1])
-    i3 = Resource(foo, 'i3.js', depends=[i2])
-    i4 = Resource(foo, 'i4.js', depends=[i1])
-    i5 = Resource(foo, 'i5.js', depends=[i4, i3])
 
     assert generate_code(hoi=i1) == '''\
 from fanstatic import Library, Resource
