@@ -36,5 +36,5 @@ def test_incorrect_configuration_options():
     with py.test.raises(TypeError) as e:
         Fanstatic(app, incorrect='configoption')
     assert (
-        "NeededResources got an unexpected "
+        "__init__() got an unexpected "
         "keyword argument 'incorrect'") in str(e)
