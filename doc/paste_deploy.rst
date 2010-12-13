@@ -39,7 +39,7 @@ Turn devmode on or off with "true" or "false"::
 
   devmode = true
 
-To turn on hashing with "true" or "false"::
+To turn hashing or or off with "true" or "false"::
 
   hashing = true
 
