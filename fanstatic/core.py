@@ -494,8 +494,30 @@ class NeededResources(object):
             html = html.replace('</body>', '%s</body>' % bottom, 1)
         return html
 
-class NoNeededResources(Exception):
-    pass
+
+class DummyNeededResources(object):
+    """A dummy implementation of the needed resources.
+
+    This class implements the same API as the NeededResources class,
+    but refuses to do anything but need() resources. Resources that are
+    needed are dropped to the floor.
+    """
+
+    base_url = None
+
+    def need(self, resource):
+        pass
+
+    def _not_implented_here(self, *args, **kwargs):
+        raise NotImplementedError('''
+            This functionality is not implemented by objects of the %s class.
+            You probably want a NeededResources object.'''\
+            % self.__class__.__name__)
+
+    has_resources = library_url = render = render_inclusions = _not_implented_here
+    render_into_html = render_topbottom = _not_implented_here
+    resources = render_topbottom_into_html = _not_implented_here
+
 
 thread_local_needed_data = threading.local()
 
@@ -507,7 +529,11 @@ def init_needed(*args, **kw):
 def get_needed():
     needed = thread_local_needed_data.__dict__.get(NEEDED)
     if needed is None:
-        raise NoNeededResources('No NeededResources object initialized.')
+        # When no NeededResources have been set up, we inject a
+        # DummyNeededResources object here.
+        # We do this in order not to tax other code that may need()
+        # a resource here and there but has not set up NeededResources.
+        return DummyNeededResources()
     return needed
 
 def remove_duplicates(resources):

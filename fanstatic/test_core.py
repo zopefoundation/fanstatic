@@ -1,10 +1,8 @@
 import pytest
 
 from fanstatic import (Library, Resource, NeededResources,
-                       GroupResource, NoNeededResources,
-                       init_needed,
-                       get_needed,
-                       inclusion_renderers,
+                       GroupResource, init_needed,
+                       get_needed, inclusion_renderers,
                        sort_resources_topological,
                        UnknownResourceExtension, EXTENSIONS)
 
@@ -40,10 +38,16 @@ def test_convenience_need_not_initialized():
     x2 = Resource(foo, 'b.css')
     y1 = Resource(foo, 'c.js', depends=[x1, x2])
 
-    with pytest.raises(NoNeededResources):
-        y1.need()
-    with pytest.raises(NoNeededResources):
-        get_needed()
+    dummy = get_needed()
+    assert not isinstance(dummy, NeededResources)
+
+    # We return a new dummy instance for every get_needed:
+    dummy2 = get_needed()
+    assert dummy != dummy2
+
+    dummy.need(y1)
+    with pytest.raises(NotImplementedError):
+        dummy.render()
 
 def test_convenience_need():
     foo = Library('foo', '')
