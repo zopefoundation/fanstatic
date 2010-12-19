@@ -98,3 +98,14 @@ Powerful Deployment
   away using easy_install, pip or buildout. No more complicated
   installation instructions, just reuse a Javascript library like you
   reuse Python libraries.
+
+Compatible
+----------
+
+* **Fits your web framework**: Fanstatic integrates with any WSGI-compliant
+  Python web framework.
+
+* **Roll your own**: Not happy with the details of how Fanstatic
+  works?  We've already split the Fanstatic WSGI component into
+  separately usable components so you can mix and match and roll your
+  own.
