@@ -76,7 +76,7 @@ def test_needed_from_environ():
     def app(environ, start_response):
         start_response('200 OK', [])
         needed = get_needed()
-        assert needed is not environ[NEEDED]
+        assert needed is environ[NEEDED]
 
     wrapped_app = Injector(app)
     request = webob.Request.blank('/')
