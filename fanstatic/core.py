@@ -383,6 +383,13 @@ class NeededResources(object):
 
         return resources
 
+    def clear(self):
+        # Clear out any resources "needed" thusfar.
+        # XXX or should we rather revert to the list with resources
+        # that potentially was passed as an argument when creating
+        # this NeededResources instance?
+        self._resources = []
+
     def library_url(self, library):
         """Construct URL to library.
 
@@ -514,6 +521,7 @@ class DummyNeededResources(object):
             You probably want a NeededResources object.'''\
             % self.__class__.__name__)
 
+    clear = _not_implented_here
     has_resources = library_url = render = render_inclusions = _not_implented_here
     render_into_html = render_topbottom = _not_implented_here
     resources = render_topbottom_into_html = _not_implented_here
@@ -535,6 +543,10 @@ def get_needed():
         # a resource here and there but has not set up NeededResources.
         return DummyNeededResources()
     return needed
+
+def clear_needed():
+    needed = get_needed()
+    needed.clear()
 
 def remove_duplicates(resources):
     """Given a set of resources, consolidate them so each only occurs once.

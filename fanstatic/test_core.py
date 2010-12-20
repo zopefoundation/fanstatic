@@ -1,8 +1,11 @@
 import pytest
 
 from fanstatic import (Library, Resource, NeededResources,
-                       GroupResource, init_needed,
-                       get_needed, inclusion_renderers,
+                       GroupResource,
+                       init_needed,
+                       get_needed,
+                       clear_needed,
+                       inclusion_renderers,
                        sort_resources_topological,
                        UnknownResourceExtension, EXTENSIONS)
 
@@ -48,6 +51,15 @@ def test_convenience_need_not_initialized():
     dummy.need(y1)
     with pytest.raises(NotImplementedError):
         dummy.render()
+
+def test_convenience_clear_not_initialized():
+    # This test is put near the top of this module, or at least before
+    # the very first time ``init_needed()`` is called.
+    dummy = get_needed()
+    with pytest.raises(NotImplementedError):
+        dummy.clear()
+    with pytest.raises(NotImplementedError):
+        clear_needed()
 
 def test_convenience_need():
     foo = Library('foo', '')
@@ -659,6 +671,48 @@ def test_add_inclusion_renderer():
     inclusion_renderers['.unknown'] = render_unknown
     assert needed.render() == ('<link rel="unknown" href="/fanstatic/foo/nothing.unknown" />')
 
+def test_clear():
+    foo = Library('foo', '')
+
+    a1 = Resource(foo, 'a1.js')
+    a2 = Resource(foo, 'a2.js', depends=[a1])
+    a3 = Resource(foo, 'a3.js', depends=[a2])
+
+    a4 = Resource(foo, 'a4.js', depends=[a1])
+    a5 = Resource(foo, 'a5.js', depends=[a4, a3])
+
+    needed = NeededResources()
+    needed.need(a1)
+    needed.need(a2)
+    needed.need(a3)
+    assert needed.resources() == [a1, a2, a3]
+    # For some reason,for example an error page needs to be rendered,
+    # the currently needed resources need to be cleared.
+    needed.clear()
+    assert needed.resources() == []
+    needed.need(a4)
+    needed.need(a5)
+    assert needed.resources() == [a1, a4, a2, a3, a5]
+
+def test_convenience_clear():
+    foo = Library('foo', '')
+    x1 = Resource(foo, 'a.js')
+    x2 = Resource(foo, 'b.css')
+    y1 = Resource(foo, 'c.js', depends=[x1, x2])
+
+    z1 = Resource(foo, 'd.js')
+    z2 = Resource(foo, 'e.js', depends=[z1, x1])
+
+    needed = init_needed()
+
+    y1.need()
+    assert needed.resources() == [x2, x1, y1]
+    # For some reason,for example an error page needs to be rendered,
+    # the currently needed resources need to be cleared.
+    clear_needed()
+    assert needed.resources() == []
+    z2.need()
+    assert needed.resources() == [z1, x1, z2]
 
 # XXX tests for hashed resources when this is enabled. Needs some plausible
 # directory to test for hashes

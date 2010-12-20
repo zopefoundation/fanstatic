@@ -12,6 +12,7 @@ from fanstatic.codegen import generate_code
 
 from fanstatic.core import (init_needed,
                             get_needed,
+                            clear_needed,
                             inclusion_renderers,
                             UnknownResourceExtension,
                             EXTENSIONS,
