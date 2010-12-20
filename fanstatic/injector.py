@@ -13,7 +13,7 @@ class Injector(object):
     This WSGI component is used automatically by the
     :py:func:`Fanstatic` WSGI framework component, but can also be
     used independently if you need more control.
-    
+
     :param app: The WSGI app to wrap with the injector.
 
     :param ``**config``: Optional keyword arguments. These are passed
@@ -27,12 +27,17 @@ class Injector(object):
 
         # this is just to give useful feedback early on
         fanstatic.NeededResources(**config)
-        
+
         self.config = config
 
     @webob.dec.wsgify
     def __call__(self, request):
         needed = fanstatic.init_needed(**self.config)
+
+        # Make sure the needed resource object is put in the WSGI
+        # environment as well, for frameworks that choose to use it
+        # from there.
+        request.environ[fanstatic.NEEDED] = needed
 
         # Get the response from the wrapped application:
         response = request.get_response(self.app)

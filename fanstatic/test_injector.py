@@ -3,7 +3,7 @@ import pytest
 import webob
 
 from fanstatic import (Library, Resource,
-                       get_needed)
+                       get_needed, NEEDED)
 from fanstatic import Injector
 
 def test_incorrect_configuration_options():
@@ -68,4 +68,17 @@ def test_no_inject_into_non_html():
     request = webob.Request.blank('/')
     response = request.get_response(wrapped_app)
     assert response.body == '<html><head></head><body</body></html>'
+
+def test_needed_from_environ():
+    foo = Library('foo', '')
+    x1 = Resource(foo, 'a.js')
+
+    def app(environ, start_response):
+        start_response('200 OK', [])
+        needed = get_needed()
+        assert needed is not environ[NEEDED]
+
+    wrapped_app = Injector(app)
+    request = webob.Request.blank('/')
+    response = request.get_response(wrapped_app)
 
