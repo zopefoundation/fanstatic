@@ -1,3 +1,5 @@
+from __future__ import with_statement
+
 import pytest
 
 from fanstatic import get_library_registry, Library
