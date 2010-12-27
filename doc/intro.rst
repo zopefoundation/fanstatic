@@ -66,14 +66,14 @@ Smart Caching
 -------------
 
 * **Infinite caching**: Fanstatic can publish static resources on
-  unique URLs, so that the cache duration can set to infinity. This
+  unique URLs, so that the cache duration can be set to infinity. This
   means that browsers will hold on to your static resources: web
   server only gets that resource request once per user and no more. If
   a front-end in cache is in use, you reduce that to once per
   resource; the cache will handle all other hits.
 
 * **Automatic deployment cache invalidation**: Fanstatic can
-  automatically update your all resource URLs if new versions of
+  automatically update all your resource URLs if new versions of
   resources are released in an application update. No longer do you
   need to instruct your user to use shift-reload in their application
   to refresh their resources.
