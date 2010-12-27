@@ -25,6 +25,21 @@ matter what kind of request it receives::
 
   <html><head></head><body></body></html>
 
+You can also include some code to start and run the WSGI
+application. Python includes ``wsgiref``, a WSGI server
+implementation::
+
+  if __name__ == '__main__':
+      from wsgiref.simple_server import make_server
+      server = make_server('127.0.0.1', 8080, app)
+      server.serve_forever()
+
+For real-world uses you would likely want to use a more capable WSGI
+server, such as Paste Deploy as mentioned before, or for instance
+mod_wsgi_.
+
+.. _mod_wsgi: https://code.google.com/p/modwsgi/
+
 Including resources without Fanstatic
 -------------------------------------
 
@@ -89,10 +104,18 @@ that does both of these things for you. Here is how you use it::
   
   fanstatic_app = Fanstatic(app)
 
-When you use ``fanstatic_app``, Fanstatic will take of serving static
-resources for you, and includes them on web pages when needed. You can
-import and ``need`` resources all through your application's code, and
-Fanstatic will make sure that they are served correctly and that the
-right script tags appear on your web page.
+When you use ``fanstatic_app``, Fanstatic will take care of serving
+static resources for you, and will include them on web pages when
+needed. You can import and ``need`` resources all through your
+application's code, and Fanstatic will make sure that they are served
+correctly and that the right script tags appear on your web page.
+
+If you used ``wsgiref`` for instance, this is what you'd write to use the
+Fanstatic wrapped app::
+
+  if __name__ == '__main__':
+      from wsgiref.simple_server import make_server
+      server = make_server('127.0.0.1', 8080, fanstatic_app)
+      server.serve_forever()
 
 Now you're off and running with Fanstatic!
