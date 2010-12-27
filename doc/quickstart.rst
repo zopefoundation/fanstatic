@@ -18,12 +18,12 @@ A simple WSGI application will stand in for your web application::
 
     def app(environ, start_response):
         start_response('200 OK', [])
-        return ['<html><head></head><body</body></html>']
+        return ['<html><head></head><body></body></html>']
 
 As you can see, it simply produces the following web page, no
 matter what kind of request it receives::
 
-  <html><head></head><body</body></html>
+  <html><head></head><body></body></html>
 
 Including resources without Fanstatic
 -------------------------------------
@@ -57,7 +57,7 @@ How would we do this with Fanstatic? Like this::
     def app(environ, start_response):
         start_response('200 OK', [])
         jquery.need()
-        return ['<html><head></head><body</body></html>']
+        return ['<html><head></head><body></body></html>']
 
 You need to make sure that ``js.jquery`` is available in your
 project using a familiar Python library installation system such as
