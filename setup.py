@@ -1,5 +1,10 @@
 from setuptools import setup
 
+long_description = (
+    open('README.txt').read()
+    + '\n' +
+    open('CHANGES.txt').read())
+
 setup(
     name='fanstatic',
     version='0.9dev',
@@ -8,6 +13,7 @@ setup(
     keywords='',
     author='Fanstatic Developers',
     author_email='fanstatic@googlegroups.com',
+    long_description=long_description,
     license='BSD',
     url='http://fanstatic.org',
     packages=['fanstatic'],

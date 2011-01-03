@@ -1,143 +1,32 @@
 CHANGES
 *******
 
-0.11 (unreleased)
-=================
-
-- Add entry point for wsgi middleware.
-
-- Moved ZCA plugin to hurry.zoperesource.
-
-- Plugins now have two responsibilities:
-
-  1. Leaving a NeededInclusions() object in the WSGI environment.
-
-  2. Leaving a `base_url` attribute on this NeededInclusions object.
-
-- The WSGI `injector` middleware takes care of rendering the needed inclusions
-  into the HTML.
-
-- Add hashing functionality that calculates a checksum of a resource library.
-
-- Hurry.resource.wsgi knows about publishing resources.
-
-- The hurry.resource.wsgi injector middleware informs the wrapped application
-  of the presence of a resource publisher.
-
-- Do not serve hidden files in hurry.resource.publisher.
-
-- Publisher only sets cache control header on successful responses.
-
-- Configure hashing and devmode.
-
-- In devmode, don't re-compute the hash. The hash is stored on the Library
-  instance.
-
-0.10 (2010-07-24)
-=================
-
-* The WSGI Middleware depends on WebOb, which is an optional
-  dependency. Don't expose it into the ``__init__.py`` therefore, as
-  that needs to be independent of WebOb. To use the middleware import
-  it directly from ``hurry.resource.wsgi``.
-
-* The ``Library`` factory now has to be called with a rootpath
-  argument as the second argument. This is a path to the actual
-  resource directory that the library represents, relative to the
-  directory of the package. This is needed to make `` hurry.resource``
-  useful for frameworks not based on ``zope.configuration``.
-
-  This breaks backwards compatibility with previous versions of
-  ``hurry.resource``; all code that uses ``Library`` should be
-  adjusted. Please also update their ``setup.py`` to depend on
-  ``hurry.resource >= 0.10``.
-
-* Packages should register their ``Library`` instances with
-  ``hurry.resource`` using the ``hurry.resource.libraries`` entry
-  point.
-
-0.9 (2010-07-13)
+0.9 (unreleased)
 ================
 
-* WSGI support: ``hurry.resource.Middleware`` can be used to wrap WSGI
-  applications. If the application supplies a ``NeededInclusions``
-  object in ``environ`` with the key ``hurry.resource.needed``, the
-  middleware will pick up on this and insert the needed inclusions.
+Fanstatic is a fundamental rewrite of `hurry.resource`_. As such, Fanstatic
+breaks compatibility with hurry.resource. Here's a list of essential changes
+since version 0.10 of hurry.resource:
 
-  The WebOb library is needed to make this work and depending on
-  ``hurry.resource [wsgi]`` will pull in the required dependency.
+- Fundamental API cleanups and changes.
 
-* Fixed some typos in README.txt.
+- Fanstatic no longer depends on ZTK packages, and provides several 'pure' WSGI
+  components. This allows for greater re-use in different WSGI-based frameworks.
 
-0.4.1 (2009-12-16)
-==================
+- `zope.fanstatic`_ (a rewrite of `hurry.zoperesource`_) provides the integration of
+  Fanstatic with the ZTK.
 
-* Fix restructured text.
+- Fanstatic adds a WSGI component for serving resources, offloading it from the
+  application framework.
 
-0.4 (2009-12-16)
-================
+- Fanstatic adds 'infinite' caching functionality by computing a unique URL
+  for every version of a resource.
 
-* Expose a ``GroupInclusion`` that only exists to depend on other
-  inclusions. This way it becomes possible to expose a set of
-  different resources together without there being a central resource
-  that depends on them. The GroupInclusion itself is therefore not
-  rendered.
+- Fanstatic uses `py.test`_ for test discovery and execution.
 
-* Create ``render_into_html`` and ``render_topbottom_into_html``
-  functionality, which insert the rendered inclusions into HTML.
+- A lot of effort has been put into documenting Fanstatic.
 
-* Expose ``render``, ``render_into_html``, ``render_topbottom`` and
-  ``render_topbottom_into_html`` as top-level functions in
-  ``hurry.resource``.
-
-* Fix NameError when trying to render an inclusion with unknown extension.
-
-* Document inclusion renderers mechanism in the README.txt.
-
-0.3 (2008-10-15)
-================
-
-Features added
---------------
-
-* Consolidating resources into rollups is now disabled by
-  default. This is to help developers with debugging; rollups are
-  typically minified for optimization purposes, and libraries such as
-  YUI do not offer rollups in non-minified form. Since rollups must
-  now be explicitly enabled by the application developer
-  (``hurry.resource.rollup()``), an application developer who needs to
-  debug can choose not to call it (or call
-  ``hurry.resource.rollup(disable=True``).
-
-* Added an optimization section to the documentation.
-
-* Added some more details about how modes are expected to be used to
-  the documentation.
-
-Bug fixes
----------
-
-* ``hurry.resource.bottom`` now takes a second optional ``disable``
-  parameter.
-
-0.2 (2008-10-13)
-================
-
-* Changed the API to set the mode. Instead of passing it to ``render``
-  and ``inclusions``, the requested mode can be set with the ``mode``
-  method on ``INeededInclusions``. For convenience there is a ``mode``
-  function as well that can be imported directly from
-  ``hurry.resource`` that sets the mode for the current needed
-  inclusions.
-
-* Added support for rendering resources into two fragments, one to
-  be included at the top of the HTML page in the ``<head>`` section,
-  the other to be included just before the ``</body>`` section. In
-  some circumstances doing this can `speed up page load time`_.
-
-  .. _`speed up page load time`: http://developer.yahoo.net/blog/archives/2007/07/high_performanc_5.html
-
-0.1 (2008-10-07)
-================
-
-* Initial public release.
+.. _`hurry.resource`: http://pypi.python.org/pypi/hurry.resource
+.. _`hurry.zoperesource`: http://pypi.python.org/pypi/hurry.zoperesource
+.. _`zope.fanstatic`: http://pypi.python.org/pypi/zope.fanstatic
+.. _`py.test`: http://pypi.python.org/pypi/pytest
