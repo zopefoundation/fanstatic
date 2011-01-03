@@ -9,7 +9,7 @@ from fanstatic import (Library, Resource, NeededResources,
                        clear_needed,
                        inclusion_renderers,
                        sort_resources_topological,
-                       UnknownResourceExtension, EXTENSIONS)
+                       UnknownResourceExtension)
 
 
 def test_resource():
@@ -649,29 +649,39 @@ def test_sorting_resources():
         a1, a4, a2, a3, a5]
 
 def test_inclusion_renderers():
-    assert sorted(inclusion_renderers.keys()) == ['.css', '.js']
-
-    assert inclusion_renderers['.js']('http://localhost/script.js') == (
+    assert sorted([ext for ext, _ in inclusion_renderers]) == [
+        '.css', '.ico', '.js']
+    assert dict(inclusion_renderers)['.js']('http://localhost/script.js') == (
          '<script type="text/javascript" src="http://localhost/script.js"></script>')
 
-
-# XXX whole EXTENSIONS business is weird
 def test_add_inclusion_renderer():
     foo = Library('foo', '')
-    a = Resource(foo, 'nothing.unknown')
-    # XXX hack
-    EXTENSIONS.append('.unknown')
 
-    needed = NeededResources()
-    needed.need(a)
     with pytest.raises(UnknownResourceExtension):
-        needed.render()
+        # The renderer for '.unknown' is not yet defined.
+        Resource(foo, 'nothing.unknown')
 
     def render_unknown(url):
         return '<link rel="unknown" href="%s" />' % url
 
-    inclusion_renderers['.unknown'] = render_unknown
+    inclusion_renderers.append(('.unknown', render_unknown))
+
+    a = Resource(foo, 'nothing.unknown')
+    needed = NeededResources()
+    needed.need(a)
     assert needed.render() == ('<link rel="unknown" href="/fanstatic/foo/nothing.unknown" />')
+
+def test_custom_renderer_for_resource():
+    foo = Library('foo', '')
+
+    def render_print_css(url):
+        return ('<link rel="stylesheet" type="text/css" href="%s" media="print"/>' %
+                url)
+
+    a = Resource(foo, 'printstylesheet.css', renderer=render_print_css)
+    needed = NeededResources()
+    needed.need(a)
+    assert needed.render() == ('<link rel="stylesheet" type="text/css" href="/fanstatic/foo/printstylesheet.css" media="print"/>')
 
 def test_clear():
     foo = Library('foo', '')

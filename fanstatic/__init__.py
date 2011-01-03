@@ -15,7 +15,6 @@ from fanstatic.core import (init_needed,
                             clear_needed,
                             inclusion_renderers,
                             UnknownResourceExtension,
-                            EXTENSIONS,
                             NEEDED)
 
 from fanstatic.injector import Injector, make_injector

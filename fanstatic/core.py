@@ -6,9 +6,25 @@ from fanstatic.checksum import checksum
 
 DEFAULT_SIGNATURE = 'fanstatic'
 
-EXTENSIONS = ['.css', '.js']
-
 NEEDED = 'fanstatic.needed'
+
+def render_ico(url):
+    return ('<link rel="shortcut icon" type="image/x-icon" href="%s"/>' %
+            url)
+
+def render_css(url):
+    return ('<link rel="stylesheet" type="text/css" href="%s" />' %
+            url)
+
+def render_js(url):
+    return ('<script type="text/javascript" src="%s"></script>' %
+            url)
+
+inclusion_renderers = [
+    ('.ico', render_ico),
+    ('.css', render_css),
+    ('.js', render_js),
+    ]
 
 class UnknownResourceExtension(Exception):
     """Unknown resource extension"""
@@ -109,6 +125,13 @@ class Resource(ResourceBase):
       way, so you have to set this explicitly (or use the
       ``force_bottom`` option on :py:class:`NeededResources`).
 
+    :param ``renderer``: optionally, a callable that accepts an URL
+      argument and returns a rendered HTML snippet for this
+      resource.
+
+      If no renderer is provided, a renderer is looked up based on the
+      resource's filename extension.
+
     :param ``**kw``: keyword parameters can be supplied to indicate
       alternate resources. An alternate resource is for instance a
       minified version of this resource. The name of the parameter
@@ -124,10 +147,23 @@ class Resource(ResourceBase):
 
     def __init__(self, library, relpath, depends=None,
                  supersedes=None, eager_superseder=False,
-                 bottom=False, **kw):
+                 bottom=False, renderer=None,
+                 **kw):
         self.library = library
         self.relpath = relpath
         self.bottom = bottom
+
+        self.ext = os.path.splitext(self.relpath)[1]
+
+        if renderer is None:
+            renderer = dict(inclusion_renderers).get(self.ext)
+            if renderer is None:
+                raise UnknownResourceExtension(
+                    "Unknown resource extension %s for resource: %s" %
+                    (self.ext, repr(self)))
+        # Kinda "bind" the renderer to the Resource instance.
+        self.renderer = lambda library_url: renderer('%s/%s' % (
+            library_url, self.relpath))
 
         assert not isinstance(depends, basestring)
         depends = depends or []
@@ -164,14 +200,6 @@ class Resource(ResourceBase):
     def __repr__(self):
         return "<Resource '%s' in library '%s'>" % (
             self.relpath, self.library.name)
-
-    def ext(self):
-        """The extension of this resource.
-
-        An extension starts with a period. Examples ``.js``, ``.css``.
-        """
-        name, ext = os.path.splitext(self.relpath)
-        return ext
 
     def mode(self, mode):
         """Get Resource in another mode.
@@ -227,6 +255,7 @@ class GroupResource(ResourceBase):
     """
     def __init__(self, depends):
         self.depends = depends
+        self.renderer = None
 
     def need(self):
         """Need this group resource.
@@ -433,9 +462,7 @@ class NeededResources(object):
             if library_url is None:
                 library_url = url_cache[library.name] = self.library_url(
                     library)
-            result.append(
-                render_inclusion(
-                    resource, '%s/%s' %(library_url, resource.relpath)))
+            result.append(resource.renderer(library_url))
         return '\n'.join(result)
 
     def render_into_html(self, html):
@@ -471,7 +498,7 @@ class NeededResources(object):
                         top_resources.append(resource)
             else:
                 for resource in resources:
-                    if resource.ext() == '.js':
+                    if resource.ext == '.js':
                         bottom_resources.append(resource)
                     else:
                         top_resources.append(resource)
@@ -597,8 +624,9 @@ def consolidate(resources):
     return result
 
 def sort_resources_by_extension(resources):
+    extensions = [ext for ext, _ in inclusion_renderers]
     def key(resource):
-        return EXTENSIONS.index(resource.ext())
+        return extensions.index(resource.ext)
     return sorted(resources, key=key)
 
 def sort_resources_topological(resources):
@@ -622,24 +650,3 @@ def _visit(resource, result, dead):
     for depend in resource.supersedes:
         _visit(depend ,result, dead)
     result.append(resource)
-
-def render_css(url):
-    return ('<link rel="stylesheet" type="text/css" href="%s" />' %
-            url)
-
-def render_js(url):
-    return ('<script type="text/javascript" src="%s"></script>' %
-            url)
-
-inclusion_renderers = {
-    '.css': render_css,
-    '.js': render_js,
-    }
-
-def render_inclusion(resource, url):
-    renderer = inclusion_renderers.get(resource.ext(), None)
-    if renderer is None:
-        raise UnknownResourceExtension(
-            "Unknown resource extension %s for resource: %s" %
-            (resource.ext(), repr(resource)))
-    return renderer(url)
