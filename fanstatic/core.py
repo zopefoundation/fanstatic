@@ -79,7 +79,8 @@ class InclusionRenderers(dict):
         :param priority: optionally, to control the order in which the
           snippets are included in the HTML document. If no priority is
           given, the resource will be included after all other resource
-          qinclusions.
+          inclusions. The lower the priority number, the earlier in the
+          rendering the inclusion will appear.
         """
 
         if priority is None:
