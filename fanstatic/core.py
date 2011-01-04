@@ -65,7 +65,27 @@ def caller_dir():
 
 class InclusionRenderers(dict):
 
-    def register(self, extension, renderer, priority):
+    _default_priority = 0
+
+    def register(self, extension, renderer, priority=None):
+        """Register a renderer function for a given filename extension.
+
+        :param extension: the filename extension to register the
+          renderer for.
+
+        :param renderer: a callable that should accept a URL argument
+          and return a rendered HTML snippet for this resource.
+
+        :param priority: optionally, to control the order in which the
+          snippets are included in the HTML document. If no priority is
+          given, the resource will be included after all other resource
+          qinclusions.
+        """
+
+        if priority is None:
+            priority = self._default_priority
+        else:
+            self._default_priority = max(self._default_priority, priority+1)
         self[extension] = (priority, renderer)
 
 inclusion_renderers = InclusionRenderers()
@@ -134,19 +154,17 @@ class Resource(ResourceBase):
       way, so you have to set this explicitly (or use the
       ``force_bottom`` option on :py:class:`NeededResources`).
 
-    :param ``renderer``: optionally, a callable that accepts an URL
+    :param renderer: optionally, a callable that accepts an URL
       argument and returns a rendered HTML snippet for this
-      resource.
-
-      If no renderer is provided, a renderer is looked up based on the
-      resource's filename extension.
+      resource. If no renderer is provided, a renderer is looked up
+      based on the resource's filename extension.
 
     :param ``**kw``: keyword parameters can be supplied to indicate
       alternate resources. An alternate resource is for instance a
       minified version of this resource. The name of the parameter
       indicates the type of alternate resource (``debug``,
-      ``minified``, etc), and the value is a
-      :py:class:`Resource` instance.
+      ``minified``, etc), and the value is a :py:class:`Resource`
+      instance.
 
       As a shortcut, a string can be supplied as value that indicates
       the relative path to a resource in the library (for instance the

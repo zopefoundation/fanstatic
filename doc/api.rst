@@ -34,8 +34,10 @@ Python components
 .. autoclass:: fanstatic.LibraryRegistry
   :members:
   :show-inheritance:
- 
+
 Functions
 ---------
 
 .. autofunction:: fanstatic.get_library_registry
+
+.. autofunction:: fanstatic.register_inclusion_renderer
