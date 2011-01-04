@@ -670,7 +670,7 @@ def test_register_inclusion_renderer():
     def render_unknown(url):
         return '<link rel="unknown" href="%s" />' % url
 
-    register_inclusion_renderer('.unknown', render_unknown, 50)
+    register_inclusion_renderer('.unknown', render_unknown)
     a = Resource(foo, 'nothing.unknown')
 
     needed = NeededResources()
