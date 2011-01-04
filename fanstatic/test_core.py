@@ -744,6 +744,27 @@ def test_custom_renderer_for_resource():
 <link rel="stylesheet" type="text/css" href="/fanstatic/foo/printstylesheet.css" media="print"/>
 <unknown href="/fanstatic/foo/nothing.unknown"/>"""
 
+def test_custom_renderer_keep_together():
+    foo = Library('foo', '')
+
+    def render_print_css(url):
+        return ('<link rel="stylesheet" type="text/css" href="%s" media="print"/>' %
+                url)
+
+    a = Resource(foo, 'printstylesheet.css', renderer=render_print_css)
+    b = Resource(foo, 'regular.css')
+    c = Resource(foo, 'something.js')
+
+    needed = NeededResources()
+    needed.need(a)
+    needed.need(b)
+    needed.need(c)
+
+    assert needed.render() == """\
+<link rel="stylesheet" type="text/css" href="/fanstatic/foo/printstylesheet.css" media="print"/>
+<link rel="stylesheet" type="text/css" href="/fanstatic/foo/regular.css" />
+<script type="text/javascript" src="/fanstatic/foo/something.js"></script>"""
+
 def test_resource_subclass_render():
     foo = Library('foo', '')
     class MyResource(Resource):
