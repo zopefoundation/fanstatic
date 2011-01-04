@@ -8,27 +8,6 @@ DEFAULT_SIGNATURE = 'fanstatic'
 
 NEEDED = 'fanstatic.needed'
 
-def render_ico(url):
-    return ('<link rel="shortcut icon" type="image/x-icon" href="%s"/>' %
-            url)
-
-def render_css(url):
-    return ('<link rel="stylesheet" type="text/css" href="%s" />' %
-            url)
-
-def render_js(url):
-    return ('<script type="text/javascript" src="%s"></script>' %
-            url)
-
-inclusion_renderers = [
-    ('.ico', render_ico),
-    ('.css', render_css),
-    ('.js', render_js),
-    ]
-
-class UnknownResourceExtension(Exception):
-    """Unknown resource extension"""
-
 class Library(object):
     """The resource library.
 
@@ -83,6 +62,36 @@ class Library(object):
 # Total hack to be able to get the dir the resources will be in.
 def caller_dir():
     return os.path.dirname(sys._getframe(2).f_globals['__file__'])
+
+class InclusionRenderers(dict):
+
+    def register(self, extension, renderer, priority):
+        self[extension] = (priority, renderer)
+
+inclusion_renderers = InclusionRenderers()
+
+register_inclusion_renderer = inclusion_renderers.register
+
+def render_ico(url):
+    return ('<link rel="shortcut icon" type="image/x-icon" href="%s"/>' %
+            url)
+
+def render_css(url):
+    return ('<link rel="stylesheet" type="text/css" href="%s" />' %
+            url)
+
+def render_js(url):
+    return ('<script type="text/javascript" src="%s"></script>' %
+            url)
+
+register_inclusion_renderer('.css', render_css, 10)
+
+register_inclusion_renderer('.js', render_js, 20)
+
+register_inclusion_renderer('.ico', render_ico, 30)
+
+class UnknownResourceExtension(Exception):
+    """Unknown resource extension"""
 
 class ResourceBase(object):
     pass
@@ -145,9 +154,11 @@ class Resource(ResourceBase):
       constructed that has the same library as this resource.
     """
 
-    def __init__(self, library, relpath, depends=None,
+    def __init__(self, library, relpath,
+                 depends=None,
                  supersedes=None, eager_superseder=False,
-                 bottom=False, renderer=None,
+                 bottom=False,
+                 renderer=None,
                  **kw):
         self.library = library
         self.relpath = relpath
@@ -156,14 +167,20 @@ class Resource(ResourceBase):
         self.ext = os.path.splitext(self.relpath)[1]
 
         if renderer is None:
-            renderer = dict(inclusion_renderers).get(self.ext)
-            if renderer is None:
+            # No custom, ad-hoc renderer for this Resource, so lookup
+            # the default renderer by resource filename extension.
+            if self.ext not in inclusion_renderers:
                 raise UnknownResourceExtension(
                     "Unknown resource extension %s for resource: %s" %
                     (self.ext, repr(self)))
-        # Kinda "bind" the renderer to the Resource instance.
-        self.renderer = lambda library_url: renderer('%s/%s' % (
-            library_url, self.relpath))
+            self.priority, self.renderer = inclusion_renderers[self.ext]
+        else:
+            # Use the custom renderer. If we do not know about the
+            # filename extension inclusion priority, we render the
+            # resource after all others.
+            self.renderer = renderer
+            self.priority, _ = inclusion_renderers.get(
+                self.ext, (sys.maxint, None))
 
         assert not isinstance(depends, basestring)
         depends = depends or []
@@ -196,6 +213,9 @@ class Resource(ResourceBase):
                     continue
                 mode.supersedes.append(superseded_mode)
                 superseded_mode.rollups.append(mode)
+
+    def render(self, library_url):
+        return self.renderer('%s/%s' % (library_url, self.relpath))
 
     def __repr__(self):
         return "<Resource '%s' in library '%s'>" % (
@@ -255,7 +275,6 @@ class GroupResource(ResourceBase):
     """
     def __init__(self, depends):
         self.depends = depends
-        self.renderer = None
 
     def need(self):
         """Need this group resource.
@@ -407,7 +426,7 @@ class NeededResources(object):
             resources = consolidate(resources)
         # sort only by extension, not dependency, as we can rely on
         # python's stable sort to keep resource inclusion order intact
-        resources = sort_resources_by_extension(resources)
+        resources = sort_resources(resources)
         resources = remove_duplicates(resources)
 
         return resources
@@ -462,7 +481,7 @@ class NeededResources(object):
             if library_url is None:
                 library_url = url_cache[library.name] = self.library_url(
                     library)
-            result.append(resource.renderer(library_url))
+            result.append(resource.render(library_url))
         return '\n'.join(result)
 
     def render_into_html(self, html):
@@ -623,10 +642,9 @@ def consolidate(resources):
             result.append(resource)
     return result
 
-def sort_resources_by_extension(resources):
-    extensions = [ext for ext, _ in inclusion_renderers]
+def sort_resources(resources):
     def key(resource):
-        return extensions.index(resource.ext)
+        return resource.priority
     return sorted(resources, key=key)
 
 def sort_resources_topological(resources):

@@ -1,4 +1,4 @@
-from fanstatic import sort_resources_topological, sort_resources_by_extension
+from fanstatic import sort_resources_topological, sort_resources
 
 def generate_code(**kw):
     resource_to_name = {}
@@ -26,7 +26,7 @@ def generate_code(**kw):
     result.append("")
 
     # sort resources in the order we want them to be
-    resources = sort_resources_by_extension(
+    resources = sort_resources(
         sort_resources_topological(resources))
 
     # now generate resource code

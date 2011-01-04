@@ -2,14 +2,18 @@ from __future__ import with_statement
 
 import pytest
 
-from fanstatic import (Library, Resource, NeededResources,
+from fanstatic import (Library,
+                       Resource,
+                       NeededResources,
                        GroupResource,
                        init_needed,
                        get_needed,
                        clear_needed,
-                       inclusion_renderers,
+                       register_inclusion_renderer,
                        sort_resources_topological,
                        UnknownResourceExtension)
+
+from fanstatic.core import inclusion_renderers
 
 
 def test_resource():
@@ -649,12 +653,14 @@ def test_sorting_resources():
         a1, a4, a2, a3, a5]
 
 def test_inclusion_renderers():
-    assert sorted([ext for ext, _ in inclusion_renderers]) == [
-        '.css', '.ico', '.js']
-    assert dict(inclusion_renderers)['.js']('http://localhost/script.js') == (
+    assert sorted(
+        [(priority, key) for key, (priority, _) in inclusion_renderers.items()]) == [
+        (10, '.css'), (20, '.js'), (30, '.ico')]
+    _, renderer = inclusion_renderers['.js']
+    assert renderer('http://localhost/script.js') == (
          '<script type="text/javascript" src="http://localhost/script.js"></script>')
 
-def test_add_inclusion_renderer():
+def test_register_inclusion_renderer():
     foo = Library('foo', '')
 
     with pytest.raises(UnknownResourceExtension):
@@ -664,12 +670,57 @@ def test_add_inclusion_renderer():
     def render_unknown(url):
         return '<link rel="unknown" href="%s" />' % url
 
-    inclusion_renderers.append(('.unknown', render_unknown))
-
+    register_inclusion_renderer('.unknown', render_unknown, 50)
     a = Resource(foo, 'nothing.unknown')
+
     needed = NeededResources()
     needed.need(a)
     assert needed.render() == ('<link rel="unknown" href="/fanstatic/foo/nothing.unknown" />')
+
+def test_registered_inclusion_renderers_in_order():
+    foo = Library('foo', '')
+
+    def render_unknown(url):
+        return '<unknown href="%s"/>' % url
+
+    register_inclusion_renderer('.later', render_unknown, 50)
+    a = Resource(foo, 'nothing.later')
+    b = Resource(foo, 'something.js')
+    c = Resource(foo, 'something.css')
+    d = Resource(foo, 'something.ico')
+
+    needed = NeededResources()
+    needed.need(a)
+    needed.need(b)
+    needed.need(c)
+    needed.need(d)
+
+    assert needed.render() == """\
+<link rel="stylesheet" type="text/css" href="/fanstatic/foo/something.css" />
+<script type="text/javascript" src="/fanstatic/foo/something.js"></script>
+<link rel="shortcut icon" type="image/x-icon" href="/fanstatic/foo/something.ico"/>
+<unknown href="/fanstatic/foo/nothing.later"/>"""
+
+    register_inclusion_renderer('.sooner', render_unknown, 5)
+    e = Resource(foo, 'nothing.sooner')
+    needed.need(e)
+    assert needed.render() == """\
+<unknown href="/fanstatic/foo/nothing.sooner"/>
+<link rel="stylesheet" type="text/css" href="/fanstatic/foo/something.css" />
+<script type="text/javascript" src="/fanstatic/foo/something.js"></script>
+<link rel="shortcut icon" type="image/x-icon" href="/fanstatic/foo/something.ico"/>
+<unknown href="/fanstatic/foo/nothing.later"/>"""
+
+    register_inclusion_renderer('.between', render_unknown, 25)
+    f = Resource(foo, 'nothing.between')
+    needed.need(f)
+    assert needed.render() == """\
+<unknown href="/fanstatic/foo/nothing.sooner"/>
+<link rel="stylesheet" type="text/css" href="/fanstatic/foo/something.css" />
+<script type="text/javascript" src="/fanstatic/foo/something.js"></script>
+<unknown href="/fanstatic/foo/nothing.between"/>
+<link rel="shortcut icon" type="image/x-icon" href="/fanstatic/foo/something.ico"/>
+<unknown href="/fanstatic/foo/nothing.later"/>"""
 
 def test_custom_renderer_for_resource():
     foo = Library('foo', '')
@@ -681,7 +732,29 @@ def test_custom_renderer_for_resource():
     a = Resource(foo, 'printstylesheet.css', renderer=render_print_css)
     needed = NeededResources()
     needed.need(a)
-    assert needed.render() == ('<link rel="stylesheet" type="text/css" href="/fanstatic/foo/printstylesheet.css" media="print"/>')
+    assert needed.render() == """\
+<link rel="stylesheet" type="text/css" href="/fanstatic/foo/printstylesheet.css" media="print"/>"""
+
+    def render_unknown(url):
+        return '<unknown href="%s"/>' % url
+
+    b = Resource(foo, 'nothing.unknown', renderer=render_unknown)
+    needed.need(b)
+    assert needed.render() == """\
+<link rel="stylesheet" type="text/css" href="/fanstatic/foo/printstylesheet.css" media="print"/>
+<unknown href="/fanstatic/foo/nothing.unknown"/>"""
+
+def test_resource_subclass_render():
+    foo = Library('foo', '')
+    class MyResource(Resource):
+        def render(self, library_url):
+            return '<myresource reference="%s/%s"/>' % (library_url, self.relpath)
+
+    a = MyResource(foo, 'printstylesheet.css')
+    needed = NeededResources()
+    needed.need(a)
+    assert needed.render() == """\
+<myresource reference="/fanstatic/foo/printstylesheet.css"/>"""
 
 def test_clear():
     foo = Library('foo', '')

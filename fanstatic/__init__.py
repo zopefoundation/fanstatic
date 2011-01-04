@@ -4,7 +4,7 @@ from fanstatic.core import (Library,
                             NeededResources,
                             DEFAULT_SIGNATURE,
                             sort_resources_topological,
-                            sort_resources_by_extension)
+                            sort_resources)
 
 from fanstatic.registry import get_library_registry, LibraryRegistry
 
@@ -13,7 +13,7 @@ from fanstatic.codegen import generate_code
 from fanstatic.core import (init_needed,
                             get_needed,
                             clear_needed,
-                            inclusion_renderers,
+                            register_inclusion_renderer,
                             UnknownResourceExtension,
                             NEEDED)
 
