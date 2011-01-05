@@ -654,7 +654,7 @@ def test_sorting_resources():
 
 def test_inclusion_renderers():
     assert sorted(
-        [(priority, key) for key, (priority, _) in inclusion_renderers.items()]) == [
+        [(order, key) for key, (order, _) in inclusion_renderers.items()]) == [
         (10, '.css'), (20, '.js'), (30, '.ico')]
     _, renderer = inclusion_renderers['.js']
     assert renderer('http://localhost/script.js') == (

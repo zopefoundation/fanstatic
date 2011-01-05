@@ -65,9 +65,9 @@ def caller_dir():
 
 class InclusionRenderers(dict):
 
-    _default_priority = 0
+    _default_order = 0
 
-    def register(self, extension, renderer, priority=None):
+    def register(self, extension, renderer, order=None):
         """Register a renderer function for a given filename extension.
 
         :param extension: the filename extension to register the
@@ -76,18 +76,18 @@ class InclusionRenderers(dict):
         :param renderer: a callable that should accept a URL argument
           and return a rendered HTML snippet for this resource.
 
-        :param priority: optionally, to control the order in which the
-          snippets are included in the HTML document. If no priority is
+        :param order: optionally, to control the order in which the
+          snippets are included in the HTML document. If no order is
           given, the resource will be included after all other resource
-          inclusions. The lower the priority number, the earlier in the
+          inclusions. The lower the order number, the earlier in the
           rendering the inclusion will appear.
         """
 
-        if priority is None:
-            priority = self._default_priority
+        if order is None:
+            order = self._default_order
         else:
-            self._default_priority = max(self._default_priority, priority+1)
-        self[extension] = (priority, renderer)
+            self._default_order = max(self._default_order, order+1)
+        self[extension] = (order, renderer)
 
 inclusion_renderers = InclusionRenderers()
 
@@ -192,13 +192,13 @@ class Resource(ResourceBase):
                 raise UnknownResourceExtension(
                     "Unknown resource extension %s for resource: %s" %
                     (self.ext, repr(self)))
-            self.priority, self.renderer = inclusion_renderers[self.ext]
+            self.order, self.renderer = inclusion_renderers[self.ext]
         else:
-            # Use the custom renderer. If we do not know about the
-            # filename extension inclusion priority, we render the
-            # resource after all others.
+            # Use the custom renderer.
             self.renderer = renderer
-            self.priority, _ = inclusion_renderers.get(
+            # If we do not know about the filename extension inclusion
+            # order, we render the resource after all others.
+            self.order, _ = inclusion_renderers.get(
                 self.ext, (sys.maxint, None))
 
         assert not isinstance(depends, basestring)
@@ -663,7 +663,7 @@ def consolidate(resources):
 
 def sort_resources(resources):
     def key(resource):
-        return resource.priority
+        return resource.order
     return sorted(resources, key=key)
 
 def sort_resources_topological(resources):
