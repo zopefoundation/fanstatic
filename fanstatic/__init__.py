@@ -3,6 +3,7 @@ from fanstatic.core import (Library,
                             GroupResource,
                             NeededResources,
                             DEFAULT_SIGNATURE,
+                            DEFAULT_HASH,
                             sort_resources_topological,
                             sort_resources)
 

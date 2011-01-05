@@ -6,6 +6,8 @@ from fanstatic.checksum import checksum
 
 DEFAULT_SIGNATURE = 'fanstatic'
 
+DEFAULT_HASH = ':id:'
+
 NEEDED = 'fanstatic.needed'
 
 class Library(object):
@@ -34,11 +36,12 @@ class Library(object):
 
     _signature = None
 
-    def __init__(self, name, rootpath, ignores=None):
+    def __init__(self, name, rootpath, ignores=None, version=None):
         self.name = name
         self.rootpath = rootpath
         self.ignores = ignores or []
         self.path = os.path.join(caller_dir(), rootpath)
+        self.version = version
 
     def signature(self, devmode=False):
         """Get a unique signature for this Library.
@@ -48,6 +51,9 @@ class Library(object):
         signature will be recalculated each time, which is useful
         during development when changing Javascript code.
         """
+        if self.version is not None:
+            return DEFAULT_HASH + self.version
+
         if devmode:
             # Always re-compute.
             sig = checksum(self.path)
@@ -57,7 +63,7 @@ class Library(object):
         else:
             # Use cached value.
             sig = self._signature
-        return ':hash:%s' % sig
+        return DEFAULT_HASH + sig
 
 # Total hack to be able to get the dir the resources will be in.
 def caller_dir():

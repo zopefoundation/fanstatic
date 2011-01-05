@@ -72,7 +72,8 @@ class Publisher(object):
             raise webob.exc.HTTPForbidden()
         # pop hash if it's there
         potential_hash = request.path_info_peek()
-        if potential_hash is not None and potential_hash.startswith(':hash:'):
+        if potential_hash is not None and \
+            potential_hash.startswith(fanstatic.DEFAULT_HASH):
             request.path_info_pop()
             need_caching = True
         else:
