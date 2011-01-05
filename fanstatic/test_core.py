@@ -13,7 +13,7 @@ from fanstatic import (Library,
                        sort_resources_topological,
                        UnknownResourceExtension)
 
-from fanstatic.core import inclusion_renderers
+from fanstatic.core import inclusion_renderers, normalize_resource
 
 
 def test_resource():
@@ -819,6 +819,12 @@ def test_convenience_clear():
     assert needed.resources() == []
     z2.need()
     assert needed.resources() == [z1, x1, z2]
+
+def test_normalize_resource():
+    foo = Library('foo', '')
+    assert isinstance(normalize_resource(foo, 'f.css'), Resource)
+    r1 = Resource(foo, 'f.js')
+    assert normalize_resource(foo, r1) == r1
 
 # XXX tests for hashed resources when this is enabled. Needs some plausible
 # directory to test for hashes

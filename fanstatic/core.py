@@ -114,10 +114,7 @@ register_inclusion_renderer('.ico', render_ico, 30)
 class UnknownResourceExtension(Exception):
     """Unknown resource extension"""
 
-class ResourceBase(object):
-    pass
-
-class Resource(ResourceBase):
+class Resource(object):
     """A resource.
 
     A resource specifies a single resource in a library so that it can
@@ -281,7 +278,7 @@ class Resource(ResourceBase):
         result.append(self)
         return result
 
-class GroupResource(ResourceBase):
+class GroupResource(object):
     """A resource used to group resources together.
 
     It doesn't define a resource file itself, but instead depends on
@@ -318,10 +315,9 @@ def normalize_resources(library, resources):
             for resource in resources]
 
 def normalize_resource(library, resource):
-    if isinstance(resource, ResourceBase):
-        return resource
-    assert isinstance(resource, basestring)
-    return Resource(library, resource)
+    if isinstance(resource, basestring):
+        return Resource(library, resource)
+    return resource
 
 class NeededResources(object):
     """The current selection of needed resources..
