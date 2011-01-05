@@ -15,7 +15,7 @@ hashing
 -------
 
 By default, hashing is disabled, because it needs some extra
-explanation. We highly recommend enable it however, as the performance
+explanation. We highly recommend you to enable it however, as the performance
 benefits are potentially huge and it's safe to do so. See also
 ``devmode`` if you want to use hashing during development.
 
@@ -55,11 +55,20 @@ associated with the library, the hash value, and therefore the
 resource URL, will automatically change as soon as you change any
 resources in the library.
 
+.. note::
+  Fanstatic calculates a hash for a library by taking the library directory
+  contents into account.
+
+  Therefore, if a resource A (i.e. ``logo.png``) in a library that is
+  referenced by resource B (i.e. ``style.css``) changes, the URL for resource
+  A changes, not because A changed, but because the contents of the library
+  to which A and B belong has changed.
+
 devmode
 -------
 
 If you enable ``hashing``, Fanstatic will automatically calculate a
-resource hash your each of your resource directories. 
+resource hash your each of your resource directories.
 
 Calculating a resource hash is a relatively expensive operation, and
 in production you want Fanstatic to calculate the resource hash only
@@ -143,8 +152,6 @@ Note that this can also be set as an attribute on an
 :py:class:`NeededResources` instance during run-time, as this URL is
 generally not known when :py:class:`NeededResources` is instantiated.
 
-.. [#well] Well, for 10 years into the future at least.
-
 publisher_signature
 -------------------
 
@@ -154,3 +161,6 @@ that the :py:func:`Fanstatic` WSGI component will look for the string
 publish resources. If you would like the root for resource publication
 to be something else in your application (such as ``resources``), you
 can change this to another string.
+
+.. [#well] Well, for 10 years into the future at least.
+
