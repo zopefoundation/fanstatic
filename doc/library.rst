@@ -6,7 +6,7 @@ Creating a Resource Library
 We've seen how to reuse existing resources, but how do you publish
 your own resources using Fanstatic?
 
-Here's how: 
+Here's how:
 
 Your project
 ------------
@@ -105,7 +105,7 @@ this::
   bar_library = Library('bar', 'bar_resources')
 
   a = Resource(bar, 'a.css')
- 
+
   b = Resource(bar, 'b.js')
 
 Now we're done!
@@ -119,9 +119,9 @@ code::
 
   from foo import b
 
-  ... 
+  ...
 
-  def somewhere_deep_in_our_code(): 
+  def somewhere_deep_in_our_code():
       b.need()
 
 An example
@@ -161,11 +161,17 @@ What if we really want to include ``a.css`` whenever we pull in
   bar_library = Library('bar', 'bar_resources')
 
   a = Resource(bar, 'a.css')
- 
+
   b = Resource(bar, 'b.js', depends=[a])
 
 Whenever you ``.need()`` ``b`` now, you'll also get ``a`` included on
 your page.
+
+You can also use a :py:class:`GroupResource` to group Resources together::
+
+  from fanstatic import GroupResource
+
+  c = GroupResource([a, b])
 
 Bonus: a minified version
 -------------------------
@@ -179,7 +185,7 @@ to let Fanstatic know about it? You just write this::
   bar_library = Library('bar', 'bar_resources')
 
   a = Resource(bar, 'a.css')
- 
+
   b = Resource(bar, 'b.js', minified='b.min.js')
 
 If you now configure Fanstatic to use the ``minified`` mode, it will
