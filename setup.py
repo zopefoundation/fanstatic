@@ -7,7 +7,7 @@ long_description = (
 
 setup(
     name='fanstatic',
-    version='0.9b',
+    version='0.9adev',
     description="Flexible static resources for web applications.",
     classifiers=[],
     keywords='',
