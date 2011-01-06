@@ -1,8 +1,8 @@
 CHANGES
 *******
 
-0.9 (unreleased)
-================
+0.9b (2011-01-06)
+=================
 
 Fanstatic is a fundamental rewrite of `hurry.resource`_. As such, Fanstatic
 breaks compatibility with hurry.resource. Here's a list of essential changes
