@@ -1,4 +1,4 @@
 include *.txt *.cfg *.py
 exclude .installed.cfg
-recursive-include fanstatic *.txt *.py *.in *.css *.js
-recursive-include doc *.txt *.doc Makefile *.py *.bat
+recursive-include fanstatic *.py *.in *.css
+recursive-include doc *.txt Makefile *.py *.bat
