@@ -7,7 +7,7 @@ just serves static content, but it does it really well.
 
 Can you use it in your project? If you use Python_, yes: Fanstatic is
 web-framework agnostic, and will work with any web framework that
-supports WSGI_.
+supports WSGI_. Fanstatic is issued under the BSD license.
 
 .. _Python: http://www.python.org
 
