@@ -9,9 +9,46 @@ library like you reuse Python libraries.
 
 Here's a list of currently available libraries:
 
-* `js.jquery <http://pypi.python.org/pypi/js.jquery>`_ packages `jQuery <http://jquery.com>`_.
-* `js.jquery_jgrowl <http://pypi.python.org/pypi/js.jquery_jgrowl>`_ packages `jGrowl <http://stanlemon.net/projects/jgrowl.html>`_.
-* `js.jquery_tooltip <http://pypi.python.org/pypi/js.jquery_tooltip>`_ packages `jQuery Tooltip <http://bassistance.de/jquery-plugins/jquery-plugin-tooltip>`_.
-* `js.jqueryui <http://pypi.python.org/pypi/js.jqueryui>`_ packages `jQuery UI <http://jqueryui.com>`_.
-* `js.yui <http://pypi.python.org/pypi/js.yui>`_ packages `YUI Library <http://developer.yahoo.com/yui>`_.
+.. list-table::
 
+    * - **package**
+      - **library**
+      - **source**
+
+    * - :pypi:`js.jquery`
+      - `jQuery <http://jquery.com>`_
+      - `bitbucket <http://bitbucket.org/fanstatic/js.jquery>`_
+
+    * - :pypi:`js.jquery_jgrowl`
+      - `jGrowl <http://stanlemon.net/projects/jgrowl.html>`_
+      - `bitbucket <http://bitbucket.org/fanstatic/js.jquery_jgrowl>`_
+
+    * - :pypi:`js.jquery_metadata`
+      - `jQuery Metadata <http://plugins.jquery.com/project/metadata>`_
+      - `bitbucket <http://bitbucket.org/fanstatic/js.jquery_metadata>`_
+
+    * - :pypi:`js.jquery_slimbox`
+      - the jQuery plugin `Slimbox <http://www.digitalia.be/software/slimbox2>`_
+      - `bitbucket <http://bitbucket.org/fanstatic/js.jquery_slimbox>`_
+
+    * - :pypi:`js.jquery_tablesorter`
+      - the jQuery plugin `tablesorter <http://tablesorter.com>`_
+      - `bitbucket <http://bitbucket.org/fanstatic/js.jquery_tablesorter>`_
+
+    * - :pypi:`js.jquery_tooltip`
+      - the jQuery plugin `Tooltip <http://bassistance.de/jquery-plugins/jquery-plugin-tooltip>`_
+      - `bitbucket <http://bitbucket.org/fanstatic/js.jquery_tooltip>`_
+
+    * - :pypi:`js.jqueryui`
+      - `jQuery UI <http://jqueryui.com>`_
+      - `bitbucket <http://bitbucket.org/fanstatic/js.jqueryui>`_
+
+    * - :pypi:`js.tinymce`
+      - `TinyMCE <http://tinymce.moxiecode.com>`_
+      - `bitbucket <http://bitbucket.org/fanstatic/js.tinymce>`_
+
+    * - :pypi:`js.yui`
+      - the `YUI Library <http://developer.yahoo.com/yui>`_
+      - `bitbucket <http://bitbucket.org/fanstatic/js.yui>`_
+
+Follow the instructions in the :doc:`development section <development>` to learn how to package your own library.

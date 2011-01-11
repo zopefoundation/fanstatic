@@ -37,7 +37,7 @@ buildout::
  $ bin/buildout
 
 This uses Buildout_. The buildout process will download and install
-all dependencies for Fanstatic, including development tools. 
+all dependencies for Fanstatic, including development tools.
 
 Don't worry, that's all you need to know about buildout to get going
 -- you only need to run ``bin/buildout`` again if something changes in
@@ -143,7 +143,7 @@ automatic releases to PyPI (using ``bin/fullrelease``).
 Pre-packaged libraries
 ----------------------
 
-The pre-packaged libraries are maintained on bitbucket:
+If you want to make an existing JS library into a fanstatic package, use the
+fanstatic paster template from the :pypi:`fanstatictemplate` package.
 
-http://bitbucket.org/fanstatic
 
