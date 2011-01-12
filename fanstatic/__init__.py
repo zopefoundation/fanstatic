@@ -5,20 +5,19 @@ from fanstatic.core import (Library,
                             DEFAULT_SIGNATURE,
                             DEBUG,
                             MINIFIED,
+                            NEEDED,
                             sort_resources_topological,
-                            sort_resources)
-
-from fanstatic.registry import get_library_registry, LibraryRegistry
-
-from fanstatic.codegen import generate_code
-
-from fanstatic.core import (init_needed,
+                            sort_resources,
+                            init_needed,
                             get_needed,
                             clear_needed,
                             register_inclusion_renderer,
                             UnknownResourceExtension,
-                            ConfigurationError,
-                            NEEDED)
+                            ConfigurationError)
+
+from fanstatic.registry import get_library_registry, LibraryRegistry
+
+from fanstatic.codegen import generate_code
 
 from fanstatic.injector import Injector, make_injector
 
