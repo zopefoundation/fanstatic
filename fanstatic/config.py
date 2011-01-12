@@ -1,6 +1,8 @@
 from paste.util.converters import asbool
+from fanstatic import DEBUG, MINIFIED
 
-BOOL_CONFIG = set(['hashing', 'devmode', 'bottom', 'force_bottom', 'rollup'])
+BOOL_CONFIG = set(['hashing', 'devmode', DEBUG, MINIFIED,
+                   'bottom', 'force_bottom', 'rollup'])
 
 def convert_config(config):
     result = {}

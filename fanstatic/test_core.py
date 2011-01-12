@@ -190,12 +190,13 @@ def test_mode_fully_specified():
 
     assert needed.resources() == [k]
 
-    needed = NeededResources(mode='debug')
+    needed = NeededResources(debug=True)
     needed.need(k)
 
     assert needed.resources() == [k_debug]
 
-    needed = NeededResources
+    with pytest.raises(ConfigurationError):
+        NeededResources(debug=True, minified=True)
 
 def test_mode_shortcut():
     foo = Library('foo', '')
@@ -206,21 +207,11 @@ def test_mode_shortcut():
 
     assert needed.resources() == [k]
 
-    needed = NeededResources(mode='debug')
+    needed = NeededResources(debug=True)
     needed.need(k)
 
     assert len(needed.resources()) == 1
     assert needed.resources()[0].relpath == 'k-debug.js'
-
-def test_mode_unknown_default():
-    foo = Library('foo', '')
-    k_debug = Resource(foo, 'k-debug.js')
-    k = Resource(foo, 'k.js', debug=k_debug)
-
-    needed = NeededResources(mode='default')
-    needed.need(k)
-
-    assert needed.resources() == [k]
 
 def test_rollup():
     foo = Library('foo', '')
@@ -357,7 +348,7 @@ def test_rollup_modes():
     needed.need(f2)
     assert needed.resources() == [giantf]
 
-    needed = NeededResources(rollup=True, mode='debug')
+    needed = NeededResources(rollup=True, debug=True)
     needed.need(f1)
     needed.need(f2)
     assert len(needed.resources()) == 1
@@ -374,7 +365,7 @@ def test_rollup_meaningless_rollup_mode():
     needed.need(g2)
     assert needed.resources() == [giantg]
 
-    needed = NeededResources(rollup=True, mode='debug')
+    needed = NeededResources(rollup=True, debug=True)
     needed.need(g1)
     needed.need(g2)
     assert needed.resources() == [giantg]
@@ -390,7 +381,7 @@ def test_rollup_without_mode():
     needed.need(h2)
     assert needed.resources() == [gianth]
 
-    needed = NeededResources(rollup=True, mode='debug')
+    needed = NeededResources(rollup=True, debug=True)
     needed.need(h1)
     needed.need(h2)
     # no mode available for rollup

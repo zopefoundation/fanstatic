@@ -3,6 +3,8 @@ from fanstatic.core import (Library,
                             GroupResource,
                             NeededResources,
                             DEFAULT_SIGNATURE,
+                            DEBUG,
+                            MINIFIED,
                             sort_resources_topological,
                             sort_resources)
 

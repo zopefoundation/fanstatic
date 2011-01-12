@@ -8,6 +8,9 @@ DEFAULT_SIGNATURE = 'fanstatic'
 
 NEEDED = 'fanstatic.needed'
 
+DEBUG = 'debug'
+MINIFIED = 'minified'
+
 class UnknownResourceExtension(Exception):
     """Unknown resource extension"""
 
@@ -160,17 +163,17 @@ class Resource(object):
       resource. If no renderer is provided, a renderer is looked up
       based on the resource's filename extension.
 
-    :param ``**kw``: keyword parameters can be supplied to indicate
-      alternate resources. An alternate resource is for instance a
-      minified version of this resource. The name of the parameter
-      indicates the type of alternate resource (``debug``,
-      ``minified``, etc), and the value is a :py:class:`Resource`
-      instance.
+    :param debug: optionally, a debug version of the resource.
+      The argument is a :py:class:`Resource` instance, or a string that
+      indicates a relative path to the resource. In the latter case
+      a :py:class:`Resource` instance is constructed that has the same
+      library as the resource.
 
-      As a shortcut, a string can be supplied as value that indicates
-      the relative path to a resource in the library (for instance the
-      minified file). In this case :py:class:`Resource` instance is
-      constructed that has the same library as this resource.
+    :param minified: optionally, a minified version of the resource.
+      The argument is a :py:class:`Resource` instance, or a string that
+      indicates a relative path to the resource. In the latter case
+      a :py:class:`Resource` instance is constructed that has the same
+      library as the resource.
     """
 
     def __init__(self, library, relpath,
@@ -178,7 +181,8 @@ class Resource(object):
                  supersedes=None, eager_superseder=False,
                  bottom=False,
                  renderer=None,
-                 **kw):
+                 debug=None,
+                 minified=None):
         self.library = library
         self.relpath = relpath
         self.bottom = bottom
@@ -205,18 +209,17 @@ class Resource(object):
         depends = depends or []
         self.depends = normalize_resources(library, depends)
 
-        self.rollups = []
-
-        normalized_modes = {}
-        for mode_name, resource in kw.items():
-            normalized_modes[mode_name] = normalize_resource(
-                library, resource)
-        self.modes = normalized_modes
+        self.modes = {}
+        if debug is not None:
+            self.modes[DEBUG] = normalize_resource(library, debug)
+        if minified is not None:
+            self.modes[MINIFIED] = normalize_resource(library, minified)
 
         assert not isinstance(supersedes, basestring)
         self.supersedes = supersedes or []
         self.eager_superseder = eager_superseder
 
+        self.rollups = []
         # create a reference to the superseder in the superseded resource
         for resource in self.supersedes:
             resource.rollups.append(self)
@@ -352,11 +355,15 @@ class NeededResources(object):
       the bottom of a web page, even if they aren't marked bottom
       safe.
 
-    :param mode: A string that indicates the mode. A resource may
-      exist in certain different alternative forms, such as ``minified``,
-      ``debug``, etc. This specifies which alternative to prefer (if
-      available). By default and if not available the "main" (non-named)
-      mode alternative of the resource will be served.
+    :param minified: If set to ``True``, Fanstatic will include all
+      resources in ``minified`` form. If a Resource instance does not
+      provide a ``minified`` mode, the "main" (non-named) mode is used.
+
+    :param debug: If set to ``True``, Fanstatic will include all
+      resources in ``debug`` form. If a Resource instance does not
+      provide a ``debug`` mode, the "main" (non-named) mode is used.
+      An exception is raised when both the ``debug`` and ``minified``
+      parameters are ``True``.
 
     :param rollup: If set to True (default is False) rolled up
       combined resources will be served if they exist and supersede
@@ -387,13 +394,15 @@ class NeededResources(object):
     to change this attribute directly on an already existing
     ``NeededResources`` object.
     """
+    _mode = None
 
     def __init__(self,
                  hashing=False,
                  devmode=False,
                  bottom=False,
                  force_bottom=False,
-                 mode=None,
+                 minified=False,
+                 debug=False,
                  rollup=False,
                  base_url=None,
                  publisher_signature=DEFAULT_SIGNATURE,
@@ -403,12 +412,17 @@ class NeededResources(object):
         self._devmode = devmode
         self._bottom = bottom
         self._force_bottom = force_bottom
-        self._mode = mode
         self.base_url = base_url
         self._publisher_signature = publisher_signature
         self._rollup = rollup
-
         self._resources = resources or []
+
+        if (debug and minified):
+            raise ConfigurationError('Choose *one* of debug and minified')
+        if debug is True:
+            self._mode = DEBUG
+        if minified is True:
+            self._mode = MINIFIED
 
     def has_resources(self):
         """Returns True if any resources are needed.
