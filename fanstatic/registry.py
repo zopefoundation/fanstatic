@@ -11,9 +11,9 @@ class LibraryRegistry(dict):
 
     Normally there is only a single global LibraryRegistry,
     obtained by calling ``get_library_registry()``.
-    
+
     :param libraries: a sequence of libraries
-    """    
+    """
     def __init__(self, libraries):
         for library in libraries:
             self[library.name] = library
@@ -28,7 +28,12 @@ class LibraryRegistry(dict):
 def get_libraries_from_entry_points():
     libraries = []
     for entry_point in pkg_resources.iter_entry_points(ENTRY_POINT):
-        libraries.append(entry_point.load())
+        library = entry_point.load()
+        # If the distribution is in development mode we don't use its version.
+        # See http://peak.telecommunity.com/DevCenter/setuptools#develop
+        if entry_point.dist.precedence > pkg_resources.DEVELOP_DIST:
+            library.version = entry_point.dist.version
+        libraries.append(library)
     return libraries
 
 _library_registry = None
@@ -38,7 +43,7 @@ def get_library_registry():
 
     It gets filled with the libraries registered using the fanstatic
     entry point.
-    
+
     You can also add libraries to it later.
     '''
     global _library_registry

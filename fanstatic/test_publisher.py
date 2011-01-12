@@ -63,7 +63,7 @@ def test_resource_hash_skipped(tmpdir):
 
     app = Publisher(libraries)
 
-    request = webob.Request.blank('/foo/:hash:something/test.js')
+    request = webob.Request.blank('/foo/:version:something/test.js')
     response = request.get_response(app)
     assert response.body == '/* a test */'
 
@@ -93,7 +93,7 @@ def test_resource_hash_cache(tmpdir):
 
     app = Publisher(libraries)
 
-    request = webob.Request.blank('/foo/:hash:something/test.js')
+    request = webob.Request.blank('/foo/:version:something/test.js')
     response = request.get_response(app)
     assert response.body == '/* a test */'
     assert response.cache_control.max_age == FOREVER
@@ -113,7 +113,7 @@ def test_resource_cache_only_for_success(tmpdir):
 
     app = Publisher(libraries)
 
-    request = webob.Request.blank('/foo/:hash:something/nonexistent.js')
+    request = webob.Request.blank('/foo/:version:something/nonexistent.js')
     response = request.get_response(app)
     assert response.status == '404 Not Found'
     assert response.cache_control.max_age is None

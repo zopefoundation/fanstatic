@@ -2,7 +2,7 @@ from __future__ import with_statement
 
 import pytest
 
-from fanstatic import get_library_registry, Library
+from fanstatic import get_library_registry, Library, NeededResources
 
 def test_library_registry():
     # Skip this test if the test fixtures has not been installed.
@@ -28,4 +28,11 @@ def test_library_registry():
     library_registry[baz.name] = baz
     assert library_registry['baz'] is baz
     assert sorted(library_registry.keys()) == ['bar', 'baz', 'foo']
+
+    # 'MyPackage has been installed in development mode:
+    assert library_registry['foo'].version == None
+    from mypackage import foo
+    needed = NeededResources(base_url='', hashing=True)
+    assert needed.library_url(foo) == \
+        '/fanstatic/foo/:version:86b2eb561ee8798f4c816bbe6529f083'
 

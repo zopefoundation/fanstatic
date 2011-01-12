@@ -45,10 +45,10 @@ class Publisher(object):
 
     This WSGI application serves Fanstatic :py:class:`Library`
     instances. Libraries are published as
-    ``<library_name>/<optional_hash>/path/to/resource.js``.
+    ``<library_name>/<optional_version>/path/to/resource.js``.
 
     All static resources contained in the libraries will be published
-    to the web. If a step prefixed with ``:hash:`` appears in the URL,
+    to the web. If a step prefixed with ``:version:`` appears in the URL,
     this will be automatically skipped, and the HTTP response will
     indicate the resource can be cached forever.
 
@@ -70,9 +70,10 @@ class Publisher(object):
         # don't allow requests on just publisher
         if library_name == '':
             raise webob.exc.HTTPForbidden()
-        # pop hash if it's there
-        potential_hash = request.path_info_peek()
-        if potential_hash is not None and potential_hash.startswith(':hash:'):
+        # pop version if it's there
+        potential_version = request.path_info_peek()
+        if potential_version is not None and \
+            potential_version.startswith(fanstatic.VERSION_PREFIX):
             request.path_info_pop()
             need_caching = True
         else:

@@ -101,7 +101,7 @@ Fanstatic provides a WSGI framework component called ``Fanstatic``
 that does both of these things for you. Here is how you use it::
 
   from fanstatic import Fanstatic
-  
+
   fanstatic_app = Fanstatic(app)
 
 When you use ``fanstatic_app``, Fanstatic will take care of serving
