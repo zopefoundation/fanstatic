@@ -106,17 +106,16 @@ If you enable ``force_bottom`` (default it's disabled) then if you
 enable ``bottom``, *all* Javascript resources will be included at the
 bottom of a web page, even if they're not marked "bottom safe".
 
-mode
-----
+minified and debug
+------------------
 
 By default, the resource URLs included will be in the normal
 human-readable (and debuggable) format for that resource.
 
 When creating :py:class:`Resource` instances, you can specify
 alternative modes for the resource, such as minified and debug
-versions, by passing keyword arguments. The keyword argument name will
-be the mode, and the argument is a resource path or resource that
-represents the resource in that alternative mode.
+versions. The argument to ``minified`` and ``debug`` are a resource
+path or resource that represents the resource in that alternative mode.
 
 You can configure Fanstatic so that it prefers a certain mode when
 creating resource URLs, such as ``minified``. In this case Fanstatic

@@ -56,9 +56,13 @@ To force *all* Javascript to be included at the bottom::
 
   force_bottom = true
 
-To serve minified resources where available::
+To serve ``minified`` resources where available::
 
-  mode = minified
+  minified = True
+
+To serve ``debug`` resources where available::
+
+  debug = True
 
 Use rolled up resources where possible and where they are available::
 
@@ -71,7 +75,7 @@ A complete ``[filter:fanstatic]`` section could look like this::
   devmode = false
   hashing = true
   bottom = true
-  mode = minified
+  minified = true
 
 The Fanstatic WSGI component is all you should need for normal use
 cases. Next, we will go into the details of what the sub-components
@@ -107,7 +111,7 @@ complete section therefore could look like this::
   devmode = false
   hashing = false
   bottom = true
-  mode = minified
+  minified = true
 
 Publisher WSGI component
 ------------------------
@@ -166,7 +170,7 @@ the separate components would look like this::
   devmode = false
   hashing = true
   bottom = true
-  mode = minified
+  minified = true
   publisher_signature = baz
 
 .. _`Paste Deployment`: http://pythonpaste.org/deploy/

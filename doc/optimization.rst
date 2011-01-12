@@ -13,8 +13,7 @@ here. See the :doc:`configuration section<configuration>` and the
 
 * minified resources. Resources can specify minified versions using
   the mode system. You can then configure Fanstatic to preferentially
-  serve resources in a certain mode, such as ``minified``, using the
-  ``mode`` configuration parameter.
+  serve resources in a certain mode, such as ``minified``.
 
 * rolling up of resources.  Resource libraries can specify rollup
   resources that combine multiple resources into one. This reduces the
