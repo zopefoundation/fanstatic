@@ -11,6 +11,7 @@ from fanstatic import (Library,
                        clear_needed,
                        register_inclusion_renderer,
                        sort_resources_topological,
+                       ConfigurationError,
                        UnknownResourceExtension)
 
 from fanstatic.core import inclusion_renderers, normalize_resource
@@ -403,7 +404,7 @@ def test_rendering():
     x2 = Resource(foo, 'b.css')
     y1 = Resource(foo, 'c.js', depends=[x1, x2])
 
-    needed = NeededResources()
+    needed = NeededResources(base_url='')
     needed.need(y1)
 
     assert needed.render() == '''\
@@ -417,9 +418,20 @@ def test_rendering_base_url():
     x2 = Resource(foo, 'b.css')
     y1 = Resource(foo, 'c.js', depends=[x1, x2])
 
+    needed = NeededResources()
+    needed.need(y1)
+    with pytest.raises(ConfigurationError):
+        needed.render()
+
+    # We need a base_url in order to render URLs to resources.
+    needed.base_url = ''
+    assert needed.render() == '''\
+<link rel="stylesheet" type="text/css" href="/fanstatic/foo/b.css" />
+<script type="text/javascript" src="/fanstatic/foo/a.js"></script>
+<script type="text/javascript" src="/fanstatic/foo/c.js"></script>'''
+
     needed = NeededResources(base_url='http://localhost/static')
     needed.need(y1)
-
     assert needed.render() == '''\
 <link rel="stylesheet" type="text/css" href="http://localhost/static/fanstatic/foo/b.css" />
 <script type="text/javascript" src="http://localhost/static/fanstatic/foo/a.js"></script>
@@ -456,14 +468,14 @@ def test_rendering_base_url_assign():
 def test_library_url_default_publisher_signature():
     foo = Library('foo', '')
 
-    needed = NeededResources()
+    needed = NeededResources(base_url='')
 
     assert needed.library_url(foo) == '/fanstatic/foo'
 
 def test_library_url_publisher_signature():
     foo = Library('foo', '')
 
-    needed = NeededResources(publisher_signature='waku')
+    needed = NeededResources(base_url='', publisher_signature='waku')
 
     assert needed.library_url(foo) == '/waku/foo'
 
@@ -478,7 +490,7 @@ def test_library_url_base_url():
 def test_library_url_hashing(tmpdir):
     foo = Library('foo', tmpdir.strpath)
 
-    needed = NeededResources(hashing=True)
+    needed = NeededResources(base_url='', hashing=True)
 
     assert (needed.library_url(foo) ==
             '/fanstatic/foo/:hash:d41d8cd98f00b204e9800998ecf8427e')
@@ -486,7 +498,7 @@ def test_library_url_hashing(tmpdir):
 def test_library_url_hashing_nodevmode(tmpdir):
     foo = Library('foo', tmpdir.strpath)
 
-    needed = NeededResources(hashing=True)
+    needed = NeededResources(base_url='', hashing=True)
 
     url = needed.library_url(foo)
 
@@ -500,7 +512,7 @@ def test_library_url_hashing_nodevmode(tmpdir):
 def test_library_url_hashing_devmode(tmpdir):
     foo = Library('foo', tmpdir.strpath)
 
-    needed = NeededResources(hashing=True, devmode=True)
+    needed = NeededResources(base_url='', hashing=True, devmode=True)
 
     url = needed.library_url(foo)
 
@@ -517,7 +529,7 @@ def test_html_insert():
     x2 = Resource(foo, 'b.css')
     y1 = Resource(foo, 'c.js', depends=[x1, x2])
 
-    needed = NeededResources()
+    needed = NeededResources(base_url='')
     needed.need(y1)
 
     html = "<html><head>something more</head></html>"
@@ -537,7 +549,7 @@ def test_html_top_bottom():
     x2 = Resource(foo, 'b.css')
     y1 = Resource(foo, 'c.js', depends=[x1, x2])
 
-    needed = NeededResources()
+    needed = NeededResources(base_url='')
     needed.need(y1)
 
     top, bottom = needed.render_topbottom()
@@ -553,7 +565,7 @@ def test_html_top_bottom_set_bottom():
     x2 = Resource(foo, 'b.css')
     y1 = Resource(foo, 'c.js', depends=[x1, x2])
 
-    needed = NeededResources(bottom=True)
+    needed = NeededResources(base_url='', bottom=True)
     needed.need(y1)
 
     top, bottom = needed.render_topbottom()
@@ -569,7 +581,7 @@ def test_html_top_bottom_force_bottom():
     x2 = Resource(foo, 'b.css')
     y1 = Resource(foo, 'c.js', depends=[x1, x2])
 
-    needed = NeededResources(bottom=True, force_bottom=True)
+    needed = NeededResources(base_url='', bottom=True, force_bottom=True)
     needed.need(y1)
 
     top, bottom = needed.render_topbottom()
@@ -587,7 +599,7 @@ def test_html_bottom_safe():
     y1 = Resource(foo, 'c.js', depends=[x1, x2])
     y2 = Resource(foo, 'y2.js', bottom=True)
 
-    needed = NeededResources()
+    needed = NeededResources(base_url='')
     needed.need(y1)
     needed.need(y2)
     top, bottom = needed.render_topbottom()
@@ -598,7 +610,7 @@ def test_html_bottom_safe():
 <script type="text/javascript" src="/fanstatic/foo/y2.js"></script>'''
     assert bottom == ''
 
-    needed = NeededResources(bottom=True)
+    needed = NeededResources(base_url='', bottom=True)
     needed.need(y1)
     needed.need(y2)
     top, bottom = needed.render_topbottom()
@@ -609,7 +621,7 @@ def test_html_bottom_safe():
     assert bottom == '''\
 <script type="text/javascript" src="/fanstatic/foo/y2.js"></script>'''
 
-    needed = NeededResources(bottom=True, force_bottom=True)
+    needed = NeededResources(base_url='', bottom=True, force_bottom=True)
     needed.need(y1)
     needed.need(y2)
     top, bottom = needed.render_topbottom()
@@ -632,7 +644,7 @@ def test_top_bottom_insert():
 
     html = "<html><head>rest of head</head><body>rest of body</body></html>"
 
-    needed = NeededResources(bottom=True, force_bottom=True)
+    needed = NeededResources(base_url='', bottom=True, force_bottom=True)
     needed.need(y1)
     assert needed.render_topbottom_into_html(html) == '''\
 <html><head>
@@ -673,7 +685,7 @@ def test_register_inclusion_renderer():
     register_inclusion_renderer('.unknown', render_unknown)
     a = Resource(foo, 'nothing.unknown')
 
-    needed = NeededResources()
+    needed = NeededResources(base_url='')
     needed.need(a)
     assert needed.render() == ('<link rel="unknown" href="/fanstatic/foo/nothing.unknown" />')
 
@@ -689,7 +701,7 @@ def test_registered_inclusion_renderers_in_order():
     c = Resource(foo, 'something.css')
     d = Resource(foo, 'something.ico')
 
-    needed = NeededResources()
+    needed = NeededResources(base_url='')
     needed.need(a)
     needed.need(b)
     needed.need(c)
@@ -730,7 +742,7 @@ def test_custom_renderer_for_resource():
                 url)
 
     a = Resource(foo, 'printstylesheet.css', renderer=render_print_css)
-    needed = NeededResources()
+    needed = NeededResources(base_url='')
     needed.need(a)
     assert needed.render() == """\
 <link rel="stylesheet" type="text/css" href="/fanstatic/foo/printstylesheet.css" media="print"/>"""
@@ -755,7 +767,7 @@ def test_custom_renderer_keep_together():
     b = Resource(foo, 'regular.css')
     c = Resource(foo, 'something.js')
 
-    needed = NeededResources()
+    needed = NeededResources(base_url='')
     needed.need(a)
     needed.need(b)
     needed.need(c)
@@ -772,7 +784,7 @@ def test_resource_subclass_render():
             return '<myresource reference="%s/%s"/>' % (library_url, self.relpath)
 
     a = MyResource(foo, 'printstylesheet.css')
-    needed = NeededResources()
+    needed = NeededResources(base_url='')
     needed.need(a)
     assert needed.render() == """\
 <myresource reference="/fanstatic/foo/printstylesheet.css"/>"""

@@ -15,6 +15,7 @@ from fanstatic.core import (init_needed,
                             clear_needed,
                             register_inclusion_renderer,
                             UnknownResourceExtension,
+                            ConfigurationError,
                             NEEDED)
 
 from fanstatic.injector import Injector, make_injector

@@ -8,6 +8,12 @@ DEFAULT_SIGNATURE = 'fanstatic'
 
 NEEDED = 'fanstatic.needed'
 
+class UnknownResourceExtension(Exception):
+    """Unknown resource extension"""
+
+class ConfigurationError(Exception):
+    pass
+
 class Library(object):
     """The resource library.
 
@@ -110,9 +116,6 @@ register_inclusion_renderer('.css', render_css, 10)
 register_inclusion_renderer('.js', render_js, 20)
 
 register_inclusion_renderer('.ico', render_ico, 30)
-
-class UnknownResourceExtension(Exception):
-    """Unknown resource extension"""
 
 class Resource(object):
     """A resource.
@@ -461,8 +464,11 @@ class NeededResources(object):
 
         :param library: A :py:class:`Library` instance.
         """
-        path = []
-        path.append(self.base_url or '')
+        if self.base_url is None:
+            raise ConfigurationError(
+                'No base_url: Set a base_url at configuration time or '
+                'at request-time in your framework.')
+        path = [self.base_url]
         if self._publisher_signature:
             path.append(self._publisher_signature)
         path.append(library.name)
