@@ -4,8 +4,12 @@ CHANGES
 0.9a (unreleased)
 =================
 
-- Nothing changed yet.
+- Renamed ``hashing`` to ``versioning``. Use the version of the python package
+  as the version identifier for a Library, unless the package is installed in
+  development mode. If a Library has no version or is in development, use the
+  hash of the Library's directory contents as version identifier.
 
+- Consolidated the Resource modes into ``debug`` and ``minified``.
 
 0.9b (2011-01-06)
 =================
