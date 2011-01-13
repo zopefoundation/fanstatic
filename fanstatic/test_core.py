@@ -481,7 +481,7 @@ def test_library_url_base_url():
 def test_library_url_version_hashing(tmpdir):
     foo = Library('foo', tmpdir.strpath)
 
-    needed = NeededResources(base_url='', hashing=True)
+    needed = NeededResources(base_url='', versioning=True)
 
     assert (needed.library_url(foo) ==
             '/fanstatic/foo/:version:d41d8cd98f00b204e9800998ecf8427e')
@@ -492,7 +492,7 @@ def test_library_url_version_hashing(tmpdir):
 def test_library_url_hashing_nodevmode(tmpdir):
     foo = Library('foo', tmpdir.strpath)
 
-    needed = NeededResources(base_url='', hashing=True)
+    needed = NeededResources(base_url='', versioning=True)
 
     url = needed.library_url(foo)
 
@@ -506,7 +506,7 @@ def test_library_url_hashing_nodevmode(tmpdir):
 def test_library_url_hashing_devmode(tmpdir):
     foo = Library('foo', tmpdir.strpath)
 
-    needed = NeededResources(base_url='', hashing=True, devmode=True)
+    needed = NeededResources(base_url='', versioning=True, devmode=True)
 
     url = needed.library_url(foo)
 

@@ -39,9 +39,9 @@ Turn devmode on or off with "true" or "false"::
 
   devmode = true
 
-To turn hashing or or off with "true" or "false"::
+To turn versioning on or off with "true" or "false"::
 
-  hashing = true
+  versioning = true
 
 You can also configure the URL segment that is used in generating URLs
 to resources and to recognize "serve-able" resource URLs::
@@ -73,7 +73,7 @@ A complete ``[filter:fanstatic]`` section could look like this::
   [filter:fanstatic]
   use = egg:fanstatic#fanstatic
   devmode = false
-  hashing = true
+  versioning = true
   bottom = true
   minified = true
 
@@ -109,7 +109,7 @@ complete section therefore could look like this::
   [filter:injector]
   use = egg:fanstatic#injector
   devmode = false
-  hashing = false
+  versioning = false
   bottom = true
   minified = true
 
@@ -168,7 +168,7 @@ the separate components would look like this::
   [filter:injector]
   use = egg:fanstatic#injector
   devmode = false
-  hashing = true
+  versioning = true
   bottom = true
   minified = true
   publisher_signature = baz

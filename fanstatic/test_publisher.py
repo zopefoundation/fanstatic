@@ -53,7 +53,7 @@ def test_unknown_library(tmpdir):
     response = request.get_response(app)
     assert response.status == '404 Not Found'
 
-def test_resource_hash_skipped(tmpdir):
+def test_resource_version_skipped(tmpdir):
     foo_library_dir = tmpdir.mkdir('foo')
     resource = tmpdir.join('foo').join('test.js')
     resource.write('/* a test */')
@@ -67,7 +67,7 @@ def test_resource_hash_skipped(tmpdir):
     response = request.get_response(app)
     assert response.body == '/* a test */'
 
-def test_resource_no_hash_no_cache(tmpdir):
+def test_resource_no_version_no_cache(tmpdir):
     foo_library_dir = tmpdir.mkdir('foo')
     resource = tmpdir.join('foo').join('test.js')
     resource.write('/* a test */')

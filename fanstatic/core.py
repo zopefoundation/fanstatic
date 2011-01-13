@@ -57,7 +57,7 @@ class Library(object):
 
         If a version has been defined, we return the version.
 
-        If no version is defined, a hashing the contents of the directory
+        If no version is defined, a hash of the contents of the directory
         indicated by ``path`` is calculated. If ``devmode`` is set to ``True``,
         the signature will be recalculated each time, which is useful
         during development when changing Javascript/css code and images.
@@ -339,13 +339,13 @@ class NeededResources(object):
     The ``NeededResources`` instance maintains a set of needed
     resources for a particular web page.
 
-    :param hashing: If ``True``, Fanstatic will automatically include
-      a hash in all URLs pointing to resources. Since the hash will change
-      when you update a resource, the URLs can both be infinitely cached
-      and the resources will always be up to date. See also the ``devmode``
-      parameter.
+    :param versioning: If ``True``, Fanstatic will automatically include
+      a version identifier in all URLs pointing to resources.
+      Since the version identifier will change when you update a resource,
+      the URLs can both be infinitely cached and the resources will always
+      be up to date. See also the ``devmode`` parameter.
 
-    :param devmode: If ``True`` and hashing is enabled, Fanstatic will
+    :param devmode: If ``True`` and versioning is enabled, Fanstatic will
       recalculate hash URLs on the fly whenever you make changes, even
       without restarting the server. This is useful during
       development, but slower, so should be turned off during
@@ -405,7 +405,7 @@ class NeededResources(object):
     _mode = None
 
     def __init__(self,
-                 hashing=False,
+                 versioning=False,
                  devmode=False,
                  bottom=False,
                  force_bottom=False,
@@ -416,7 +416,7 @@ class NeededResources(object):
                  publisher_signature=DEFAULT_SIGNATURE,
                  resources=None,
                  ):
-        self._hashing = hashing
+        self._versioning = versioning
         self._devmode = devmode
         self._bottom = bottom
         self._force_bottom = force_bottom
@@ -481,7 +481,7 @@ class NeededResources(object):
     def library_url(self, library):
         """Construct URL to library.
 
-        This constructs a URL to a library, obey ``hashing`` and
+        This constructs a URL to a library, obey ``versioning`` and
         ``base_url`` configuration.
 
         :param library: A :py:class:`Library` instance.
@@ -494,7 +494,7 @@ class NeededResources(object):
         if self._publisher_signature:
             path.append(self._publisher_signature)
         path.append(library.name)
-        if self._hashing:
+        if self._versioning:
             path.append(library.signature(devmode=self._devmode))
         return '/'.join(path)
 

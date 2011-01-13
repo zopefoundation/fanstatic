@@ -24,8 +24,8 @@ here. See the :doc:`configuration section<configuration>` and the
 * infinite caching. Fanstatic can serve resources declaring that they
   should be cached forever by the web browser (or proxy cache),
   reducing the amount of hits on the server. Fanstatic makes this safe
-  even when you upgrade or modify resources by its hashing
-  technology. This can be controlled with the ``hashing`` and
+  even when you upgrade or modify resources by its versioning
+  technology. This can be controlled with the ``versioning`` and
   ``devmode`` configuration parameters.
 
 * Javascript inclusions at the bottom of the web page. This can speed

@@ -11,20 +11,20 @@ configuration patterns (see :doc:`our Paste Deploy documentation
 
 .. _`Paste Deploy`: http://pythonpaste.org/deploy/
 
-hashing
--------
+versioning
+----------
 
-By default, hashing is disabled, because it needs some extra
-explanation. We highly recommend you to enable it however, as the performance
+By default, versioning is disabled, because it needs some extra explanation.
+We highly recommend you to enable it however, as the performance
 benefits are potentially huge and it's safe to do so. See also
-``devmode`` if you want to use hashing during development.
+``devmode`` if you want to use versioning during development.
 
-If you turn on hashing, Fanstatic will automatically include a hash in
-all resource URLs it generates and injects onto web pages. Fanstatic
-will respond to any resource URLs with a hash in it to cache them
-forever [#well]_.
+If you turn on versioning, Fanstatic will automatically include a version
+identifier in the resource URLs it generates and injects into web pages.
+The Fanstatic publisher will respond to versioned resource URLs with
+instructions to cache them forever [#well]_.
 
-The benefit is that all resources will be cached forever by web
+The benefit of versioning is that all resources will be cached forever by web
 browsers. This means that a web browser will never talk to the server
 to request a resource again once it retrieved it once, as long as it
 is still in its cache. This puts less load on your web application: it
@@ -37,7 +37,7 @@ meaning that your web application needs to serve the resource exactly
 *once*. The cache will serve them after that.
 
 But what if you change a resource? Won't users now get the wrong, old
-versions of the changed resource?  No: with hashing enabled, when you
+versions of the changed resource?  No: with versioning enabled, when you
 change a resource, a *new* URL to that resource will be automatically
 generated. You never will have to instruct users of your web
 application to do a "shift-reload" to force all resources to reload --
@@ -46,29 +46,33 @@ automatically load a new one.
 
 How does this work?
 
-A hash segment in a URL looks like this::
+A version segment in a URL looks like this::
 
-  /fanstatic/my_library/:hash:d41d8cd98f00b204e9800998ecf8427e/my_resource.js
+  /fanstatic/my_library/:version:d41d8cd98f00b204e9800998ecf8427e/my_resource.js
 
-Since the hash value depends on the contents of the resource directory
-associated with the library, the hash value, and therefore the
-resource URL, will automatically change as soon as you change any
-resources in the library.
+Or like this (from the :pypi:`js.jquery` package)::
 
-.. note::
-  Fanstatic calculates a hash for a library by taking the library directory
-  contents into account.
+  /fanstatic/jquery/:version:1.4.4/jquery.js
 
-  Therefore, if a resource A (i.e. ``logo.png``) in a library that is
-  referenced by resource B (i.e. ``style.css``) changes, the URL for resource
-  A changes, not because A changed, but because the contents of the library
-  to which A and B belong has changed.
+The version of a Resource depends on the version of the python package in which the
+Library is defined. If no version information can be found or the python package is
+installed in `development mode`_, a hash of the contents of the Library directory is
+calculated.
+
+The benefit of calculating a hash for the Library directory is that resource
+URLs change when a referenced resource changes; If resource A (i.e. ``logo.png``)
+in a library that is referenced by resource B (i.e. ``style.css``) changes, the
+URL for resource A changes, not because A changed, but because the contents of the
+library to which A and B belong has changed.
+
+.. _`development mode`: http://peak.telecommunity.com/DevCenter/setuptools#develop
 
 devmode
 -------
 
-If you enable ``hashing``, Fanstatic will automatically calculate a
-resource hash your each of your resource directories.
+If you enable ``versioning``, Fanstatic will automatically calculate a
+resource hash your each of the resource directories for which no version
+is found.
 
 Calculating a resource hash is a relatively expensive operation, and
 in production you want Fanstatic to calculate the resource hash only
