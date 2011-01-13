@@ -104,9 +104,9 @@ this::
 
   bar_library = Library('bar', 'bar_resources')
 
-  a = Resource(bar, 'a.css')
+  a = Resource(bar_library, 'a.css')
 
-  b = Resource(bar, 'b.js')
+  b = Resource(bar_library, 'b.js')
 
 Now we're done!
 
