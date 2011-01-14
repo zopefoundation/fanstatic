@@ -14,22 +14,25 @@ configuration patterns (see :doc:`our Paste Deploy documentation
 versioning
 ----------
 
-By default, versioning is disabled, because it needs some extra explanation.
-We highly recommend you to enable it however, as the performance
-benefits are potentially huge and it's safe to do so. See also
-``devmode`` if you want to use versioning during development.
+If you turn on versioning, Fanstatic will automatically include a
+version identifier in the resource URLs it generates and injects into
+web pages. This means that for each version of your Javascript
+resource its URL will be unique. The Fanstatic publisher will set
+cache headers for versioned resource URLs so that they will be cached
+forever by web browsers and caching proxies [#well]_.
 
-If you turn on versioning, Fanstatic will automatically include a version
-identifier in the resource URLs it generates and injects into web pages.
-The Fanstatic publisher will respond to versioned resource URLs with
-instructions to cache them forever [#well]_.
+By default, versioning is disabled, because it needs some extra
+explanation.  We highly recommend you to enable it however, as the
+performance benefits are potentially huge and it's usually entirely
+safe to do so. See also ``devmode`` if you want to use versioning
+during development.
 
-The benefit of versioning is that all resources will be cached forever by web
-browsers. This means that a web browser will never talk to the server
-to request a resource again once it retrieved it once, as long as it
-is still in its cache. This puts less load on your web application: it
-only needs to publish the resource once for a user, as long as the
-resource remains in that user's cache.
+The benefit of versioning is that all resources will be cached forever
+by web browsers. This means that a web browser will never talk to the
+server to request a resource again once it retrieved it once, as long
+as it is still in its cache. This puts less load on your web
+application: it only needs to publish the resource once for a user, as
+long as the resource remains in that user's cache.
 
 If you use a server-side cache such as Squid or Varnish, the situation
 is even better: these will hold on to the cached resources as well,
@@ -44,35 +47,41 @@ application to do a "shift-reload" to force all resources to reload --
 the browser will see the resource URL has changed and will
 automatically load a new one.
 
-How does this work?
-
-A version segment in a URL looks like this::
-
-  /fanstatic/my_library/:version:d41d8cd98f00b204e9800998ecf8427e/my_resource.js
-
-Or like this (from the :pypi:`js.jquery` package)::
+How does this work? There are two schemes: explicit versioning and an
+automatically calculated hash-based versioning. An explicit version
+looks like this (from the :pypi:`js.jquery` package)::
 
   /fanstatic/jquery/:version:1.4.4/jquery.js
 
-The version of a Resource depends on the version of the python package in which the
-Library is defined. If no version information can be found or the python package is
-installed in `development mode`_, a hash of the contents of the Library directory is
-calculated.
+A hash-based version looks like this::
 
-The benefit of calculating a hash for the Library directory is that resource
-URLs change when a referenced resource changes; If resource A (i.e. ``logo.png``)
-in a library that is referenced by resource B (i.e. ``style.css``) changes, the
-URL for resource A changes, not because A changed, but because the contents of the
-library to which A and B belong has changed.
+  /fanstatic/my_library/:version:d41d8cd98f00b204e9800998ecf8427e/my_resource.js
+
+The version of Resource depends on the version of the python package
+in which the Library is defined: it takes the explicit version
+information from this. If no version information can be found or if
+the python package is installed in `development mode`_, we still want
+to be able to create a unique version that changes whenever the
+content of the resources changes. To this end, a hash of the contents
+of the Library directory is automatically calculated. Whenever you
+make any changes to a resource in the library, the hash version will
+be automatically recalculated.
+
+The benefit of calculating a hash for the Library directory is that
+resource URLs change when a referenced resource changes; If resource A
+(i.e. ``logo.png``) in a library that is referenced by resource B
+(i.e. ``style.css``) changes, the URL for resource A changes, not
+because A changed, but because the contents of the library to which A
+and B belong has changed.
 
 .. _`development mode`: http://peak.telecommunity.com/DevCenter/setuptools#develop
 
 devmode
 -------
 
-If you enable ``versioning``, Fanstatic will automatically calculate a
-resource hash your each of the resource directories for which no version
-is found.
+If you enable ``versioning``, and no explicit versions are known,
+Fanstatic will automatically calculate a resource hash your each of
+the resource directories for which no version is found.
 
 Calculating a resource hash is a relatively expensive operation, and
 in production you want Fanstatic to calculate the resource hash only
