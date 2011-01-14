@@ -604,6 +604,9 @@ class DummyNeededResources(object):
     def need(self, resource):
         pass
 
+    def has_resources(self):
+        return False
+
     def _not_implented_here(self, *args, **kwargs):
         raise NotImplementedError('''
             This functionality is not implemented by objects of the %s class.
@@ -611,7 +614,7 @@ class DummyNeededResources(object):
             % self.__class__.__name__)
 
     clear = _not_implented_here
-    has_resources = library_url = render = render_inclusions = _not_implented_here
+    library_url = render = render_inclusions = _not_implented_here
     render_into_html = render_topbottom = _not_implented_here
     resources = render_topbottom_into_html = _not_implented_here
 
