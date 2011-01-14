@@ -29,10 +29,6 @@ def test_library_registry():
     assert library_registry['baz'] is baz
     assert sorted(library_registry.keys()) == ['bar', 'baz', 'foo']
 
-    # 'MyPackage has been installed in development mode:
+    # MyPackage has been installed in development mode:
     assert library_registry['foo'].version == None
-    from mypackage import foo
-    needed = NeededResources(base_url='', versioning=True)
-    assert needed.library_url(foo) == \
-        '/fanstatic/foo/:version:86b2eb561ee8798f4c816bbe6529f083'
 
