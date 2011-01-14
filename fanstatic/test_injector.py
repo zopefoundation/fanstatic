@@ -71,6 +71,15 @@ def test_no_inject_into_non_html():
     response = request.get_response(wrapped_app)
     assert response.body == '<html><head></head><body</body></html>'
 
+def test_no_needed_into_non_get_post():
+    def app(environ, start_response):
+        assert NEEDED not in environ
+        start_response('200 OK', [])
+        return ['foo']
+    wrapped_app = Injector(app)
+    request = webob.Request.blank('/', method='PUT')
+    response = request.get_response(wrapped_app)
+
 def test_needed_from_environ():
     foo = Library('foo', '')
     x1 = Resource(foo, 'a.js')

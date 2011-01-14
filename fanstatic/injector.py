@@ -32,6 +32,10 @@ class Injector(object):
 
     @webob.dec.wsgify
     def __call__(self, request):
+        # We only continue if the request method is appropriate.
+        if not request.method in ['GET', 'POST']:
+            return request.get_response(self.app)
+
         needed = fanstatic.init_needed(**self.config)
 
         # Make sure the needed resource object is put in the WSGI
@@ -46,8 +50,7 @@ class Injector(object):
         if not response.content_type.lower() in ['text/html', 'text/xml']:
             return response
 
-        # The wrapped application may have left information in the environment
-        # about needed resources
+        # The wrapped application may have `needed` resources.
         if needed.has_resources():
             response.body = needed.render_topbottom_into_html(response.body)
         return response
