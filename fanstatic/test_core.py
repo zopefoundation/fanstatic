@@ -489,10 +489,11 @@ def test_library_url_version_hashing(tmpdir):
     bar = Library('bar', '', version='1')
     assert (needed.library_url(bar) == '/fanstatic/bar/:version:1')
 
-def test_library_url_hashing_nodevmode(tmpdir):
+def test_library_url_hashing_norecompute(tmpdir):
     foo = Library('foo', tmpdir.strpath)
 
-    needed = NeededResources(base_url='', versioning=True)
+    needed = NeededResources(
+        base_url='', versioning=True, recompute_hash=False)
 
     url = needed.library_url(foo)
 
@@ -500,13 +501,13 @@ def test_library_url_hashing_nodevmode(tmpdir):
     resource = tmpdir.join('test.js')
     resource.write('/* test */')
 
-    # since we're not in devmode, the hash in the URL won't change
+    # since we're not re-computing hashes, the hash in the URL won't change
     assert needed.library_url(foo) == url
 
-def test_library_url_hashing_devmode(tmpdir):
+def test_library_url_hashing_recompute(tmpdir):
     foo = Library('foo', tmpdir.strpath)
 
-    needed = NeededResources(base_url='', versioning=True, devmode=True)
+    needed = NeededResources(base_url='', versioning=True, recompute_hash=True)
 
     url = needed.library_url(foo)
 
@@ -514,7 +515,7 @@ def test_library_url_hashing_devmode(tmpdir):
     resource = tmpdir.join('test.js')
     resource.write('/* test */')
 
-    # in devmode the hash is recalculated now, so it changes
+    # the hash is recalculated now, so it changes
     assert needed.library_url(foo) != url
 
 def test_html_insert():

@@ -14,6 +14,11 @@ CHANGES
 - The injector component only sets up the NeededResources if the request method
   is GET or POST.
 
+- The ``devmode`` parameter has been renamed to ``recompute_hashes`` in order
+  to more aptly reflect its behavior. When recompute_hashes is True, hashes are
+  recomputed for every request - this is the default behavior.
+
+
 0.9b (2011-01-06)
 =================
 

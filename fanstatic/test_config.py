@@ -4,7 +4,7 @@ from fanstatic import make_injector, make_publisher, make_fanstatic
 def test_convert_config():
     d = {
         'versioning': 't',
-        'devmode': 'false',
+        'recompute_hash': 'false',
         'bottom': 'True',
         'force_bottom': 'False',
         'rollup': 0,
@@ -12,7 +12,7 @@ def test_convert_config():
         }
     assert convert_config(d) == {
         'versioning': True,
-        'devmode': False,
+        'recompute_hash': False,
         'bottom': True,
         'force_bottom': False,
         'rollup': False,
@@ -22,7 +22,7 @@ def test_convert_config():
 def test_injector_config():
     d = {
         'versioning': 't',
-        'devmode': 'false',
+        'recompute_hash': 'false',
         'bottom': 'True',
         'force_bottom': 'False',
         'rollup': 0,
@@ -31,7 +31,7 @@ def test_injector_config():
     assert injector.app is None
     assert injector.config == {
         'versioning': True,
-        'devmode': False,
+        'recompute_hash': False,
         'bottom': True,
         'force_bottom': False,
         'rollup': False,
@@ -45,7 +45,7 @@ def test_publisher_config():
 def test_fanstatic_config():
     d = {
         'versioning': 't',
-        'devmode': 'false',
+        'recompute_hash': 'false',
         'bottom': 'True',
         'force_bottom': 'False',
         'rollup': 0,
@@ -55,7 +55,7 @@ def test_fanstatic_config():
     assert fanstatic.trigger == '/foo/'
     assert fanstatic.app.config == {
         'versioning': True,
-        'devmode': False,
+        'recompute_hash': False,
         'bottom': True,
         'force_bottom': False,
         'rollup': False,

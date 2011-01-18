@@ -23,7 +23,8 @@ def test_incorrect_configuration_options():
         "keyword argument 'incorrect'") in str(e)
 
     with pytest.raises(TypeError) as e:
-        Injector(app, mode='qux', incorrect='configoption', devmode=True)
+        Injector(
+            app, mode='qux', incorrect='configoption', recompute_hash=True)
     assert (
         "__init__() got an unexpected "
         "keyword argument 'incorrect'") in str(e)

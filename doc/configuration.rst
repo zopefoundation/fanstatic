@@ -24,7 +24,7 @@ forever by web browsers and caching proxies [#well]_.
 By default, versioning is disabled, because it needs some extra
 explanation.  We highly recommend you to enable it however, as the
 performance benefits are potentially huge and it's usually entirely
-safe to do so. See also ``devmode`` if you want to use versioning
+safe to do so. See also ``recompute_hash`` if you want to use versioning
 during development.
 
 The benefit of versioning is that all resources will be cached forever
@@ -76,22 +76,22 @@ and B belong has changed.
 
 .. _`development mode`: http://peak.telecommunity.com/DevCenter/setuptools#develop
 
-devmode
--------
+recompute_hash
+--------------
 
-If you enable ``versioning``, and no explicit versions are known,
-Fanstatic will automatically calculate a resource hash your each of
-the resource directories for which no version is found.
+If you enable ``versioning``, Fanstatic will automatically calculate
+a resource hash for each of the resource directories for which no version
+is found.
+
+During development you want the hashes to be recalculated each time you
+make a change, without having to restart the application all the time,
+and having a little performance impact is no problem. The default behavior
+is to recompute hashes for every request.
 
 Calculating a resource hash is a relatively expensive operation, and
 in production you want Fanstatic to calculate the resource hash only
-once per library. This is the Fanstatic default: hashes will only be
-recalculated after you restart the application.
-
-During development this is annoying however: you want the hashes to be
-recalculated each time you make a change, without having to restart
-the application all the time, and having a little performance impact
-is no problem. You can turn on this behavior by turning on ``devmode``.
+once per library, by setting ``recompute_hash`` to false. Hashes will
+then only be recalculated after you restart the application.
 
 bottom
 ------
