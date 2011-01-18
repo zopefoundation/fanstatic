@@ -37,7 +37,7 @@ directives (see also the :doc:`configuration documentation
 
 Turn recomputing of hashes on or off with "true" or "false"::
 
-  recompute_hash = true
+  recompute_hashes = true
 
 To turn versioning on or off with "true" or "false"::
 
@@ -72,7 +72,7 @@ A complete ``[filter:fanstatic]`` section could look like this::
 
   [filter:fanstatic]
   use = egg:fanstatic#fanstatic
-  recompute_hash = false
+  recompute_hashes = false
   versioning = true
   bottom = true
   minified = true
@@ -108,7 +108,7 @@ complete section therefore could look like this::
 
   [filter:injector]
   use = egg:fanstatic#injector
-  recompute_hash = false
+  recompute_hashes = false
   versioning = false
   bottom = true
   minified = true
@@ -167,7 +167,7 @@ the separate components would look like this::
 
   [filter:injector]
   use = egg:fanstatic#injector
-  recompute_hash = false
+  recompute_hashes = false
   versioning = true
   bottom = true
   minified = true

@@ -26,7 +26,7 @@ here. See the :doc:`configuration section<configuration>` and the
   reducing the amount of hits on the server. Fanstatic makes this safe
   even when you upgrade or modify resources by its versioning
   technology. This can be controlled with the ``versioning`` and
-  ``recompute_hash`` configuration parameters.
+  ``recompute_hashes`` configuration parameters.
 
 * Javascript inclusions at the bottom of the web page. This can speed
   up the time web pages render, as the browser can start displaying

@@ -52,21 +52,21 @@ class Library(object):
         self.path = os.path.join(caller_dir(), rootpath)
         self.version = version
 
-    def signature(self, recompute_hash=False):
+    def signature(self, recompute_hashes=False):
         """Get a unique signature for this Library.
 
         If a version has been defined, we return the version.
 
         If no version is defined, a hash of the contents of the directory
         indicated by ``path`` is calculated.
-        If ``recompute_hash`` is set to ``True``, the signature will be
+        If ``recompute_hashes`` is set to ``True``, the signature will be
         recalculated each time, which is useful during development when
         changing Javascript/css code and images.
         """
         if self.version is not None:
             return VERSION_PREFIX + self.version
 
-        if recompute_hash:
+        if recompute_hashes:
             # Always re-compute.
             sig = checksum(self.path)
         elif self._signature is None:
@@ -344,9 +344,9 @@ class NeededResources(object):
       a version identifier in all URLs pointing to resources.
       Since the version identifier will change when you update a resource,
       the URLs can both be infinitely cached and the resources will always
-      be up to date. See also the ``recompute_hash`` parameter.
+      be up to date. See also the ``recompute_hashes`` parameter.
 
-    :param recompute_hash: If ``True`` and versioning is enabled, Fanstatic
+    :param recompute_hashes: If ``True`` and versioning is enabled, Fanstatic
       will recalculate hash URLs on the fly whenever you make changes, even
       without restarting the server. This is useful during development,
       but slower, so should be turned off during deployment.
@@ -407,7 +407,7 @@ class NeededResources(object):
 
     def __init__(self,
                  versioning=False,
-                 recompute_hash=True,
+                 recompute_hashes=True,
                  bottom=False,
                  force_bottom=False,
                  minified=False,
@@ -418,7 +418,7 @@ class NeededResources(object):
                  resources=None,
                  ):
         self._versioning = versioning
-        self._recompute_hash = recompute_hash
+        self._recompute_hashes = recompute_hashes
         self._bottom = bottom
         self._force_bottom = force_bottom
         self.base_url = base_url
@@ -496,7 +496,8 @@ class NeededResources(object):
             path.append(self._publisher_signature)
         path.append(library.name)
         if self._versioning:
-            path.append(library.signature(recompute_hash=self._recompute_hash))
+            path.append(
+                library.signature(recompute_hashes=self._recompute_hashes))
         return '/'.join(path)
 
     def render(self):

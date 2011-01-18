@@ -493,7 +493,7 @@ def test_library_url_hashing_norecompute(tmpdir):
     foo = Library('foo', tmpdir.strpath)
 
     needed = NeededResources(
-        base_url='', versioning=True, recompute_hash=False)
+        base_url='', versioning=True, recompute_hashes=False)
 
     url = needed.library_url(foo)
 
@@ -507,7 +507,8 @@ def test_library_url_hashing_norecompute(tmpdir):
 def test_library_url_hashing_recompute(tmpdir):
     foo = Library('foo', tmpdir.strpath)
 
-    needed = NeededResources(base_url='', versioning=True, recompute_hash=True)
+    needed = NeededResources(
+        base_url='', versioning=True, recompute_hashes=True)
 
     url = needed.library_url(foo)
 
