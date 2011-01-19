@@ -6,18 +6,21 @@ from fanstatic.checksum import checksum
 
 DEFAULT_SIGNATURE = 'fanstatic'
 
-VERSION_PREFIX  = ':version:'
+VERSION_PREFIX = ':version:'
 
 NEEDED = 'fanstatic.needed'
 
 DEBUG = 'debug'
 MINIFIED = 'minified'
 
+
 class UnknownResourceExtension(Exception):
     """Unknown resource extension"""
 
+
 class ConfigurationError(Exception):
     pass
+
 
 class Library(object):
     """The resource library.
@@ -77,9 +80,11 @@ class Library(object):
             sig = self._signature
         return VERSION_PREFIX + sig
 
+
 # Total hack to be able to get the dir the resources will be in.
 def caller_dir():
     return os.path.dirname(sys._getframe(2).f_globals['__file__'])
+
 
 class InclusionRenderers(dict):
 
@@ -104,30 +109,31 @@ class InclusionRenderers(dict):
         if order is None:
             order = self._default_order
         else:
-            self._default_order = max(self._default_order, order+1)
+            self._default_order = max(self._default_order, order + 1)
         self[extension] = (order, renderer)
 
 inclusion_renderers = InclusionRenderers()
 
 register_inclusion_renderer = inclusion_renderers.register
 
+
 def render_ico(url):
-    return ('<link rel="shortcut icon" type="image/x-icon" href="%s"/>' %
-            url)
+    return ('<link rel="shortcut icon" type="image/x-icon" href="%s"/>' % url)
+
 
 def render_css(url):
-    return ('<link rel="stylesheet" type="text/css" href="%s" />' %
-            url)
+    return ('<link rel="stylesheet" type="text/css" href="%s" />' % url)
+
 
 def render_js(url):
-    return ('<script type="text/javascript" src="%s"></script>' %
-            url)
+    return ('<script type="text/javascript" src="%s"></script>' % url)
 
 register_inclusion_renderer('.css', render_css, 10)
 
 register_inclusion_renderer('.js', render_js, 20)
 
 register_inclusion_renderer('.ico', render_ico, 30)
+
 
 class Resource(object):
     """A resource.
@@ -293,6 +299,7 @@ class Resource(object):
         result.append(self)
         return result
 
+
 class GroupResource(object):
     """A resource used to group resources together.
 
@@ -325,14 +332,17 @@ class GroupResource(object):
             result.extend(depend.resources())
         return result
 
+
 def normalize_resources(library, resources):
     return [normalize_resource(library, resource)
             for resource in resources]
+
 
 def normalize_resource(library, resource):
     if isinstance(resource, basestring):
         return Resource(library, resource)
     return resource
+
 
 class NeededResources(object):
     """The current selection of needed resources..
@@ -519,7 +529,7 @@ class NeededResources(object):
         :param inclusions: A list of :py:class:`Resource` instances.
         """
         result = []
-        url_cache = {} # prevent multiple computations for a library in one request
+        url_cache = {}  # prevent multiple computations per request
         for resource in resources:
             library = resource.library
             library_url = url_cache.get(library.name)
@@ -623,10 +633,12 @@ class DummyNeededResources(object):
 
 thread_local_needed_data = threading.local()
 
+
 def init_needed(*args, **kw):
     needed = NeededResources(*args, **kw)
     thread_local_needed_data.__dict__[NEEDED] = needed
     return needed
+
 
 def get_needed():
     needed = thread_local_needed_data.__dict__.get(NEEDED)
@@ -638,9 +650,11 @@ def get_needed():
         return DummyNeededResources()
     return needed
 
+
 def clear_needed():
     needed = get_needed()
     needed.clear()
+
 
 def remove_duplicates(resources):
     """Given a set of resources, consolidate them so each only occurs once.
@@ -654,6 +668,7 @@ def remove_duplicates(resources):
         seen.add(key)
         result.append(resource)
     return result
+
 
 def consolidate(resources):
     # keep track of rollups: rollup key -> set of resource keys
@@ -690,10 +705,12 @@ def consolidate(resources):
             result.append(resource)
     return result
 
+
 def sort_resources(resources):
     def key(resource):
         return resource.order
     return sorted(resources, key=key)
+
 
 def sort_resources_topological(resources):
     """Sort resources by dependency and supersedes.
@@ -707,6 +724,7 @@ def sort_resources_topological(resources):
         _visit(resource, result, dead)
     return result
 
+
 def _visit(resource, result, dead):
     if dead[resource.key()]:
         return
@@ -714,5 +732,5 @@ def _visit(resource, result, dead):
     for depend in resource.depends:
         _visit(depend, result, dead)
     for depend in resource.supersedes:
-        _visit(depend ,result, dead)
+        _visit(depend, result, dead)
     result.append(resource)

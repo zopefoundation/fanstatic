@@ -1,5 +1,6 @@
 from fanstatic import sort_resources_topological, sort_resources
 
+
 def generate_code(**kw):
     resource_to_name = {}
     resources = []
@@ -56,10 +57,10 @@ def generate_code(**kw):
         result.append(s)
     return '\n'.join(result)
 
+
 def generate_inline_resource(resource, associated_resource):
     if resource.library.name == associated_resource.library.name:
         return "'%s'" % resource.relpath
     else:
         return "Resource(%s, '%s')" % (resource.library.name,
                                        resource.relpath)
-

@@ -4,6 +4,7 @@ import hashlib
 VCS_NAMES = ['.svn', '.git', '.bzr', '.hg']
 IGNORED_EXTENSIONS = ['.swp', '.tmp', '.pyc', '.pyo']
 
+
 def list_directory(path):
     # Skip over any VCS directories.
     for root, dirs, files in os.walk(path):
@@ -18,11 +19,12 @@ def list_directory(path):
                 continue
             yield os.path.join(root, file)
 
+
 def checksum(path):
     # Ignored extensions.
     chcksm = hashlib.md5()
     for path in list_directory(path):
-        # Use the full path name too for the checksum too to track file renames.
+        # Use the full path name for the checksum to track file renames.
         chcksm.update(path)
         try:
             f = open(path, 'rb')
@@ -36,4 +38,3 @@ def checksum(path):
         finally:
             f.close()
     return chcksm.hexdigest()
-

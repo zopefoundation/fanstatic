@@ -9,6 +9,7 @@ from fanstatic import (Library, Resource,
 
 from fanstatic import Fanstatic
 
+
 def test_inject():
     foo = Library('foo', '')
     x1 = Resource(foo, 'a.js')
@@ -32,6 +33,7 @@ def test_inject():
 <script type="text/javascript" src="http://testapp/fanstatic/foo/a.js"></script>
 <script type="text/javascript" src="http://testapp/fanstatic/foo/c.js"></script>
 </head><body</body></html>'''
+
 
 def test_incorrect_configuration_options():
     app = None

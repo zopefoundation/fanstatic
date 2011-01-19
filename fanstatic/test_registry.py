@@ -4,6 +4,7 @@ import pytest
 
 from fanstatic import get_library_registry, Library, NeededResources
 
+
 def test_library_registry():
     # Skip this test if the test fixtures has not been installed.
     pytest.importorskip('mypackage')
@@ -31,4 +32,3 @@ def test_library_registry():
 
     # MyPackage has been installed in development mode:
     assert library_registry['foo'].version == None
-

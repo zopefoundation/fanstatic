@@ -8,6 +8,7 @@ from fanstatic import (Library, Resource,
                        get_needed, NEEDED)
 from fanstatic import Injector
 
+
 def test_incorrect_configuration_options():
     app = None
     with pytest.raises(TypeError) as e:
@@ -28,6 +29,7 @@ def test_incorrect_configuration_options():
     assert (
         "__init__() got an unexpected "
         "keyword argument 'incorrect'") in str(e)
+
 
 def test_inject():
     foo = Library('foo', '')
@@ -53,6 +55,7 @@ def test_inject():
 <script type="text/javascript" src="http://testapp/fanstatic/foo/c.js"></script>
 </head><body</body></html>'''
 
+
 def test_no_inject_into_non_html():
     foo = Library('foo', '')
     x1 = Resource(foo, 'a.js')
@@ -72,6 +75,7 @@ def test_no_inject_into_non_html():
     response = request.get_response(wrapped_app)
     assert response.body == '<html><head></head><body</body></html>'
 
+
 def test_no_needed_into_non_get_post():
     def app(environ, start_response):
         assert NEEDED not in environ
@@ -80,6 +84,7 @@ def test_no_needed_into_non_get_post():
     wrapped_app = Injector(app)
     request = webob.Request.blank('/', method='PUT')
     response = request.get_response(wrapped_app)
+
 
 def test_needed_from_environ():
     foo = Library('foo', '')
@@ -93,4 +98,3 @@ def test_needed_from_environ():
     wrapped_app = Injector(app)
     request = webob.Request.blank('/')
     response = request.get_response(wrapped_app)
-

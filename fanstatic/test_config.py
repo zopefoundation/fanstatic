@@ -1,6 +1,7 @@
 from fanstatic.config import convert_config
 from fanstatic import make_injector, make_publisher, make_fanstatic
 
+
 def test_convert_config():
     d = {
         'versioning': 't',
@@ -18,6 +19,7 @@ def test_convert_config():
         'rollup': False,
         'somethingelse': 'True',
         }
+
 
 def test_injector_config():
     d = {
@@ -37,10 +39,12 @@ def test_injector_config():
         'rollup': False,
         }
 
+
 def test_publisher_config():
     publisher = make_publisher(None,  {}, publisher_signature='foo')
     assert publisher.trigger == '/foo/'
     assert publisher.app is None
+
 
 def test_fanstatic_config():
     d = {
@@ -61,4 +65,3 @@ def test_fanstatic_config():
         'rollup': False,
         'publisher_signature': 'foo',
         }
-

@@ -26,4 +26,3 @@ from fanstatic.publisher import (Publisher, Delegator, make_publisher,
                                  DirectoryPublisher)
 
 from fanstatic.wsgi import Fanstatic, make_fanstatic
-

@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 from fanstatic import LibraryRegistry, Library, Publisher, Delegator
 from fanstatic.publisher import FOREVER
 
+
 def test_resource(tmpdir):
     foo_library_dir = tmpdir.mkdir('foo')
     resource = tmpdir.join('foo').join('test.js')
@@ -19,11 +20,13 @@ def test_resource(tmpdir):
     response = request.get_response(app)
     assert response.body == '/* a test */'
 
+
 def test_just_publisher():
     app = Publisher({})
     request = webob.Request.blank('/')
     response = request.get_response(app)
     assert response.status == '403 Forbidden'
+
 
 def test_just_library(tmpdir):
     foo_library_dir = tmpdir.mkdir('foo')
@@ -39,6 +42,7 @@ def test_just_library(tmpdir):
     response = request.get_response(app)
     assert response.status == '403 Forbidden'
 
+
 def test_unknown_library(tmpdir):
     foo_library_dir = tmpdir.mkdir('foo')
     resource = tmpdir.join('foo').join('test.js')
@@ -53,6 +57,7 @@ def test_unknown_library(tmpdir):
     response = request.get_response(app)
     assert response.status == '404 Not Found'
 
+
 def test_resource_version_skipped(tmpdir):
     foo_library_dir = tmpdir.mkdir('foo')
     resource = tmpdir.join('foo').join('test.js')
@@ -66,6 +71,7 @@ def test_resource_version_skipped(tmpdir):
     request = webob.Request.blank('/foo/:version:something/test.js')
     response = request.get_response(app)
     assert response.body == '/* a test */'
+
 
 def test_resource_no_version_no_cache(tmpdir):
     foo_library_dir = tmpdir.mkdir('foo')
@@ -82,6 +88,7 @@ def test_resource_no_version_no_cache(tmpdir):
     assert response.body == '/* a test */'
     assert response.cache_control.max_age is None
     assert response.expires is None
+
 
 def test_resource_hash_cache(tmpdir):
     foo_library_dir = tmpdir.mkdir('foo')
@@ -100,10 +107,11 @@ def test_resource_hash_cache(tmpdir):
     # the test has just run and will take less than a full day to
     # run. we therefore expect the expires to be greater than
     # one_day_ago + FOREVER
-    utc = response.expires.tzinfo # get UTC as a hack
+    utc = response.expires.tzinfo  # get UTC as a hack
     one_day_ago = datetime.now(utc) - timedelta(days=1)
     future = one_day_ago + timedelta(seconds=FOREVER)
     assert response.expires > future
+
 
 def test_resource_cache_only_for_success(tmpdir):
     foo_library_dir = tmpdir.mkdir('foo')
@@ -118,6 +126,7 @@ def test_resource_cache_only_for_success(tmpdir):
     assert response.status == '404 Not Found'
     assert response.cache_control.max_age is None
     assert response.expires is None
+
 
 def test_delegator(tmpdir):
     foo_library_dir = tmpdir.mkdir('foo')
@@ -142,6 +151,7 @@ def test_delegator(tmpdir):
     request = webob.Request.blank('/somethingelse')
     response = request.get_response(delegator)
     assert response.body == 'Hello world!'
+
 
 def test_publisher_ignores(tmpdir):
     foo_library_dir = tmpdir.mkdir('foo')
@@ -169,4 +179,3 @@ def test_publisher_ignores(tmpdir):
     request = webob.Request.blank('/foo/logo.psd')
     response = request.get_response(publisher)
     assert response.status_int == 404
-

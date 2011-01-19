@@ -15,6 +15,7 @@ YEAR_IN_SECONDS = DAY_IN_SECONDS * 365
 # arbitrarily define forever as 10 years in the future
 FOREVER = YEAR_IN_SECONDS * 10
 
+
 class DirectoryPublisher(DirectoryApp):
     """Fanstatic directory publisher WSGI application.
 
@@ -39,6 +40,7 @@ class DirectoryPublisher(DirectoryApp):
             if fnmatch.filter(environ['PATH_INFO'].split('/'), ignore):
                 raise webob.exc.HTTPNotFound()
         return super(DirectoryPublisher, self).__call__(environ, start_response)
+
 
 class Publisher(object):
     """Fanstatic publisher WSGI application.
@@ -97,6 +99,7 @@ class Publisher(object):
             response.expires = time.time() + FOREVER
         return response
 
+
 class Delegator(object):
     """Fanstatic delegator WSGI framework component.
 
@@ -137,6 +140,7 @@ class Delegator(object):
         request = request.copy()
         request.path_info = chunks[1]
         return request.get_response(self.publisher)
+
 
 def make_publisher(app, global_config,
                    publisher_signature=fanstatic.DEFAULT_SIGNATURE):

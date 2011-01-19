@@ -2,6 +2,7 @@ import pkg_resources
 
 ENTRY_POINT = 'fanstatic.libraries'
 
+
 class LibraryRegistry(dict):
     """A dictionary-like registry of libraries.
 
@@ -25,6 +26,7 @@ class LibraryRegistry(dict):
         """
         self[library.name] = library
 
+
 def get_libraries_from_entry_points():
     libraries = []
     for entry_point in pkg_resources.iter_entry_points(ENTRY_POINT):
@@ -32,11 +34,12 @@ def get_libraries_from_entry_points():
         # If the distribution is in development mode we don't use its version.
         # See http://peak.telecommunity.com/DevCenter/setuptools#develop
         if entry_point.dist.precedence > pkg_resources.DEVELOP_DIST:
-            library.version = entry_point.dist.version
+            library.version = entry_point.dist.version  # pragma: no cover
         libraries.append(library)
     return libraries
 
 _library_registry = None
+
 
 def get_library_registry():
     '''Get the global :py:class:`LibraryRegistry`.
@@ -51,4 +54,3 @@ def get_library_registry():
         return _library_registry
     _library_registry = LibraryRegistry(get_libraries_from_entry_points())
     return _library_registry
-

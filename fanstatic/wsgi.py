@@ -2,6 +2,7 @@ from fanstatic.config import convert_config
 import fanstatic
 from fanstatic import Injector, Delegator, Publisher, get_library_registry
 
+
 def Fanstatic(app,
               publisher_signature=fanstatic.DEFAULT_SIGNATURE,
               **config):
@@ -28,6 +29,7 @@ def Fanstatic(app,
         injector,
         publisher,
         publisher_signature=publisher_signature)
+
 
 def make_fanstatic(app, global_config, **local_config):
     local_config = convert_config(local_config)

@@ -4,6 +4,7 @@ import webob.dec
 from fanstatic.config import convert_config
 import fanstatic
 
+
 class Injector(object):
     """Fanstatic injector WSGI framework component.
 
@@ -54,6 +55,7 @@ class Injector(object):
         if needed.has_resources():
             response.body = needed.render_topbottom_into_html(response.body)
         return response
+
 
 def make_injector(app, global_config, **local_config):
     local_config = convert_config(local_config)

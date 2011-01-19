@@ -4,11 +4,13 @@ from pkg_resources import resource_filename
 from fanstatic.checksum import list_directory, checksum
 from fanstatic.checksum import VCS_NAMES, IGNORED_EXTENSIONS
 
+
 def _copy_testdata(tmpdir):
     src = resource_filename('fanstatic', 'testdata/MyPackage')
     dst = tmpdir / 'MyPackage'
     shutil.copytree(src, str(dst))
     return dst
+
 
 def test_list_directory(tmpdir):
     testdata_path = str(_copy_testdata(tmpdir))
@@ -20,6 +22,7 @@ def test_list_directory(tmpdir):
         ]
     found = list(list_directory(testdata_path))
     assert sorted(found) == sorted(expected)
+
 
 def test_checksum(tmpdir):
     testdata_path = str(_copy_testdata(tmpdir))
@@ -58,6 +61,7 @@ def test_checksum(tmpdir):
     assert sorted(found) == sorted(expected)
     assert checksum(testdata_path) != chksum_start
 
+
 def test_checksum_no_vcs_name(tmpdir):
     testdata_path = str(_copy_testdata(tmpdir))
     tmpdir.join('/MyPackage/.novcs').ensure(dir=True)
@@ -71,6 +75,7 @@ def test_checksum_no_vcs_name(tmpdir):
         ]
     found = list(list_directory(testdata_path))
     assert sorted(found) == sorted(expected)
+
 
 def test_checksum_vcs_name(tmpdir):
     testdata_path = str(_copy_testdata(tmpdir))
@@ -87,6 +92,7 @@ def test_checksum_vcs_name(tmpdir):
         assert sorted(found) == sorted(expected)
         tmpdir.join('/MyPackage/%s' % name).remove(rec=True)
 
+
 def test_checksum_dot_file(tmpdir):
     testdata_path = str(_copy_testdata(tmpdir))
     tmpdir.join('/MyPackage/.woekie').ensure()
@@ -99,6 +105,7 @@ def test_checksum_dot_file(tmpdir):
         ]
     found = list(list_directory(testdata_path))
     assert sorted(found) == sorted(expected)
+
 
 def test_checksum_ignored_extensions(tmpdir):
     testdata_path = str(_copy_testdata(tmpdir))
