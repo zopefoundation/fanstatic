@@ -4,7 +4,7 @@ Configuration options
 .. py:module:: fanstatic
 
 Fanstatic makes available a number of configuration options. These can
-be passed to the py:class:`Fanstatic` WSGI component as keyword
+be passed to the :py:class:`Fanstatic` WSGI component as keyword
 arguments.  They can also be configured using `Paste Deploy`_
 configuration patterns (see :doc:`our Paste Deploy documentation
 <paste_deploy>` for more information on that).
