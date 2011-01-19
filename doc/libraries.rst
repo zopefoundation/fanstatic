@@ -15,6 +15,10 @@ Here's a list of currently available libraries:
       - **library**
       - **source**
 
+    * - :pypi:`js.galleriffic`
+      - the `Galleriffic <http://www.twospy.com/galleriffic>`_
+      - `bitbucket <http://bitbucket.org/fanstatic/js.yui>`_
+
     * - :pypi:`js.jquery`
       - `jQuery <http://jquery.com>`_
       - `bitbucket <http://bitbucket.org/fanstatic/js.jquery>`_
