@@ -1,8 +1,8 @@
 CHANGES
 *******
 
-0.10dev (unreleased)
-====================
+0.10 (2011-01-19)
+=================
 
 - Renamed ``hashing`` to ``versioning``. Use the version of the python package
   as the version identifier for a Library, unless the package is installed in
