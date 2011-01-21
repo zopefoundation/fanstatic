@@ -15,8 +15,12 @@ Here's a list of currently available libraries:
       - **library**
       - **source**
 
+    * - :pypi:`js.extjs`
+      - _`ExtJS`: http://www.sencha.com/products/js/
+      - `bitbucket <http://bitbucket.org/fanstatic/js.extjs>`_
+
     * - :pypi:`js.galleriffic`
-      - the `Galleriffic <http://www.twospy.com/galleriffic>`_
+      - `Galleriffic <http://www.twospy.com/galleriffic>`_
       - `bitbucket <http://bitbucket.org/fanstatic/js.yui>`_
 
     * - :pypi:`js.jquery`
