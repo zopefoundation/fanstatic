@@ -435,7 +435,7 @@ class NeededResources(object):
         self._publisher_signature = publisher_signature
         self._rollup = rollup
         self._resources = resources or []
-
+        self._url_cache = {}  # prevent multiple computations per request
         if (debug and minified):
             raise ConfigurationError('Choose *one* of debug and minified')
         if debug is True:
@@ -529,12 +529,11 @@ class NeededResources(object):
         :param inclusions: A list of :py:class:`Resource` instances.
         """
         result = []
-        url_cache = {}  # prevent multiple computations per request
         for resource in resources:
             library = resource.library
-            library_url = url_cache.get(library.name)
+            library_url = self._url_cache.get(library.name)
             if library_url is None:
-                library_url = url_cache[library.name] = self.library_url(
+                library_url = self._url_cache[library.name] = self.library_url(
                     library)
             result.append(resource.render(library_url))
         return '\n'.join(result)
