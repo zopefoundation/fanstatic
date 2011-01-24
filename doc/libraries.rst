@@ -43,6 +43,10 @@ Here's a list of currently available libraries:
       - the jQuery plugin `tablesorter <http://tablesorter.com>`_
       - `bitbucket <http://bitbucket.org/fanstatic/js.jquery_tablesorter>`_
 
+    * - :pypi:`js.jquery_textchildren`
+      - the jQuery plugin `Text Children <http://plugins.learningjquery.com/textchildren>`_
+      - `bitbucket <http://bitbucket.org/fanstatic/js.jquery_textchildren>`_
+
     * - :pypi:`js.jquery_tooltip`
       - the jQuery plugin `Tooltip <http://bassistance.de/jquery-plugins/jquery-plugin-tooltip>`_
       - `bitbucket <http://bitbucket.org/fanstatic/js.jquery_tooltip>`_
