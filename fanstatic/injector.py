@@ -27,11 +27,13 @@ class Injector(object):
 
         # this is just to give useful feedback early on
         fanstatic.NeededResources(**config)
-
         self.config = config
 
     @webob.dec.wsgify
     def __call__(self, request):
+        # XXX this will set the needed on the thread local data, even
+        # if the wrapped framework only gets the needed from the WSGI
+        # environ.
         needed = fanstatic.init_needed(**self.config)
 
         # Make sure the needed resource object is put in the WSGI
@@ -50,6 +52,10 @@ class Injector(object):
         # about needed resources
         if needed.has_resources():
             response.body = needed.render_topbottom_into_html(response.body)
+
+        # XXX shouldn't the needed object be removed from the thread
+        # local data here?
+
         return response
 
 def make_injector(app, global_config, **local_config):
