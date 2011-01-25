@@ -37,6 +37,9 @@ class Injector(object):
         if not request.method in ['GET', 'POST']:
             return request.get_response(self.app)
 
+        # XXX this will set the needed on the thread local data, even
+        # if the wrapped framework only gets the needed from the WSGI
+        # environ.
         needed = fanstatic.init_needed(**self.config)
 
         # Make sure the needed resource object is put in the WSGI
@@ -54,6 +57,10 @@ class Injector(object):
         # The wrapped application may have `needed` resources.
         if needed.has_resources():
             response.body = needed.render_topbottom_into_html(response.body)
+
+        # XXX shouldn't the needed object be removed from the thread
+        # local data here?
+
         return response
 
 
