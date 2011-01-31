@@ -102,7 +102,7 @@ that does both of these things for you. Here is how you use it::
 
   from fanstatic import Fanstatic
 
-  fanstatic_app = Fanstatic(app)
+  fanstatic_app = Fanstatic(app, base_url='127.0.0.1:8080')
 
 When you use ``fanstatic_app``, Fanstatic will take care of serving
 static resources for you, and will include them on web pages when
