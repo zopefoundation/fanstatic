@@ -98,3 +98,17 @@ def test_needed_from_environ():
     wrapped_app = Injector(app)
     request = webob.Request.blank('/')
     request.get_response(wrapped_app)
+
+def test_can_handle_no_content():
+    foo = Library('foo', '')
+    Resource(foo, 'a.js')
+
+    def app(environ, start_response):
+        # if no header is given, we get a defailt content type
+        # header and won't trigger the fault from
+        # https://bitbucket.org/fanstatic/fanstatic/issue/49/exception-in-injector-when-app-returns-304
+        start_response('304 Not Modified', [('fake', '123')])
+        return ['']
+    wrapped_app = Injector(app)
+    request = webob.Request.blank('/', method='GET')
+    request.get_response(wrapped_app)
