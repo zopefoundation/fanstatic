@@ -83,12 +83,12 @@ def test_no_needed_into_non_get_post():
         return ['foo']
     wrapped_app = Injector(app)
     request = webob.Request.blank('/', method='PUT')
-    response = request.get_response(wrapped_app)
+    request.get_response(wrapped_app)
 
 
 def test_needed_from_environ():
     foo = Library('foo', '')
-    x1 = Resource(foo, 'a.js')
+    Resource(foo, 'a.js')
 
     def app(environ, start_response):
         start_response('200 OK', [])
@@ -97,4 +97,4 @@ def test_needed_from_environ():
 
     wrapped_app = Injector(app)
     request = webob.Request.blank('/')
-    response = request.get_response(wrapped_app)
+    request.get_response(wrapped_app)
