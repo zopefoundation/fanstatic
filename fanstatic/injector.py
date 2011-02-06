@@ -47,7 +47,8 @@ class Injector(object):
         response = request.get_response(self.app)
 
         # We only continue if the content-type is appropriate.
-        if not response.content_type.lower() in ['text/html', 'text/xml']:
+        if not (response.content_type and
+                response.content_type.lower() in ['text/html', 'text/xml']):
             return response
 
         # The wrapped application may have `needed` resources.
