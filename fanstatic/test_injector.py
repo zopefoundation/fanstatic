@@ -87,9 +87,6 @@ def test_no_needed_into_non_get_post():
 
 
 def test_needed_from_environ():
-    foo = Library('foo', '')
-    Resource(foo, 'a.js')
-
     def app(environ, start_response):
         start_response('200 OK', [])
         needed = get_needed()
