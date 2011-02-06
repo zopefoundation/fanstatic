@@ -1,7 +1,7 @@
 CHANGES
 *******
 
-0.10.1 (unreleased)
+0.10.1 (2011-02-06)
 ===================
 
 - Bugfix for issue #49.
