@@ -726,23 +726,36 @@ def consolidate(resources):
             result.append(resource)
     return result
 
-
 def sort_resources(resources):
-    # track maximum dependency nr for resource seen per library
-    # this is necessary so we can sort libraries correclty according
-    # do dependency
-    # note that this assumes no cycles between libraries (or resources)
+    """Sort resources for inclusion on web page.
+
+    A number of rules are followed:
+
+    * resources are always grouped per renderer (.js, .css, etc)
+    * resources that depend on other resources are sorted later
+    * resources are grouped by library, if the dependencies allow it
+    * resources are sorted by resource path if they both would be
+      sorted the same otherwise.
+
+    The algorithm works by tracking a maximum dependency nr for the to
+    be included resources for each library.
+
+    This so to be able to sort libraries without disrupting resource
+    dependencies. The only purpose of sorting on library is so we can
+    group resources per library, so that bundles can later be created
+    of them if bundling support is enabled.
+
+    Cycles between libraries should be resolved correctly as well, as
+    resource dependency trumps library dependency in this scheme.
+
+    Note this sorting algorithm guarantees a consistent ordering, no
+    matter in what order resources were needed.
+    """    
     library_dependency_nrs = {}
     for resource in resources:
         nr = library_dependency_nrs.get(resource.library, 0)
         library_dependency_nrs[resource.library] = max(
             resource.dependency_nr, nr)
-    # sort on renderer (resource.order) to group per kind of resource
-    # (css, js, etc)
-    # then sort on library to group libraries together. We make sure
-    # this obeys absolute dependencies per resource
-    # then sort on absolute dependency nr per resource
-    # then sort on relpath to guarantee consistent sorting
     def key(resource):
         return (
             resource.order,
