@@ -497,11 +497,7 @@ class NeededResources(object):
 
         :param library: A :py:class:`Library` instance.
         """
-        if self.base_url is None:
-            raise ConfigurationError(
-                'No base_url: Set a base_url at configuration time or '
-                'at request-time in your framework.')
-        path = [self.base_url]
+        path = [self.base_url or '']
         if self._publisher_signature:
             path.append(self._publisher_signature)
         path.append(library.name)
