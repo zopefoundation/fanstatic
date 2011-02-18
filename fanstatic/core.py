@@ -751,59 +751,6 @@ def sort_resources(resources):
             resource.relpath)
     return sorted(resources, key=key)
 
-# def sort_resources(resources):
-#     # We want to sort the resources using several criteria:
-#     #
-#     # 1. First we sort the resources by their renderer using the order of the
-#     #    renderers.
-#     #
-#     # 2. The groups are then sorted by Resource Library, based on library
-#     #    dependencies. We assume there are no cross-library dependencies,
-#     #    because it is not possible to define these using the API.
-#     #
-#     # 3. The resources in the groups of Libraries are then sorted by their
-#     #    dependencies and pathdir. We do this in order to have better bundling
-#     #    later on.
-
-#     # First, we group the resources by renderer order:
-#     renderer_groups = {}
-#     for resource in resources:
-#         renderer_groups.setdefault(resource.order, []).append(resource)
-
-#     result = []
-#     for _, renderer_group in sorted(renderer_groups.items()):
-#         # We group the resources by library.
-#         library_groups = {}
-#         for resource in renderer_group:
-#             library_groups.setdefault(resource.library, []).append(resource)
-
-#         reordered_libraries = []
-#         for library in library_groups:
-#             # Place the library after its dependencies.
-#             max_ = 0
-#             for dependency in library._dependencies:
-#                 try:
-#                     max_ = max(reordered_libraries.index(dependency) + 1, max_)
-#                 except ValueError:
-#                     pass
-#             reordered_libraries.insert(max_, library)
-#         for library in reordered_libraries:
-#             resources = library_groups[library]
-#             max_ = 0
-#             reordered_resources = []
-#             for resource in resources:
-#                 for dependency in resource._dependencies + resource.supersedes:
-#                     if dependency.renderer != resource.renderer or\
-#                         dependency.library != resource.library:
-#                         continue
-#                     try:
-#                         max_ = max(reordered_resources.index(dependency) + 1, max_)
-#                     except ValueError:
-#                         pass
-#                 reordered_resources.insert(max_, resource)
-#             result.extend(reordered_resources)
-#     return result
-
 def sort_resources_topological(resources):
     """Sort resources by dependency and supersedes.
     """
