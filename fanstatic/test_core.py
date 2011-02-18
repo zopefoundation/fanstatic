@@ -919,6 +919,35 @@ def test_sort_resources():
     needed.need(m2)
     assert needed.resources() == [k1, l1, m1, m2, n1]
 
+@pytest.mark.xfail
+def test_source_resources_library_sorting():
+    X = Library('X', '')
+    Y = Library('Y', '')
+    Z = Library('Z', '')
+
+    a = Resource(X, 'a.js')
+    b = Resource(Z, 'b.js', depends=[a])
+
+    c = Resource(Y, 'c.js')
+    c1 = Resource(Y, 'c1.js', depends=[c])
+    c2 = Resource(Y, 'c2.js', depends=[c1])
+    d = Resource(Z, 'd.js', depends=[c])
+    e = Resource(Z, 'e.js')
+    
+    needed = NeededResources()
+    needed.need(b)
+    needed.need(c2)
+    needed.need(d)
+    needed.need(e)
+    
+    assert needed.resources() == [a, c, c1, c2, b, d, e]
+    
+def test_sort_sources_cycles():
+    K = Library('K', '')
+    L = Library('L', '')
+    M = Library('M', '')
+    N = Library('N', '')
+
     # there is one edge-case with cycles in the library dependencies
     # library dependencies will be sorted correctly anyway, because
     # resource dependency constraints always will be correct in the final
@@ -932,6 +961,22 @@ def test_sort_resources():
     needed.need(k3)
     needed.need(l3)
     assert needed.resources() == [k2, l2, k3, l3]
+
+def test_sort_sources_cycles_complicated():
+    L2 = Library('l2', '')
+    L3 = Library('l3', '')
+    L4 = Library('l4', '')
+
+    a = Resource(L4, 'a.js')
+    b = Resource(L3, 'b.js', depends=[a])
+    c = Resource(L2, 'c.js', depends=[b])
+    d = Resource(L3, 'd.js', depends=[c])
+    e = Resource(L4, 'e.js', depends=[d])
+
+    needed = NeededResources()
+    needed.need(e)
+    import pdb; pdb.set_trace()
+    assert needed.resources() == [a, b, c, d, e]
     
 # XXX tests for hashed resources when this is enabled. Needs some plausible
 # directory to test for hashes

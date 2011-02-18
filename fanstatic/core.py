@@ -503,8 +503,6 @@ class NeededResources(object):
 
         if self._rollup:
             resources = consolidate(resources)
-        # sort only by extension, not dependency, as we can rely on
-        # python's stable sort to keep resource inclusion order intact
         resources = sort_resources(resources)
         resources = remove_duplicates(resources)
 
@@ -733,33 +731,20 @@ def sort_resources(resources):
 
     * resources are always grouped per renderer (.js, .css, etc)
     * resources that depend on other resources are sorted later
-    * resources are grouped by library, if the dependencies allow it
+    * resources are grouped by library, if the dependencies allow it XXX
     * resources are sorted by resource path if they both would be
       sorted the same otherwise.
 
-    The algorithm works by tracking a maximum dependency nr for the to
-    be included resources for each library.
-
-    This so to be able to sort libraries without disrupting resource
-    dependencies. The only purpose of sorting on library is so we can
+    The only purpose of sorting on library is so we can
     group resources per library, so that bundles can later be created
-    of them if bundling support is enabled.
-
-    Cycles between libraries should be resolved correctly as well, as
-    resource dependency trumps library dependency in this scheme.
+    of them if bundling support is enabled. XXX
 
     Note this sorting algorithm guarantees a consistent ordering, no
     matter in what order resources were needed.
-    """    
-    library_dependency_nrs = {}
-    for resource in resources:
-        nr = library_dependency_nrs.get(resource.library, 0)
-        library_dependency_nrs[resource.library] = max(
-            resource.dependency_nr, nr)
+    """
     def key(resource):
         return (
             resource.order,
-            library_dependency_nrs[resource.library],
             resource.dependency_nr,
             resource.relpath)
     return sorted(resources, key=key)
