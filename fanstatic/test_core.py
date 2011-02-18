@@ -451,11 +451,6 @@ def test_rendering_base_url():
 
     needed = NeededResources()
     needed.need(y1)
-    with pytest.raises(ConfigurationError):
-        needed.render()
-
-    # We need a base_url in order to render URLs to resources.
-    needed.base_url = ''
     assert needed.render() == '''\
 <link rel="stylesheet" type="text/css" href="/fanstatic/foo/b.css" />
 <script type="text/javascript" src="/fanstatic/foo/a.js"></script>
@@ -467,14 +462,20 @@ def test_rendering_base_url():
 <link rel="stylesheet" type="text/css" href="http://localhost/static/fanstatic/foo/b.css" />
 <script type="text/javascript" src="http://localhost/static/fanstatic/foo/a.js"></script>
 <script type="text/javascript" src="http://localhost/static/fanstatic/foo/c.js"></script>'''
+    # The base_url has been set.
+    assert needed.has_base_url()
+
+    needed.set_base_url('foo')
+    # The base_url can only be set once.
+    assert needed._base_url == 'http://localhost/static'
 
 
 def test_empty_base_url_and_publisher_signature():
-    ''' When the base_url and publisher_signature are both empty strings,
+    ''' When the base_url is not set and the publisher_signature is an empty string,
     render a URL without them. '''
     foo = Library('foo', '')
     x1 = Resource(foo, 'a.js')
-    needed = NeededResources(base_url='', publisher_signature='')
+    needed = NeededResources(publisher_signature='')
     needed.need(x1)
 
     assert needed.render() == '''\
@@ -489,9 +490,7 @@ def test_rendering_base_url_assign():
 
     needed = NeededResources()
     needed.need(y1)
-
-    needed.base_url = 'http://localhost/static'
-
+    needed.set_base_url('http://localhost/static')
     assert needed.render() == '''\
 <link rel="stylesheet" type="text/css" href="http://localhost/static/fanstatic/foo/b.css" />
 <script type="text/javascript" src="http://localhost/static/fanstatic/foo/a.js"></script>

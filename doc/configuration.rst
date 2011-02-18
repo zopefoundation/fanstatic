@@ -160,7 +160,7 @@ URLs. This can be useful if your web framework wants the resources to
 be published on a sub-URL. By default, there is no ``base_url``, and
 resources are served in the script root.
 
-Note that this can also be set as an attribute on an
+Note that this can also be set using the ``set_base_url`` method on a
 :py:class:`NeededResources` instance during run-time, as this URL is
 generally not known when :py:class:`NeededResources` is instantiated.
 

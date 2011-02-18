@@ -391,7 +391,7 @@ class NeededResources(object):
     :param base_url: This URL will be prefixed in front of all resource
       URLs. This can be useful if your web framework wants the resources
       to be published on a sub-URL. Note that this can also be set
-      as an attribute on an ``NeededResources`` instance.
+      with the set_base_url method on a ``NeededResources`` instance.
 
     :param publisher_signature: The name under which resource libraries
       should be served in the URL. By default this is ``fanstatic``, so
@@ -404,7 +404,7 @@ class NeededResources(object):
 
     """
 
-    base_url = None
+    _base_url = None
     """The base URL.
 
     This URL will be prefixed in front of all resource
@@ -431,7 +431,7 @@ class NeededResources(object):
         self._recompute_hashes = recompute_hashes
         self._bottom = bottom
         self._force_bottom = force_bottom
-        self.base_url = base_url
+        self.set_base_url(base_url)
         self._publisher_signature = publisher_signature
         self._rollup = rollup
         self._resources = resources or []
@@ -447,6 +447,19 @@ class NeededResources(object):
         """Returns True if any resources are needed.
         """
         return bool(self._resources)
+
+    def has_base_url(self):
+        """Returns True if base_url has been set.
+        """
+        return bool(self._base_url)
+
+    def set_base_url(self, url):
+        """Set the base_url. The base_url can only be set (1) if it has not
+        been set in the NeededResources configuration and (2) if it has not
+        been set before using this method.
+        """
+        if not self.has_base_url():
+            self._base_url = url
 
     def need(self, resource):
         """Add a particular resource to the needed resources.
@@ -497,7 +510,7 @@ class NeededResources(object):
 
         :param library: A :py:class:`Library` instance.
         """
-        path = [self.base_url or '']
+        path = [self._base_url or '']
         if self._publisher_signature:
             path.append(self._publisher_signature)
         path.append(library.name)
@@ -605,8 +618,6 @@ class DummyNeededResources(object):
     but refuses to do anything but need() resources. Resources that are
     needed are dropped to the floor.
     """
-
-    base_url = None
 
     def need(self, resource):
         pass
