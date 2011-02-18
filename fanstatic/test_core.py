@@ -147,9 +147,12 @@ def test_redundant_more_complicated():
 
     needed = NeededResources()
     needed.need(a3)
+
     assert needed.resources() == [a1, a2, a3]
     needed.need(a4)
-    assert needed.resources() == [a1, a2, a3, a4]
+    # a4 is sorted before a3, because it is less deep
+    # in the dependency tree
+    assert needed.resources() == [a1, a2, a4, a3]
 
 
 def test_redundant_more_complicated_reversed():
@@ -162,8 +165,9 @@ def test_redundant_more_complicated_reversed():
     needed = NeededResources()
     needed.need(a4)
     needed.need(a3)
-
-    assert needed.resources() == [a1, a4, a2, a3]
+    # this will always be consistent, no matter
+    # in what order we need the resources
+    assert needed.resources() == [a1, a2, a4, a3]
 
 
 def test_redundant_more_complicated_depends_on_all():
@@ -176,8 +180,7 @@ def test_redundant_more_complicated_depends_on_all():
 
     needed = NeededResources()
     needed.need(a5)
-
-    assert needed.resources() == [a1, a4, a2, a3, a5]
+    assert needed.resources() == [a1, a2, a4, a3, a5]
 
 
 def test_redundant_more_complicated_depends_on_all_reorder():
@@ -192,7 +195,7 @@ def test_redundant_more_complicated_depends_on_all_reorder():
     needed.need(a3)
     needed.need(a5)
 
-    assert needed.resources() == [a1, a2, a3, a4, a5]
+    assert needed.resources() == [a1, a2, a4, a3, a5]
 
 
 def test_mode_fully_specified():
@@ -650,8 +653,8 @@ def test_html_bottom_safe():
     assert top == '''\
 <link rel="stylesheet" type="text/css" href="/fanstatic/foo/b.css" />
 <script type="text/javascript" src="/fanstatic/foo/a.js"></script>
-<script type="text/javascript" src="/fanstatic/foo/c.js"></script>
-<script type="text/javascript" src="/fanstatic/foo/y2.js"></script>'''
+<script type="text/javascript" src="/fanstatic/foo/y2.js"></script>
+<script type="text/javascript" src="/fanstatic/foo/c.js"></script>'''
     assert bottom == ''
 
     needed = NeededResources(bottom=True)
@@ -673,8 +676,8 @@ def test_html_bottom_safe():
 <link rel="stylesheet" type="text/css" href="/fanstatic/foo/b.css" />'''
     assert bottom == '''\
 <script type="text/javascript" src="/fanstatic/foo/a.js"></script>
-<script type="text/javascript" src="/fanstatic/foo/c.js"></script>
-<script type="text/javascript" src="/fanstatic/foo/y2.js"></script>'''
+<script type="text/javascript" src="/fanstatic/foo/y2.js"></script>
+<script type="text/javascript" src="/fanstatic/foo/c.js"></script>'''
 
 # XXX add sanity checks: cannot declare something bottom safe while
 # what it depends on isn't bottom safe
@@ -863,7 +866,7 @@ def test_clear():
     assert needed.resources() == []
     needed.need(a4)
     needed.need(a5)
-    assert needed.resources() == [a1, a4, a2, a3, a5]
+    assert needed.resources() == [a1, a2, a4, a3, a5]
 
 
 def test_convenience_clear():
@@ -884,8 +887,7 @@ def test_convenience_clear():
     clear_needed()
     assert needed.resources() == []
     z2.need()
-    assert needed.resources() == [z1, x1, z2]
-
+    assert needed.resources() == [x1, z1, z2]
 
 def test_normalize_resource():
     foo = Library('foo', '')
@@ -893,6 +895,44 @@ def test_normalize_resource():
     r1 = Resource(foo, 'f.js')
     assert normalize_resource(foo, r1) == r1
 
+def test_sort_resources():
+    K = Library('K', '')
+    L = Library('L', '')
+    M = Library('M', '')
+    N = Library('N', '')
+
+    k1 = Resource(K, 'k1.js')
+    l1 = Resource(L, 'l1.js')
+    m1 = Resource(M, 'm1.js', depends=[k1])
+    m2 = Resource(M, 'm2.js', depends=[l1])
+    n1 = Resource(N, 'n1.js', depends=[m1])
+
+    needed = NeededResources()
+    needed.need(m1)
+    needed.need(m2)
+    # sort_resources makes an efficient ordering, grouping m1 and m2 together
+    # after their dependencies
+    assert needed.resources() == [k1, l1, m1, m2]
+
+    needed = NeededResources()
+    needed.need(n1)
+    needed.need(m2)
+    assert needed.resources() == [k1, l1, m1, m2, n1]
+
+    # there is one edge-case with cycles in the library dependencies
+    # library dependencies will be sorted correctly anyway, because
+    # resource dependency constraints always will be correct in the final
+    # sorting
+    k2 = Resource(K, 'k2.js')
+    l2 = Resource(L, 'l2.js')
+    k3 = Resource(K, 'k3.js', depends=[l2])
+    l3 = Resource(L, 'l3.js', depends=[k2])
+
+    needed = NeededResources()
+    needed.need(k3)
+    needed.need(l3)
+    assert needed.resources() == [k2, l2, k3, l3]
+    
 # XXX tests for hashed resources when this is enabled. Needs some plausible
 # directory to test for hashes
 

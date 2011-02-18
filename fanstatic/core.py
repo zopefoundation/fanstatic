@@ -224,12 +224,18 @@ class Resource(object):
         depends = depends or []
         self.depends = normalize_resources(library, depends)
 
+        # generate an internal number for sorting the resource
+        # on dependency within the library
+        init_dependency_nr(self)
+        
         self.modes = {}
         if debug is not None:
             self.modes[DEBUG] = normalize_resource(library, debug)
+            self.modes[DEBUG].dependency_nr = self.dependency_nr
         if minified is not None:
             self.modes[MINIFIED] = normalize_resource(library, minified)
-
+            self.modes[MINIFIED].dependency_nr = self.dependency_nr
+            
         assert not isinstance(supersedes, basestring)
         self.supersedes = supersedes or []
         self.eager_superseder = eager_superseder
@@ -313,7 +319,8 @@ class GroupResource(object):
     """
     def __init__(self, depends):
         self.depends = depends
-
+        init_dependency_nr(self)
+        
     def need(self):
         """Need this group resource.
 
@@ -331,6 +338,14 @@ class GroupResource(object):
         for depend in self.depends:
             result.extend(depend.resources())
         return result
+
+def init_dependency_nr(resource):
+    # on dependency within the library
+    dependency_nr = 0
+    for depend in resource.depends:
+        dependency_nr = max(depend.dependency_nr + 1,
+                            dependency_nr)
+    resource.dependency_nr = dependency_nr
 
 
 def normalize_resources(library, resources):
@@ -713,10 +728,81 @@ def consolidate(resources):
 
 
 def sort_resources(resources):
+    # track maximum dependency nr for resource seen per library
+    # this is necessary so we can sort libraries correclty according
+    # do dependency
+    # note that this assumes no cycles between libraries (or resources)
+    library_dependency_nrs = {}
+    for resource in resources:
+        nr = library_dependency_nrs.get(resource.library, 0)
+        library_dependency_nrs[resource.library] = max(
+            resource.dependency_nr, nr)
+    # sort on renderer (resource.order) to group per kind of resource
+    # (css, js, etc)
+    # then sort on library to group libraries together. We make sure
+    # this obeys absolute dependencies per resource
+    # then sort on absolute dependency nr per resource
+    # then sort on relpath to guarantee consistent sorting
     def key(resource):
-        return resource.order
+        return (
+            resource.order,
+            library_dependency_nrs[resource.library],
+            resource.dependency_nr,
+            resource.relpath)
     return sorted(resources, key=key)
 
+# def sort_resources(resources):
+#     # We want to sort the resources using several criteria:
+#     #
+#     # 1. First we sort the resources by their renderer using the order of the
+#     #    renderers.
+#     #
+#     # 2. The groups are then sorted by Resource Library, based on library
+#     #    dependencies. We assume there are no cross-library dependencies,
+#     #    because it is not possible to define these using the API.
+#     #
+#     # 3. The resources in the groups of Libraries are then sorted by their
+#     #    dependencies and pathdir. We do this in order to have better bundling
+#     #    later on.
+
+#     # First, we group the resources by renderer order:
+#     renderer_groups = {}
+#     for resource in resources:
+#         renderer_groups.setdefault(resource.order, []).append(resource)
+
+#     result = []
+#     for _, renderer_group in sorted(renderer_groups.items()):
+#         # We group the resources by library.
+#         library_groups = {}
+#         for resource in renderer_group:
+#             library_groups.setdefault(resource.library, []).append(resource)
+
+#         reordered_libraries = []
+#         for library in library_groups:
+#             # Place the library after its dependencies.
+#             max_ = 0
+#             for dependency in library._dependencies:
+#                 try:
+#                     max_ = max(reordered_libraries.index(dependency) + 1, max_)
+#                 except ValueError:
+#                     pass
+#             reordered_libraries.insert(max_, library)
+#         for library in reordered_libraries:
+#             resources = library_groups[library]
+#             max_ = 0
+#             reordered_resources = []
+#             for resource in resources:
+#                 for dependency in resource._dependencies + resource.supersedes:
+#                     if dependency.renderer != resource.renderer or\
+#                         dependency.library != resource.library:
+#                         continue
+#                     try:
+#                         max_ = max(reordered_resources.index(dependency) + 1, max_)
+#                     except ValueError:
+#                         pass
+#                 reordered_resources.insert(max_, resource)
+#             result.extend(reordered_resources)
+#     return result
 
 def sort_resources_topological(resources):
     """Sort resources by dependency and supersedes.
