@@ -975,7 +975,6 @@ def test_sort_sources_cycles_complicated():
 
     needed = NeededResources()
     needed.need(e)
-    import pdb; pdb.set_trace()
     assert needed.resources() == [a, b, c, d, e]
     
 # XXX tests for hashed resources when this is enabled. Needs some plausible
