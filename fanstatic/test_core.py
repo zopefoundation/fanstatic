@@ -919,7 +919,6 @@ def test_sort_resources():
     needed.need(m2)
     assert needed.resources() == [k1, l1, m1, m2, n1]
 
-@pytest.mark.xfail
 def test_source_resources_library_sorting():
     X = Library('X', '')
     Y = Library('Y', '')
@@ -939,9 +938,10 @@ def test_source_resources_library_sorting():
     needed.need(c2)
     needed.need(d)
     needed.need(e)
-    
-    assert needed.resources() == [a, c, c1, c2, b, d, e]
-    
+
+    assert needed.resources() == [a, c, c1, c2, e, b, d]
+
+@pytest.mark.xfail
 def test_sort_sources_cycles():
     K = Library('K', '')
     L = Library('L', '')
@@ -949,9 +949,6 @@ def test_sort_sources_cycles():
     N = Library('N', '')
 
     # there is one edge-case with cycles in the library dependencies
-    # library dependencies will be sorted correctly anyway, because
-    # resource dependency constraints always will be correct in the final
-    # sorting
     k2 = Resource(K, 'k2.js')
     l2 = Resource(L, 'l2.js')
     k3 = Resource(K, 'k3.js', depends=[l2])
@@ -960,8 +957,11 @@ def test_sort_sources_cycles():
     needed = NeededResources()
     needed.need(k3)
     needed.need(l3)
+
+    # library dependencies will not be sorted correctly as a result
     assert needed.resources() == [k2, l2, k3, l3]
 
+@pytest.mark.xfail
 def test_sort_sources_cycles_complicated():
     L2 = Library('l2', '')
     L3 = Library('l3', '')

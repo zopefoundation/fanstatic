@@ -232,10 +232,12 @@ class Resource(object):
         if debug is not None:
             self.modes[DEBUG] = normalize_resource(library, debug)
             self.modes[DEBUG].dependency_nr = self.dependency_nr
+            self.modes[DEBUG].library_nr = self.library_nr
         if minified is not None:
             self.modes[MINIFIED] = normalize_resource(library, minified)
             self.modes[MINIFIED].dependency_nr = self.dependency_nr
-            
+            self.modes[MINIFIED].library_nr = self.library_nr
+
         assert not isinstance(supersedes, basestring)
         self.supersedes = supersedes or []
         self.eager_superseder = eager_superseder
@@ -342,11 +344,21 @@ class GroupResource(object):
 def init_dependency_nr(resource):
     # on dependency within the library
     dependency_nr = 0
+    library_nr = 0
     for depend in resource.depends:
+        if (not isinstance(resource, GroupResource) and
+            not isinstance(depend, GroupResource)):
+            if depend.library is not resource.library:
+                library_nr = max(depend.library_nr + 1, library_nr)
+            else:
+                library_nr = max(depend.library_nr, library_nr)
+        else:
+            library_nr = max(depend.library_nr, library_nr)
+        library_nr = depend.library_nr
         dependency_nr = max(depend.dependency_nr + 1,
                             dependency_nr)
     resource.dependency_nr = dependency_nr
-
+    resource.library_nr = library_nr
 
 def normalize_resources(library, resources):
     return [normalize_resource(library, resource)
@@ -731,20 +743,29 @@ def sort_resources(resources):
 
     * resources are always grouped per renderer (.js, .css, etc)
     * resources that depend on other resources are sorted later
-    * resources are grouped by library, if the dependencies allow it XXX
+    * resources are grouped by library, if the dependencies allow it
+    * libraries are sorted by name, if dependencies allow it
     * resources are sorted by resource path if they both would be
       sorted the same otherwise.
 
     The only purpose of sorting on library is so we can
     group resources per library, so that bundles can later be created
-    of them if bundling support is enabled. XXX
+    of them if bundling support is enabled.
 
     Note this sorting algorithm guarantees a consistent ordering, no
     matter in what order resources were needed.
     """
+    library_nrs = {}
+    for resource in resources:
+        library_nr = library_nrs.get(resource.library, 0)
+        library_nr = max(resource.library_nr, library_nr)
+        library_nrs[resource.library] = library_nr
+
     def key(resource):
         return (
             resource.order,
+            library_nrs[resource.library],
+            resource.library.name,
             resource.dependency_nr,
             resource.relpath)
     return sorted(resources, key=key)
