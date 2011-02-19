@@ -919,7 +919,7 @@ def test_sort_resources():
     needed.need(m2)
     assert needed.resources() == [k1, l1, m1, m2, n1]
 
-def test_source_resources_library_sorting():
+def test_sort_resources_library_sorting():
     X = Library('X', '')
     Y = Library('Y', '')
     Z = Library('Z', '')
@@ -941,6 +941,51 @@ def test_source_resources_library_sorting():
 
     assert needed.resources() == [a, c, c1, c2, e, b, d]
 
+def test_sort_resources_library_sorting_by_name():
+    # these libraries are all at the same level so should be sorted by name
+    X = Library('X', '')
+    Y = Library('Y', '')
+    Z = Library('Z', '')
+
+    a = Resource(X, 'a.js')
+    b = Resource(Y, 'b.js')
+    c = Resource(Z, 'c.js')
+    
+    needed = NeededResources()
+    needed.need(a)
+    needed.need(b)
+    needed.need(c)
+
+    assert needed.resources() == [a, b, c]
+
+def test_sort_resources_library_sorting_by_name_deeper():
+    X = Library('X', '')
+    Y = Library('Y', '')
+    Z = Library('Z', '')
+
+    # only X and Z will be at the same level now
+    a = Resource(X, 'a.js')
+    c = Resource(Z, 'c.js')
+    b = Resource(Y, 'b.js', depends=[a, c])
+    
+    needed = NeededResources()
+    needed.need(b)
+    assert needed.resources() == [a, c, b]
+
+def test_library_nr():
+    X = Library('X', '')
+    Y = Library('Y', '')
+    Z = Library('Z', '')
+
+    # only X and Z will be at the same level now
+    a = Resource(X, 'a.js')
+    c = Resource(Z, 'c.js')
+    b = Resource(Y, 'b.js', depends=[a, c])
+
+    assert a.library_nr == 0
+    assert c.library_nr == 0
+    assert b.library_nr == 1
+
 @pytest.mark.xfail
 def test_sort_sources_cycles():
     K = Library('K', '')
@@ -958,6 +1003,7 @@ def test_sort_sources_cycles():
     needed.need(k3)
     needed.need(l3)
 
+    # XXX does this succeed now?
     # library dependencies will not be sorted correctly as a result
     assert needed.resources() == [k2, l2, k3, l3]
 

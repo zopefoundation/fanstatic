@@ -354,7 +354,6 @@ def init_dependency_nr(resource):
                 library_nr = max(depend.library_nr, library_nr)
         else:
             library_nr = max(depend.library_nr, library_nr)
-        library_nr = depend.library_nr
         dependency_nr = max(depend.dependency_nr + 1,
                             dependency_nr)
     resource.dependency_nr = dependency_nr
