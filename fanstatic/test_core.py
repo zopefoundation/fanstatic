@@ -1073,6 +1073,147 @@ def test_sort_resources_topological():
     assert sort_resources_topological([a5, a3, a1, a2, a4]) == [
         a1, a4, a2, a3, a5]
 
+def test_bundle():
+    foo = Library('foo', '')
+    a = Resource(foo, 'a.css')
+    b = Resource(foo, 'b.css')
+
+    needed = NeededResources(bundle=True)
+    needed.need(a)
+    needed.need(b)
+
+    assert len(needed.resources()) == 1
+    bundle = needed.resources()[0]
+    assert bundle.resources() == [a, b]
+
+def test_bundle_dont_bundle_at_the_end():
+    foo = Library('foo', '')
+    a = Resource(foo, 'a.css')
+    b = Resource(foo, 'b.css')
+    c = Resource(foo, 'c.css', dont_bundle=True)
+
+    needed = NeededResources(bundle=True)
+    needed.need(a)
+    needed.need(b)
+    needed.need(c)
+
+    resources = needed.resources()
+    assert len(resources) == 2
+    assert resources[0].resources() == [a, b]
+    assert resources[-1] is c
+
+def test_bundle_dont_bundle_at_the_start():
+    foo = Library('foo', '')
+    a = Resource(foo, 'a.css', dont_bundle=True)
+    b = Resource(foo, 'b.css')
+    c = Resource(foo, 'c.css')
+
+    needed = NeededResources(bundle=True)
+    needed.need(a)
+    needed.need(b)
+    needed.need(c)
+
+    resources = needed.resources()
+    assert len(resources) == 2
+    assert resources[0] is a
+    assert resources[1].resources() == [b, c]
+
+def test_bundle_dont_bundle_in_the_middle():
+    # now construct a scenario where a dont_bundle resource is in the way
+    # of bundling
+    foo = Library('foo', '')
+    a = Resource(foo, 'a.css')
+    b = Resource(foo, 'b.css', dont_bundle=True)
+    c = Resource(foo, 'c.css')
+
+    needed = NeededResources(bundle=True)
+    needed.need(a)
+    needed.need(b)
+    needed.need(c)
+
+    resources = needed.resources()
+    assert len(resources) == 3
+    assert resources[0] is a
+    assert resources[1] is b
+    assert resources[2] is c
+    
+def test_bundle_different_renderer():
+    # resources with different renderers aren't bundled
+    foo = Library('foo', '')
+    a = Resource(foo, 'a.css')
+    b = Resource(foo, 'b.js')
+
+    needed = NeededResources(bundle=True)
+    needed.need(a)
+    needed.need(b)
+
+    resources = needed.resources()
+    
+    assert len(resources) == 2
+    assert resources[0] is a
+    assert resources[1] is b
+
+def test_bundle_different_library():
+    # resources with different libraries aren't bundled
+    l1 = Library('l1', '')
+    l2 = Library('l2', '')
+    a = Resource(l1, 'a.js')
+    b = Resource(l2, 'b.js')
+
+    needed = NeededResources(bundle=True)
+    needed.need(a)
+    needed.need(b)
+
+    resources = needed.resources()
+    
+    assert len(resources) == 2
+    assert resources[0] is a
+    assert resources[1] is b
+
+def test_bundle_different_directory():
+    # resources with different directories aren't bundled
+    foo = Library('foo', '')
+    a = Resource(foo, 'first/a.css')
+    b = Resource(foo, 'second/b.css')
+    
+    needed = NeededResources(bundle=True)
+    needed.need(a)
+    needed.need(b)
+
+    resources = needed.resources()
+
+    assert len(resources) == 2
+    assert resources[0] is a
+    assert resources[1] is b
+
+def test_bundle_empty_list():
+    # we can successfully bundle an empty list of resources
+    needed = NeededResources(bundle=True)
+
+    resources = needed.resources()
+    assert resources == []
+
+def test_bundle_single_entry():
+    # we can successfully bundle a single resource (it's not bundled though)
+    foo = Library('foo', '')
+    a = Resource(foo, 'a.js')
+    
+    needed = NeededResources(bundle=True)
+    needed.need(a)
+    resources = needed.resources()
+
+    assert resources == [a]
+
+def test_bundle_single_dont_bundle_entry():
+    foo = Library('foo', '')
+    a = Resource(foo, 'a.js', dont_bundle=True)
+    
+    needed = NeededResources(bundle=True)
+    needed.need(a)
+    resources = needed.resources()
+
+    assert resources == [a]
+
 # XXX tests for hashed resources when this is enabled. Needs some plausible
 # directory to test for hashes
 

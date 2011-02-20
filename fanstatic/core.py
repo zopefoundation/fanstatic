@@ -184,6 +184,9 @@ class Resource(object):
       a :py:class:`Resource` instance is constructed that has the same
       library as the resource.
 
+    :param dont_bundle: Don't bundle this resource in any bundles
+      (if bundling is enabled).
+
     :param minified: optionally, a minified version of the resource.
       The argument is a :py:class:`Resource` instance, or a string that
       indicates a relative path to the resource. In the latter case
@@ -197,11 +200,14 @@ class Resource(object):
                  bottom=False,
                  renderer=None,
                  debug=None,
+                 dont_bundle=False,
                  minified=None):
         self.library = library
         self.relpath = relpath
+        self.dirname = os.path.dirname(relpath)
         self.bottom = bottom
-
+        self.dont_bundle = dont_bundle
+        
         self.ext = os.path.splitext(self.relpath)[1]
 
         if renderer is None:
@@ -423,6 +429,10 @@ class NeededResources(object):
       should be served in the URL. By default this is ``fanstatic``, so
       URLs to resources will start with ``/fanstatic/``.
 
+    :param bundle: If set to True, Fanstatic will attempt to bundle
+      resources that fit together into larger Bundle objects. These
+      can then be rendered as single URLs to these bundles.
+      
     :param resources: Optionally, a list of resources we want to
       include. Normally you specify resources to include by calling
       ``.need()`` on them, or alternatively by calling ``.need()``
@@ -451,6 +461,7 @@ class NeededResources(object):
                  rollup=False,
                  base_url=None,
                  publisher_signature=DEFAULT_SIGNATURE,
+                 bundle=False,
                  resources=None,
                  ):
         self._versioning = versioning
@@ -460,6 +471,7 @@ class NeededResources(object):
         self.set_base_url(base_url)
         self._publisher_signature = publisher_signature
         self._rollup = rollup
+        self._bundle = bundle
         self._resources = resources or []
         self._url_cache = {}  # prevent multiple computations per request
         if (debug and minified):
@@ -516,7 +528,8 @@ class NeededResources(object):
             resources = consolidate(resources)
         resources = sort_resources(resources)
         resources = remove_duplicates(resources)
-
+        if self._bundle:
+            resources = bundle_resources(resources)
         return resources
 
     def clear(self):
@@ -768,6 +781,76 @@ def sort_resources(resources):
             resource.dependency_nr,
             resource.relpath)
     return sorted(resources, key=key)
+
+# XXX there is a concept of a 'renderable' perhaps, that's
+# base to all resources?
+class Bundle(object):
+    def __init__(self):
+        self._resources = []
+
+    def resources(self):
+        return self._resources
+    
+    def fits(self, resource):
+        if resource.dont_bundle:
+            return False
+        # an empty resource fits anything
+        if not self._resources:
+            return True
+        # group resources cannot be bundled XXX does this happen? make tests
+        if isinstance(resource, GroupResource):
+            return False
+        # a resource fits if it's like the resources already inside
+        bundle_resource = self._resources[0]
+        return (resource.library is bundle_resource.library and
+                resource.renderer is bundle_resource.renderer and
+                resource.dirname == bundle_resource.dirname)
+
+    def append(self, resource):
+        self._resources.append(resource)
+        
+    def render(self, library_url):
+        # XXX how?
+        pass
+
+    def add_to_list(self, result):
+        """Add the bundle to list, taking single-resource bundles into account.
+        """
+        amount = len(self._resources)
+        if amount == 0:
+            # empty bundle; don't add it to list
+            return
+        elif amount == 1:
+            # if it only contains a single entry, add it by itself
+            result.append(self._resources[0])
+        else:
+            # add the bundle itself
+            result.append(self)
+        
+def bundle_resources(resources):
+    """Bundle sorted resources together.
+
+    resources is expected to be a list previously sorted by sorted_resources.
+
+    Returns a list of renderable resources, which can include several
+    resources bundled together into Bundles.
+    """
+    result = []
+    bundle = Bundle()
+    for resource in resources:
+        if bundle.fits(resource):
+            bundle.append(resource)
+        else:
+            # add the previous bundle to the list and create new bundle
+            bundle.add_to_list(result)
+            bundle = Bundle()
+            if resource.dont_bundle:
+                result.append(resource)
+            else:
+                bundle.append(resource)
+    # add the last bundle to the list
+    bundle.add_to_list(result)
+    return result
 
 def sort_resources_topological(resources):
     """Sort resources by dependency and supersedes.
