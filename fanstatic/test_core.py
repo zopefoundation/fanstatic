@@ -700,19 +700,6 @@ rest of head</head><body>rest of body<script type="text/javascript" src="/fansta
 <script type="text/javascript" src="/fanstatic/foo/c.js"></script></body></html>'''
 
 
-def test_sorting_resources():
-    foo = Library('foo', '')
-
-    a1 = Resource(foo, 'a1.js')
-    a2 = Resource(foo, 'a2.js', depends=[a1])
-    a3 = Resource(foo, 'a3.js', depends=[a2])
-    a4 = Resource(foo, 'a4.js', depends=[a1])
-    a5 = Resource(foo, 'a5.js', depends=[a4, a3])
-
-    assert sort_resources_topological([a5, a3, a1, a2, a4]) == [
-        a1, a4, a2, a3, a5]
-
-
 def test_inclusion_renderers():
     assert sorted(
         [(order, key) for key, (order, _) in inclusion_renderers.items()]) == [
@@ -895,7 +882,54 @@ def test_normalize_resource():
     r1 = Resource(foo, 'f.js')
     assert normalize_resource(foo, r1) == r1
 
-def test_sort_resources():
+def test_sort_group_per_renderer():
+    foo = Library('foo', '')
+    a_js = Resource(foo, 'a.js')
+    b_css = Resource(foo, 'b.css')
+    c_js = Resource(foo, 'c.js')
+    a1_js = Resource(foo, 'a1.js', depends=[b_css])
+
+    needed = NeededResources()
+    needed.need(a_js)
+    needed.need(b_css)
+    needed.need(c_js)
+    needed.need(a1_js)
+
+    assert needed.resources() == [b_css, a_js, c_js, a1_js]
+
+def test_sort_group_per_library():
+    foo = Library('foo', '')
+    bar = Library('bar', '')
+
+    e = Resource(foo, 'e.js')
+    d = Resource(foo, 'd.js', depends=[e])
+    c = Resource(bar, 'c.js', depends=[e])
+    b = Resource(bar, 'b.js')
+    a = Resource(bar, 'a.js', depends=[c])
+    
+    needed = NeededResources()
+    needed.need(a)
+    needed.need(b)
+    needed.need(c)
+    needed.need(d)
+    needed.need(e)
+    
+    assert needed.resources() == [e, d, b, c, a]
+
+def test_sort_library_by_name():
+    b_lib = Library('b_lib', '')
+    a_lib = Library('a_lib', '')
+    
+    a_a = Resource(a_lib, 'a.js')
+    a_b = Resource(b_lib, 'a.js') 
+                 
+    needed = NeededResources()
+    needed.need(a_b)
+    needed.need(a_a)
+    
+    assert needed.resources() == [a_a, a_b]
+
+def test_sort_resources_libraries_together():
     K = Library('K', '')
     L = Library('L', '')
     M = Library('M', '')
@@ -911,15 +945,18 @@ def test_sort_resources():
     needed.need(m1)
     needed.need(m2)
     # sort_resources makes an efficient ordering, grouping m1 and m2 together
-    # after their dependencies
+    # after their dependencies (they are in the same library)
     assert needed.resources() == [k1, l1, m1, m2]
 
     needed = NeededResources()
     needed.need(n1)
     needed.need(m2)
+    # the order is unaffected by the ordering of inclusions
     assert needed.resources() == [k1, l1, m1, m2, n1]
 
 def test_sort_resources_library_sorting():
+    # a complicated example that makes sure libraries are sorted
+    # correctly to obey ordering constraints but still groups them
     X = Library('X', '')
     Y = Library('Y', '')
     Z = Library('Z', '')
@@ -1022,7 +1059,20 @@ def test_sort_sources_cycles_complicated():
     needed = NeededResources()
     needed.need(e)
     assert needed.resources() == [a, b, c, d, e]
-    
+
+
+def test_sort_resources_topological():
+    foo = Library('foo', '')
+
+    a1 = Resource(foo, 'a1.js')
+    a2 = Resource(foo, 'a2.js', depends=[a1])
+    a3 = Resource(foo, 'a3.js', depends=[a2])
+    a4 = Resource(foo, 'a4.js', depends=[a1])
+    a5 = Resource(foo, 'a5.js', depends=[a4, a3])
+
+    assert sort_resources_topological([a5, a3, a1, a2, a4]) == [
+        a1, a4, a2, a3, a5]
+
 # XXX tests for hashed resources when this is enabled. Needs some plausible
 # directory to test for hashes
 
