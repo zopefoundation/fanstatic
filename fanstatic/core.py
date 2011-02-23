@@ -22,6 +22,10 @@ class ConfigurationError(Exception):
     pass
 
 
+class LibraryDependencyCycle(Exception):
+    pass
+
+
 class Library(object):
     """The resource library.
 
@@ -47,6 +51,7 @@ class Library(object):
     """
 
     _signature = None
+    _library_deps = None
 
     def __init__(self, name, rootpath, ignores=None, version=None):
         self.name = name
@@ -54,6 +59,17 @@ class Library(object):
         self.ignores = ignores or []
         self.path = os.path.join(caller_dir(), rootpath)
         self.version = version
+        self._library_deps = set()
+
+    def check_dependency_cycle(self, resource):
+        for dependency in resource.resources():
+            self._library_deps.add(dependency.library)
+        for dep in self._library_deps:
+            if dep is self:
+                continue
+            if self in dep._library_deps:
+                raise LibraryDependencyCycle(
+                    'Library cycle detected in resource %s' % resource)
 
     def signature(self, recompute_hashes=False):
         """Get a unique signature for this Library.
@@ -207,7 +223,7 @@ class Resource(object):
         self.dirname = os.path.dirname(relpath)
         self.bottom = bottom
         self.dont_bundle = dont_bundle
-        
+
         self.ext = os.path.splitext(self.relpath)[1]
 
         if renderer is None:
@@ -230,10 +246,13 @@ class Resource(object):
         depends = depends or []
         self.depends = normalize_resources(library, depends)
 
+        # Check for library dependency cycles.
+        self.library.check_dependency_cycle(self)
+
         # generate an internal number for sorting the resource
         # on dependency within the library
         init_dependency_nr(self)
-        
+
         self.modes = {}
         if debug is not None:
             self.modes[DEBUG] = normalize_resource(library, debug)
@@ -328,7 +347,7 @@ class GroupResource(object):
     def __init__(self, depends):
         self.depends = depends
         init_dependency_nr(self)
-        
+
     def need(self):
         """Need this group resource.
 
@@ -432,7 +451,7 @@ class NeededResources(object):
     :param bundle: If set to True, Fanstatic will attempt to bundle
       resources that fit together into larger Bundle objects. These
       can then be rendered as single URLs to these bundles.
-      
+
     :param resources: Optionally, a list of resources we want to
       include. Normally you specify resources to include by calling
       ``.need()`` on them, or alternatively by calling ``.need()``
@@ -790,7 +809,7 @@ class Bundle(object):
 
     def resources(self):
         return self._resources
-    
+
     def fits(self, resource):
         if resource.dont_bundle:
             return False
@@ -808,7 +827,7 @@ class Bundle(object):
 
     def append(self, resource):
         self._resources.append(resource)
-        
+
     def render(self, library_url):
         # XXX how?
         pass
@@ -826,7 +845,7 @@ class Bundle(object):
         else:
             # add the bundle itself
             result.append(self)
-        
+
 def bundle_resources(resources):
     """Bundle sorted resources together.
 

@@ -12,6 +12,7 @@ from fanstatic import (Library,
                        register_inclusion_renderer,
                        sort_resources_topological,
                        ConfigurationError,
+                       LibraryDependencyCycle,
                        UnknownResourceExtension)
 
 from fanstatic.core import inclusion_renderers, normalize_resource
@@ -906,27 +907,27 @@ def test_sort_group_per_library():
     c = Resource(bar, 'c.js', depends=[e])
     b = Resource(bar, 'b.js')
     a = Resource(bar, 'a.js', depends=[c])
-    
+
     needed = NeededResources()
     needed.need(a)
     needed.need(b)
     needed.need(c)
     needed.need(d)
     needed.need(e)
-    
+
     assert needed.resources() == [e, d, b, c, a]
 
 def test_sort_library_by_name():
     b_lib = Library('b_lib', '')
     a_lib = Library('a_lib', '')
-    
+
     a_a = Resource(a_lib, 'a.js')
-    a_b = Resource(b_lib, 'a.js') 
-                 
+    a_b = Resource(b_lib, 'a.js')
+
     needed = NeededResources()
     needed.need(a_b)
     needed.need(a_a)
-    
+
     assert needed.resources() == [a_a, a_b]
 
 def test_sort_resources_libraries_together():
@@ -969,7 +970,7 @@ def test_sort_resources_library_sorting():
     c2 = Resource(Y, 'c2.js', depends=[c1])
     d = Resource(Z, 'd.js', depends=[c])
     e = Resource(Z, 'e.js')
-    
+
     needed = NeededResources()
     needed.need(b)
     needed.need(c2)
@@ -987,7 +988,7 @@ def test_sort_resources_library_sorting_by_name():
     a = Resource(X, 'a.js')
     b = Resource(Y, 'b.js')
     c = Resource(Z, 'c.js')
-    
+
     needed = NeededResources()
     needed.need(a)
     needed.need(b)
@@ -1004,7 +1005,7 @@ def test_sort_resources_library_sorting_by_name_deeper():
     a = Resource(X, 'a.js')
     c = Resource(Z, 'c.js')
     b = Resource(Y, 'b.js', depends=[a, c])
-    
+
     needed = NeededResources()
     needed.need(b)
     assert needed.resources() == [a, c, b]
@@ -1023,42 +1024,37 @@ def test_library_nr():
     assert c.library_nr == 0
     assert b.library_nr == 1
 
-@pytest.mark.xfail
-def test_sort_sources_cycles():
-    K = Library('K', '')
-    L = Library('L', '')
-    M = Library('M', '')
-    N = Library('N', '')
+def test_library_dependency_cycles():
+    A = Library('A', '')
+    B = Library('B', '')
 
-    # there is one edge-case with cycles in the library dependencies
-    k2 = Resource(K, 'k2.js')
-    l2 = Resource(L, 'l2.js')
-    k3 = Resource(K, 'k3.js', depends=[l2])
-    l3 = Resource(L, 'l3.js', depends=[k2])
+    a1 = Resource(A, 'a1.js')
+    b1 = Resource(B, 'b1.js')
+    a2 = Resource(A, 'a2.js', depends=[b1])
 
-    needed = NeededResources()
-    needed.need(k3)
-    needed.need(l3)
+    # This definition would create a library dependency cycle if permitted.
+    with pytest.raises(LibraryDependencyCycle):
+        b2 = Resource(B, 'b2.js', depends=[a1])
 
-    # XXX does this succeed now?
-    # library dependencies will not be sorted correctly as a result
-    assert needed.resources() == [k2, l2, k3, l3]
+    # This is an example of an indirect library dependency cycle.
+    C = Library('C', '')
+    D = Library('D', '')
+    E = Library('E', '')
+    c1 = Resource(C, 'c1.js')
+    d1 = Resource(D, 'd1.js', depends=[c1])
+    d2 = Resource(D, 'd2.js')
+    e1 = Resource(E, 'e1.js', depends=[d2])
 
-@pytest.mark.xfail
-def test_sort_sources_cycles_complicated():
-    L2 = Library('l2', '')
-    L3 = Library('l3', '')
-    L4 = Library('l4', '')
-
-    a = Resource(L4, 'a.js')
-    b = Resource(L3, 'b.js', depends=[a])
-    c = Resource(L2, 'c.js', depends=[b])
-    d = Resource(L3, 'd.js', depends=[c])
-    e = Resource(L4, 'e.js', depends=[d])
-
-    needed = NeededResources()
-    needed.need(e)
-    assert needed.resources() == [a, b, c, d, e]
+    # ASCII ART
+    #
+    #  C      E      D
+    #
+    #  c1 <--------- d1
+    #
+    #  c2 --> e1 --> d2
+    #
+    with pytest.raises(LibraryDependencyCycle):
+        c2 = Resource(C, 'c2.js', depends=[e1])
 
 
 def test_sort_resources_topological():
@@ -1136,7 +1132,7 @@ def test_bundle_dont_bundle_in_the_middle():
     assert resources[0] is a
     assert resources[1] is b
     assert resources[2] is c
-    
+
 def test_bundle_different_renderer():
     # resources with different renderers aren't bundled
     foo = Library('foo', '')
@@ -1148,7 +1144,7 @@ def test_bundle_different_renderer():
     needed.need(b)
 
     resources = needed.resources()
-    
+
     assert len(resources) == 2
     assert resources[0] is a
     assert resources[1] is b
@@ -1165,7 +1161,7 @@ def test_bundle_different_library():
     needed.need(b)
 
     resources = needed.resources()
-    
+
     assert len(resources) == 2
     assert resources[0] is a
     assert resources[1] is b
@@ -1175,7 +1171,7 @@ def test_bundle_different_directory():
     foo = Library('foo', '')
     a = Resource(foo, 'first/a.css')
     b = Resource(foo, 'second/b.css')
-    
+
     needed = NeededResources(bundle=True)
     needed.need(a)
     needed.need(b)
@@ -1197,7 +1193,7 @@ def test_bundle_single_entry():
     # we can successfully bundle a single resource (it's not bundled though)
     foo = Library('foo', '')
     a = Resource(foo, 'a.js')
-    
+
     needed = NeededResources(bundle=True)
     needed.need(a)
     resources = needed.resources()
@@ -1207,7 +1203,7 @@ def test_bundle_single_entry():
 def test_bundle_single_dont_bundle_entry():
     foo = Library('foo', '')
     a = Resource(foo, 'a.js', dont_bundle=True)
-    
+
     needed = NeededResources(bundle=True)
     needed.need(a)
     resources = needed.resources()
