@@ -27,8 +27,7 @@ def generate_code(**kw):
     result.append("")
 
     # sort resources in the order we want them to be
-    resources = sort_resources(
-        sort_resources_topological(resources))
+    resources = sort_resources_topological(resources)
 
     # now generate resource code
     for resource in resources:

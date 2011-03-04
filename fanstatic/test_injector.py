@@ -41,7 +41,7 @@ def test_inject():
         start_response('200 OK', [])
         needed = get_needed()
         needed.need(y1)
-        needed.base_url = 'http://testapp'
+        needed.set_base_url('http://testapp')
         return ['<html><head></head><body</body></html>']
 
     wrapped_app = Injector(app)
@@ -66,7 +66,6 @@ def test_no_inject_into_non_html():
         start_response('200 OK', [('Content-Type', 'text/plain')])
         needed = get_needed()
         needed.need(y1)
-        needed.base_url = 'http://testapp'
         return ['<html><head></head><body</body></html>']
 
     wrapped_app = Injector(app)

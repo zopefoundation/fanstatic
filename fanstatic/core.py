@@ -22,6 +22,10 @@ class ConfigurationError(Exception):
     pass
 
 
+class LibraryDependencyCycle(Exception):
+    pass
+
+
 class Library(object):
     """The resource library.
 
@@ -47,6 +51,7 @@ class Library(object):
     """
 
     _signature = None
+    _library_deps = None
 
     def __init__(self, name, rootpath, ignores=None, version=None):
         self.name = name
@@ -54,6 +59,17 @@ class Library(object):
         self.ignores = ignores or []
         self.path = os.path.join(caller_dir(), rootpath)
         self.version = version
+        self._library_deps = set()
+
+    def check_dependency_cycle(self, resource):
+        for dependency in resource.resources():
+            self._library_deps.add(dependency.library)
+        for dep in self._library_deps:
+            if dep is self:
+                continue
+            if self in dep._library_deps:
+                raise LibraryDependencyCycle(
+                    'Library cycle detected in resource %s' % resource)
 
     def signature(self, recompute_hashes=False):
         """Get a unique signature for this Library.
@@ -184,6 +200,9 @@ class Resource(object):
       a :py:class:`Resource` instance is constructed that has the same
       library as the resource.
 
+    :param dont_bundle: Don't bundle this resource in any bundles
+      (if bundling is enabled).
+
     :param minified: optionally, a minified version of the resource.
       The argument is a :py:class:`Resource` instance, or a string that
       indicates a relative path to the resource. In the latter case
@@ -197,10 +216,13 @@ class Resource(object):
                  bottom=False,
                  renderer=None,
                  debug=None,
+                 dont_bundle=False,
                  minified=None):
         self.library = library
         self.relpath = relpath
+        self.dirname = os.path.dirname(relpath)
         self.bottom = bottom
+        self.dont_bundle = dont_bundle
 
         self.ext = os.path.splitext(self.relpath)[1]
 
@@ -224,11 +246,22 @@ class Resource(object):
         depends = depends or []
         self.depends = normalize_resources(library, depends)
 
+        # Check for library dependency cycles.
+        self.library.check_dependency_cycle(self)
+
+        # generate an internal number for sorting the resource
+        # on dependency within the library
+        init_dependency_nr(self)
+
         self.modes = {}
         if debug is not None:
             self.modes[DEBUG] = normalize_resource(library, debug)
+            self.modes[DEBUG].dependency_nr = self.dependency_nr
+            self.modes[DEBUG].library_nr = self.library_nr
         if minified is not None:
             self.modes[MINIFIED] = normalize_resource(library, minified)
+            self.modes[MINIFIED].dependency_nr = self.dependency_nr
+            self.modes[MINIFIED].library_nr = self.library_nr
 
         assert not isinstance(supersedes, basestring)
         self.supersedes = supersedes or []
@@ -313,6 +346,7 @@ class GroupResource(object):
     """
     def __init__(self, depends):
         self.depends = depends
+        init_dependency_nr(self)
 
     def need(self):
         """Need this group resource.
@@ -332,6 +366,23 @@ class GroupResource(object):
             result.extend(depend.resources())
         return result
 
+def init_dependency_nr(resource):
+    # on dependency within the library
+    dependency_nr = 0
+    library_nr = 0
+    for depend in resource.depends:
+        if (not isinstance(resource, GroupResource) and
+            not isinstance(depend, GroupResource)):
+            if depend.library is not resource.library:
+                library_nr = max(depend.library_nr + 1, library_nr)
+            else:
+                library_nr = max(depend.library_nr, library_nr)
+        else:
+            library_nr = max(depend.library_nr, library_nr)
+        dependency_nr = max(depend.dependency_nr + 1,
+                            dependency_nr)
+    resource.dependency_nr = dependency_nr
+    resource.library_nr = library_nr
 
 def normalize_resources(library, resources):
     return [normalize_resource(library, resource)
@@ -391,11 +442,15 @@ class NeededResources(object):
     :param base_url: This URL will be prefixed in front of all resource
       URLs. This can be useful if your web framework wants the resources
       to be published on a sub-URL. Note that this can also be set
-      as an attribute on an ``NeededResources`` instance.
+      with the set_base_url method on a ``NeededResources`` instance.
 
     :param publisher_signature: The name under which resource libraries
       should be served in the URL. By default this is ``fanstatic``, so
       URLs to resources will start with ``/fanstatic/``.
+
+    :param bundle: If set to True, Fanstatic will attempt to bundle
+      resources that fit together into larger Bundle objects. These
+      can then be rendered as single URLs to these bundles.
 
     :param resources: Optionally, a list of resources we want to
       include. Normally you specify resources to include by calling
@@ -404,7 +459,7 @@ class NeededResources(object):
 
     """
 
-    base_url = None
+    _base_url = None
     """The base URL.
 
     This URL will be prefixed in front of all resource
@@ -425,15 +480,17 @@ class NeededResources(object):
                  rollup=False,
                  base_url=None,
                  publisher_signature=DEFAULT_SIGNATURE,
+                 bundle=False,
                  resources=None,
                  ):
         self._versioning = versioning
         self._recompute_hashes = recompute_hashes
         self._bottom = bottom
         self._force_bottom = force_bottom
-        self.base_url = base_url
+        self.set_base_url(base_url)
         self._publisher_signature = publisher_signature
         self._rollup = rollup
+        self._bundle = bundle
         self._resources = resources or []
         self._url_cache = {}  # prevent multiple computations per request
         if (debug and minified):
@@ -447,6 +504,19 @@ class NeededResources(object):
         """Returns True if any resources are needed.
         """
         return bool(self._resources)
+
+    def has_base_url(self):
+        """Returns True if base_url has been set.
+        """
+        return bool(self._base_url)
+
+    def set_base_url(self, url):
+        """Set the base_url. The base_url can only be set (1) if it has not
+        been set in the NeededResources configuration and (2) if it has not
+        been set before using this method.
+        """
+        if not self.has_base_url():
+            self._base_url = url
 
     def need(self, resource):
         """Add a particular resource to the needed resources.
@@ -475,11 +545,10 @@ class NeededResources(object):
 
         if self._rollup:
             resources = consolidate(resources)
-        # sort only by extension, not dependency, as we can rely on
-        # python's stable sort to keep resource inclusion order intact
         resources = sort_resources(resources)
         resources = remove_duplicates(resources)
-
+        if self._bundle:
+            resources = bundle_resources(resources)
         return resources
 
     def clear(self):
@@ -497,11 +566,7 @@ class NeededResources(object):
 
         :param library: A :py:class:`Library` instance.
         """
-        if self.base_url is None:
-            raise ConfigurationError(
-                'No base_url: Set a base_url at configuration time or '
-                'at request-time in your framework.')
-        path = [self.base_url]
+        path = [self._base_url or '']
         if self._publisher_signature:
             path.append(self._publisher_signature)
         path.append(library.name)
@@ -610,8 +675,6 @@ class DummyNeededResources(object):
     needed are dropped to the floor.
     """
 
-    base_url = None
-
     def need(self, resource):
         pass
 
@@ -704,12 +767,109 @@ def consolidate(resources):
             result.append(resource)
     return result
 
-
 def sort_resources(resources):
+    """Sort resources for inclusion on web page.
+
+    A number of rules are followed:
+
+    * resources are always grouped per renderer (.js, .css, etc)
+    * resources that depend on other resources are sorted later
+    * resources are grouped by library, if the dependencies allow it
+    * libraries are sorted by name, if dependencies allow it
+    * resources are sorted by resource path if they both would be
+      sorted the same otherwise.
+
+    The only purpose of sorting on library is so we can
+    group resources per library, so that bundles can later be created
+    of them if bundling support is enabled.
+
+    Note this sorting algorithm guarantees a consistent ordering, no
+    matter in what order resources were needed.
+    """
+    library_nrs = {}
+    for resource in resources:
+        library_nr = library_nrs.get(resource.library, 0)
+        library_nr = max(resource.library_nr, library_nr)
+        library_nrs[resource.library] = library_nr
+
     def key(resource):
-        return resource.order
+        return (
+            resource.order,
+            library_nrs[resource.library],
+            resource.library.name,
+            resource.dependency_nr,
+            resource.relpath)
     return sorted(resources, key=key)
 
+# XXX there is a concept of a 'renderable' perhaps, that's
+# base to all resources?
+class Bundle(object):
+    def __init__(self):
+        self._resources = []
+
+    def resources(self):
+        return self._resources
+
+    def fits(self, resource):
+        if resource.dont_bundle:
+            return False
+        # an empty resource fits anything
+        if not self._resources:
+            return True
+        # group resources cannot be bundled XXX does this happen? make tests
+        if isinstance(resource, GroupResource):
+            return False
+        # a resource fits if it's like the resources already inside
+        bundle_resource = self._resources[0]
+        return (resource.library is bundle_resource.library and
+                resource.renderer is bundle_resource.renderer and
+                resource.dirname == bundle_resource.dirname)
+
+    def append(self, resource):
+        self._resources.append(resource)
+
+    def render(self, library_url):
+        # XXX how?
+        pass
+
+    def add_to_list(self, result):
+        """Add the bundle to list, taking single-resource bundles into account.
+        """
+        amount = len(self._resources)
+        if amount == 0:
+            # empty bundle; don't add it to list
+            return
+        elif amount == 1:
+            # if it only contains a single entry, add it by itself
+            result.append(self._resources[0])
+        else:
+            # add the bundle itself
+            result.append(self)
+
+def bundle_resources(resources):
+    """Bundle sorted resources together.
+
+    resources is expected to be a list previously sorted by sorted_resources.
+
+    Returns a list of renderable resources, which can include several
+    resources bundled together into Bundles.
+    """
+    result = []
+    bundle = Bundle()
+    for resource in resources:
+        if bundle.fits(resource):
+            bundle.append(resource)
+        else:
+            # add the previous bundle to the list and create new bundle
+            bundle.add_to_list(result)
+            bundle = Bundle()
+            if resource.dont_bundle:
+                result.append(resource)
+            else:
+                bundle.append(resource)
+    # add the last bundle to the list
+    bundle.add_to_list(result)
+    return result
 
 def sort_resources_topological(resources):
     """Sort resources by dependency and supersedes.

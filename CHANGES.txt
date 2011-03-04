@@ -4,8 +4,15 @@ CHANGES
 0.11 (unreleased)
 =================
 
-- Nothing changed yet.
+- Improved sorting of resources for inclusion on web page. This is to
+  prepare for bundling support. Ordering is now more consistent, no
+  matter in which order resources are .needed(). As long as you marked
+  dependencies right this shouldn't break applications; if your
+  resources are included in the wrong order now, fix resource dependencies.
 
+- base_url is not required anymore (as in the past); improve base_url
+  management API so that integration packages like zope.fanstatic have
+  a more explicit way to manage this information.
 
 0.10.1 (2011-02-06)
 ===================

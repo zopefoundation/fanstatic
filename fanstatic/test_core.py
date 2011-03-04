@@ -12,6 +12,7 @@ from fanstatic import (Library,
                        register_inclusion_renderer,
                        sort_resources_topological,
                        ConfigurationError,
+                       LibraryDependencyCycle,
                        UnknownResourceExtension)
 
 from fanstatic.core import inclusion_renderers, normalize_resource
@@ -147,9 +148,12 @@ def test_redundant_more_complicated():
 
     needed = NeededResources()
     needed.need(a3)
+
     assert needed.resources() == [a1, a2, a3]
     needed.need(a4)
-    assert needed.resources() == [a1, a2, a3, a4]
+    # a4 is sorted before a3, because it is less deep
+    # in the dependency tree
+    assert needed.resources() == [a1, a2, a4, a3]
 
 
 def test_redundant_more_complicated_reversed():
@@ -162,8 +166,9 @@ def test_redundant_more_complicated_reversed():
     needed = NeededResources()
     needed.need(a4)
     needed.need(a3)
-
-    assert needed.resources() == [a1, a4, a2, a3]
+    # this will always be consistent, no matter
+    # in what order we need the resources
+    assert needed.resources() == [a1, a2, a4, a3]
 
 
 def test_redundant_more_complicated_depends_on_all():
@@ -176,8 +181,7 @@ def test_redundant_more_complicated_depends_on_all():
 
     needed = NeededResources()
     needed.need(a5)
-
-    assert needed.resources() == [a1, a4, a2, a3, a5]
+    assert needed.resources() == [a1, a2, a4, a3, a5]
 
 
 def test_redundant_more_complicated_depends_on_all_reorder():
@@ -192,7 +196,7 @@ def test_redundant_more_complicated_depends_on_all_reorder():
     needed.need(a3)
     needed.need(a5)
 
-    assert needed.resources() == [a1, a2, a3, a4, a5]
+    assert needed.resources() == [a1, a2, a4, a3, a5]
 
 
 def test_mode_fully_specified():
@@ -434,7 +438,7 @@ def test_rendering():
     x2 = Resource(foo, 'b.css')
     y1 = Resource(foo, 'c.js', depends=[x1, x2])
 
-    needed = NeededResources(base_url='')
+    needed = NeededResources()
     needed.need(y1)
 
     assert needed.render() == '''\
@@ -451,11 +455,6 @@ def test_rendering_base_url():
 
     needed = NeededResources()
     needed.need(y1)
-    with pytest.raises(ConfigurationError):
-        needed.render()
-
-    # We need a base_url in order to render URLs to resources.
-    needed.base_url = ''
     assert needed.render() == '''\
 <link rel="stylesheet" type="text/css" href="/fanstatic/foo/b.css" />
 <script type="text/javascript" src="/fanstatic/foo/a.js"></script>
@@ -467,14 +466,20 @@ def test_rendering_base_url():
 <link rel="stylesheet" type="text/css" href="http://localhost/static/fanstatic/foo/b.css" />
 <script type="text/javascript" src="http://localhost/static/fanstatic/foo/a.js"></script>
 <script type="text/javascript" src="http://localhost/static/fanstatic/foo/c.js"></script>'''
+    # The base_url has been set.
+    assert needed.has_base_url()
+
+    needed.set_base_url('foo')
+    # The base_url can only be set once.
+    assert needed._base_url == 'http://localhost/static'
 
 
 def test_empty_base_url_and_publisher_signature():
-    ''' When the base_url and publisher_signature are both empty strings,
+    ''' When the base_url is not set and the publisher_signature is an empty string,
     render a URL without them. '''
     foo = Library('foo', '')
     x1 = Resource(foo, 'a.js')
-    needed = NeededResources(base_url='', publisher_signature='')
+    needed = NeededResources(publisher_signature='')
     needed.need(x1)
 
     assert needed.render() == '''\
@@ -489,9 +494,7 @@ def test_rendering_base_url_assign():
 
     needed = NeededResources()
     needed.need(y1)
-
-    needed.base_url = 'http://localhost/static'
-
+    needed.set_base_url('http://localhost/static')
     assert needed.render() == '''\
 <link rel="stylesheet" type="text/css" href="http://localhost/static/fanstatic/foo/b.css" />
 <script type="text/javascript" src="http://localhost/static/fanstatic/foo/a.js"></script>
@@ -501,7 +504,7 @@ def test_rendering_base_url_assign():
 def test_library_url_default_publisher_signature():
     foo = Library('foo', '')
 
-    needed = NeededResources(base_url='')
+    needed = NeededResources()
 
     assert needed.library_url(foo) == '/fanstatic/foo'
 
@@ -509,7 +512,7 @@ def test_library_url_default_publisher_signature():
 def test_library_url_publisher_signature():
     foo = Library('foo', '')
 
-    needed = NeededResources(base_url='', publisher_signature='waku')
+    needed = NeededResources(publisher_signature='waku')
 
     assert needed.library_url(foo) == '/waku/foo'
 
@@ -526,7 +529,7 @@ def test_library_url_base_url():
 def test_library_url_version_hashing(tmpdir):
     foo = Library('foo', tmpdir.strpath)
 
-    needed = NeededResources(base_url='', versioning=True)
+    needed = NeededResources(versioning=True)
 
     assert (needed.library_url(foo) ==
             '/fanstatic/foo/:version:d41d8cd98f00b204e9800998ecf8427e')
@@ -538,8 +541,7 @@ def test_library_url_version_hashing(tmpdir):
 def test_library_url_hashing_norecompute(tmpdir):
     foo = Library('foo', tmpdir.strpath)
 
-    needed = NeededResources(
-        base_url='', versioning=True, recompute_hashes=False)
+    needed = NeededResources(versioning=True, recompute_hashes=False)
 
     url = needed.library_url(foo)
 
@@ -554,8 +556,7 @@ def test_library_url_hashing_norecompute(tmpdir):
 def test_library_url_hashing_recompute(tmpdir):
     foo = Library('foo', tmpdir.strpath)
 
-    needed = NeededResources(
-        base_url='', versioning=True, recompute_hashes=True)
+    needed = NeededResources(versioning=True, recompute_hashes=True)
 
     url = needed.library_url(foo)
 
@@ -573,7 +574,7 @@ def test_html_insert():
     x2 = Resource(foo, 'b.css')
     y1 = Resource(foo, 'c.js', depends=[x1, x2])
 
-    needed = NeededResources(base_url='')
+    needed = NeededResources()
     needed.need(y1)
 
     html = "<html><head>something more</head></html>"
@@ -594,7 +595,7 @@ def test_html_top_bottom():
     x2 = Resource(foo, 'b.css')
     y1 = Resource(foo, 'c.js', depends=[x1, x2])
 
-    needed = NeededResources(base_url='')
+    needed = NeededResources()
     needed.need(y1)
 
     top, bottom = needed.render_topbottom()
@@ -611,7 +612,7 @@ def test_html_top_bottom_set_bottom():
     x2 = Resource(foo, 'b.css')
     y1 = Resource(foo, 'c.js', depends=[x1, x2])
 
-    needed = NeededResources(base_url='', bottom=True)
+    needed = NeededResources(bottom=True)
     needed.need(y1)
 
     top, bottom = needed.render_topbottom()
@@ -628,7 +629,7 @@ def test_html_top_bottom_force_bottom():
     x2 = Resource(foo, 'b.css')
     y1 = Resource(foo, 'c.js', depends=[x1, x2])
 
-    needed = NeededResources(base_url='', bottom=True, force_bottom=True)
+    needed = NeededResources(bottom=True, force_bottom=True)
     needed.need(y1)
 
     top, bottom = needed.render_topbottom()
@@ -646,18 +647,18 @@ def test_html_bottom_safe():
     y1 = Resource(foo, 'c.js', depends=[x1, x2])
     y2 = Resource(foo, 'y2.js', bottom=True)
 
-    needed = NeededResources(base_url='')
+    needed = NeededResources()
     needed.need(y1)
     needed.need(y2)
     top, bottom = needed.render_topbottom()
     assert top == '''\
 <link rel="stylesheet" type="text/css" href="/fanstatic/foo/b.css" />
 <script type="text/javascript" src="/fanstatic/foo/a.js"></script>
-<script type="text/javascript" src="/fanstatic/foo/c.js"></script>
-<script type="text/javascript" src="/fanstatic/foo/y2.js"></script>'''
+<script type="text/javascript" src="/fanstatic/foo/y2.js"></script>
+<script type="text/javascript" src="/fanstatic/foo/c.js"></script>'''
     assert bottom == ''
 
-    needed = NeededResources(base_url='', bottom=True)
+    needed = NeededResources(bottom=True)
     needed.need(y1)
     needed.need(y2)
     top, bottom = needed.render_topbottom()
@@ -668,7 +669,7 @@ def test_html_bottom_safe():
     assert bottom == '''\
 <script type="text/javascript" src="/fanstatic/foo/y2.js"></script>'''
 
-    needed = NeededResources(base_url='', bottom=True, force_bottom=True)
+    needed = NeededResources(bottom=True, force_bottom=True)
     needed.need(y1)
     needed.need(y2)
     top, bottom = needed.render_topbottom()
@@ -676,8 +677,8 @@ def test_html_bottom_safe():
 <link rel="stylesheet" type="text/css" href="/fanstatic/foo/b.css" />'''
     assert bottom == '''\
 <script type="text/javascript" src="/fanstatic/foo/a.js"></script>
-<script type="text/javascript" src="/fanstatic/foo/c.js"></script>
-<script type="text/javascript" src="/fanstatic/foo/y2.js"></script>'''
+<script type="text/javascript" src="/fanstatic/foo/y2.js"></script>
+<script type="text/javascript" src="/fanstatic/foo/c.js"></script>'''
 
 # XXX add sanity checks: cannot declare something bottom safe while
 # what it depends on isn't bottom safe
@@ -691,26 +692,13 @@ def test_top_bottom_insert():
 
     html = "<html><head>rest of head</head><body>rest of body</body></html>"
 
-    needed = NeededResources(base_url='', bottom=True, force_bottom=True)
+    needed = NeededResources(bottom=True, force_bottom=True)
     needed.need(y1)
     assert needed.render_topbottom_into_html(html) == '''\
 <html><head>
     <link rel="stylesheet" type="text/css" href="/fanstatic/foo/b.css" />
 rest of head</head><body>rest of body<script type="text/javascript" src="/fanstatic/foo/a.js"></script>
 <script type="text/javascript" src="/fanstatic/foo/c.js"></script></body></html>'''
-
-
-def test_sorting_resources():
-    foo = Library('foo', '')
-
-    a1 = Resource(foo, 'a1.js')
-    a2 = Resource(foo, 'a2.js', depends=[a1])
-    a3 = Resource(foo, 'a3.js', depends=[a2])
-    a4 = Resource(foo, 'a4.js', depends=[a1])
-    a5 = Resource(foo, 'a5.js', depends=[a4, a3])
-
-    assert sort_resources_topological([a5, a3, a1, a2, a4]) == [
-        a1, a4, a2, a3, a5]
 
 
 def test_inclusion_renderers():
@@ -735,7 +723,7 @@ def test_register_inclusion_renderer():
     register_inclusion_renderer('.unknown', render_unknown)
     a = Resource(foo, 'nothing.unknown')
 
-    needed = NeededResources(base_url='')
+    needed = NeededResources()
     needed.need(a)
     assert needed.render() == ('<link rel="unknown" href="/fanstatic/foo/nothing.unknown" />')
 
@@ -752,7 +740,7 @@ def test_registered_inclusion_renderers_in_order():
     c = Resource(foo, 'something.css')
     d = Resource(foo, 'something.ico')
 
-    needed = NeededResources(base_url='')
+    needed = NeededResources()
     needed.need(a)
     needed.need(b)
     needed.need(c)
@@ -794,7 +782,7 @@ def test_custom_renderer_for_resource():
                 url)
 
     a = Resource(foo, 'printstylesheet.css', renderer=render_print_css)
-    needed = NeededResources(base_url='')
+    needed = NeededResources()
     needed.need(a)
     assert needed.render() == """\
 <link rel="stylesheet" type="text/css" href="/fanstatic/foo/printstylesheet.css" media="print"/>"""
@@ -820,7 +808,7 @@ def test_custom_renderer_keep_together():
     b = Resource(foo, 'regular.css')
     c = Resource(foo, 'something.js')
 
-    needed = NeededResources(base_url='')
+    needed = NeededResources()
     needed.need(a)
     needed.need(b)
     needed.need(c)
@@ -839,7 +827,7 @@ def test_resource_subclass_render():
             return '<myresource reference="%s/%s"/>' % (library_url, self.relpath)
 
     a = MyResource(foo, 'printstylesheet.css')
-    needed = NeededResources(base_url='')
+    needed = NeededResources()
     needed.need(a)
     assert needed.render() == """\
 <myresource reference="/fanstatic/foo/printstylesheet.css"/>"""
@@ -866,7 +854,7 @@ def test_clear():
     assert needed.resources() == []
     needed.need(a4)
     needed.need(a5)
-    assert needed.resources() == [a1, a4, a2, a3, a5]
+    assert needed.resources() == [a1, a2, a4, a3, a5]
 
 
 def test_convenience_clear():
@@ -887,14 +875,340 @@ def test_convenience_clear():
     clear_needed()
     assert needed.resources() == []
     z2.need()
-    assert needed.resources() == [z1, x1, z2]
-
+    assert needed.resources() == [x1, z1, z2]
 
 def test_normalize_resource():
     foo = Library('foo', '')
     assert isinstance(normalize_resource(foo, 'f.css'), Resource)
     r1 = Resource(foo, 'f.js')
     assert normalize_resource(foo, r1) == r1
+
+def test_sort_group_per_renderer():
+    foo = Library('foo', '')
+    a_js = Resource(foo, 'a.js')
+    b_css = Resource(foo, 'b.css')
+    c_js = Resource(foo, 'c.js')
+    a1_js = Resource(foo, 'a1.js', depends=[b_css])
+
+    needed = NeededResources()
+    needed.need(a_js)
+    needed.need(b_css)
+    needed.need(c_js)
+    needed.need(a1_js)
+
+    assert needed.resources() == [b_css, a_js, c_js, a1_js]
+
+def test_sort_group_per_library():
+    foo = Library('foo', '')
+    bar = Library('bar', '')
+
+    e = Resource(foo, 'e.js')
+    d = Resource(foo, 'd.js', depends=[e])
+    c = Resource(bar, 'c.js', depends=[e])
+    b = Resource(bar, 'b.js')
+    a = Resource(bar, 'a.js', depends=[c])
+
+    needed = NeededResources()
+    needed.need(a)
+    needed.need(b)
+    needed.need(c)
+    needed.need(d)
+    needed.need(e)
+
+    assert needed.resources() == [e, d, b, c, a]
+
+def test_sort_library_by_name():
+    b_lib = Library('b_lib', '')
+    a_lib = Library('a_lib', '')
+
+    a_a = Resource(a_lib, 'a.js')
+    a_b = Resource(b_lib, 'a.js')
+
+    needed = NeededResources()
+    needed.need(a_b)
+    needed.need(a_a)
+
+    assert needed.resources() == [a_a, a_b]
+
+def test_sort_resources_libraries_together():
+    K = Library('K', '')
+    L = Library('L', '')
+    M = Library('M', '')
+    N = Library('N', '')
+
+    k1 = Resource(K, 'k1.js')
+    l1 = Resource(L, 'l1.js')
+    m1 = Resource(M, 'm1.js', depends=[k1])
+    m2 = Resource(M, 'm2.js', depends=[l1])
+    n1 = Resource(N, 'n1.js', depends=[m1])
+
+    needed = NeededResources()
+    needed.need(m1)
+    needed.need(m2)
+    # sort_resources makes an efficient ordering, grouping m1 and m2 together
+    # after their dependencies (they are in the same library)
+    assert needed.resources() == [k1, l1, m1, m2]
+
+    needed = NeededResources()
+    needed.need(n1)
+    needed.need(m2)
+    # the order is unaffected by the ordering of inclusions
+    assert needed.resources() == [k1, l1, m1, m2, n1]
+
+def test_sort_resources_library_sorting():
+    # a complicated example that makes sure libraries are sorted
+    # correctly to obey ordering constraints but still groups them
+    X = Library('X', '')
+    Y = Library('Y', '')
+    Z = Library('Z', '')
+
+    a = Resource(X, 'a.js')
+    b = Resource(Z, 'b.js', depends=[a])
+
+    c = Resource(Y, 'c.js')
+    c1 = Resource(Y, 'c1.js', depends=[c])
+    c2 = Resource(Y, 'c2.js', depends=[c1])
+    d = Resource(Z, 'd.js', depends=[c])
+    e = Resource(Z, 'e.js')
+
+    needed = NeededResources()
+    needed.need(b)
+    needed.need(c2)
+    needed.need(d)
+    needed.need(e)
+
+    assert needed.resources() == [a, c, c1, c2, e, b, d]
+
+def test_sort_resources_library_sorting_by_name():
+    # these libraries are all at the same level so should be sorted by name
+    X = Library('X', '')
+    Y = Library('Y', '')
+    Z = Library('Z', '')
+
+    a = Resource(X, 'a.js')
+    b = Resource(Y, 'b.js')
+    c = Resource(Z, 'c.js')
+
+    needed = NeededResources()
+    needed.need(a)
+    needed.need(b)
+    needed.need(c)
+
+    assert needed.resources() == [a, b, c]
+
+def test_sort_resources_library_sorting_by_name_deeper():
+    X = Library('X', '')
+    Y = Library('Y', '')
+    Z = Library('Z', '')
+
+    # only X and Z will be at the same level now
+    a = Resource(X, 'a.js')
+    c = Resource(Z, 'c.js')
+    b = Resource(Y, 'b.js', depends=[a, c])
+
+    needed = NeededResources()
+    needed.need(b)
+    assert needed.resources() == [a, c, b]
+
+def test_library_nr():
+    X = Library('X', '')
+    Y = Library('Y', '')
+    Z = Library('Z', '')
+
+    # only X and Z will be at the same level now
+    a = Resource(X, 'a.js')
+    c = Resource(Z, 'c.js')
+    b = Resource(Y, 'b.js', depends=[a, c])
+
+    assert a.library_nr == 0
+    assert c.library_nr == 0
+    assert b.library_nr == 1
+
+def test_library_dependency_cycles():
+    A = Library('A', '')
+    B = Library('B', '')
+
+    a1 = Resource(A, 'a1.js')
+    b1 = Resource(B, 'b1.js')
+    a2 = Resource(A, 'a2.js', depends=[b1])
+
+    # This definition would create a library dependency cycle if permitted.
+    with pytest.raises(LibraryDependencyCycle):
+        b2 = Resource(B, 'b2.js', depends=[a1])
+
+    # This is an example of an indirect library dependency cycle.
+    C = Library('C', '')
+    D = Library('D', '')
+    E = Library('E', '')
+    c1 = Resource(C, 'c1.js')
+    d1 = Resource(D, 'd1.js', depends=[c1])
+    d2 = Resource(D, 'd2.js')
+    e1 = Resource(E, 'e1.js', depends=[d2])
+
+    # ASCII ART
+    #
+    #  C      E      D
+    #
+    #  c1 <--------- d1
+    #
+    #  c2 --> e1 --> d2
+    #
+    with pytest.raises(LibraryDependencyCycle):
+        c2 = Resource(C, 'c2.js', depends=[e1])
+
+
+def test_sort_resources_topological():
+    foo = Library('foo', '')
+
+    a1 = Resource(foo, 'a1.js')
+    a2 = Resource(foo, 'a2.js', depends=[a1])
+    a3 = Resource(foo, 'a3.js', depends=[a2])
+    a4 = Resource(foo, 'a4.js', depends=[a1])
+    a5 = Resource(foo, 'a5.js', depends=[a4, a3])
+
+    assert sort_resources_topological([a5, a3, a1, a2, a4]) == [
+        a1, a4, a2, a3, a5]
+
+def test_bundle():
+    foo = Library('foo', '')
+    a = Resource(foo, 'a.css')
+    b = Resource(foo, 'b.css')
+
+    needed = NeededResources(bundle=True)
+    needed.need(a)
+    needed.need(b)
+
+    assert len(needed.resources()) == 1
+    bundle = needed.resources()[0]
+    assert bundle.resources() == [a, b]
+
+def test_bundle_dont_bundle_at_the_end():
+    foo = Library('foo', '')
+    a = Resource(foo, 'a.css')
+    b = Resource(foo, 'b.css')
+    c = Resource(foo, 'c.css', dont_bundle=True)
+
+    needed = NeededResources(bundle=True)
+    needed.need(a)
+    needed.need(b)
+    needed.need(c)
+
+    resources = needed.resources()
+    assert len(resources) == 2
+    assert resources[0].resources() == [a, b]
+    assert resources[-1] is c
+
+def test_bundle_dont_bundle_at_the_start():
+    foo = Library('foo', '')
+    a = Resource(foo, 'a.css', dont_bundle=True)
+    b = Resource(foo, 'b.css')
+    c = Resource(foo, 'c.css')
+
+    needed = NeededResources(bundle=True)
+    needed.need(a)
+    needed.need(b)
+    needed.need(c)
+
+    resources = needed.resources()
+    assert len(resources) == 2
+    assert resources[0] is a
+    assert resources[1].resources() == [b, c]
+
+def test_bundle_dont_bundle_in_the_middle():
+    # now construct a scenario where a dont_bundle resource is in the way
+    # of bundling
+    foo = Library('foo', '')
+    a = Resource(foo, 'a.css')
+    b = Resource(foo, 'b.css', dont_bundle=True)
+    c = Resource(foo, 'c.css')
+
+    needed = NeededResources(bundle=True)
+    needed.need(a)
+    needed.need(b)
+    needed.need(c)
+
+    resources = needed.resources()
+    assert len(resources) == 3
+    assert resources[0] is a
+    assert resources[1] is b
+    assert resources[2] is c
+
+def test_bundle_different_renderer():
+    # resources with different renderers aren't bundled
+    foo = Library('foo', '')
+    a = Resource(foo, 'a.css')
+    b = Resource(foo, 'b.js')
+
+    needed = NeededResources(bundle=True)
+    needed.need(a)
+    needed.need(b)
+
+    resources = needed.resources()
+
+    assert len(resources) == 2
+    assert resources[0] is a
+    assert resources[1] is b
+
+def test_bundle_different_library():
+    # resources with different libraries aren't bundled
+    l1 = Library('l1', '')
+    l2 = Library('l2', '')
+    a = Resource(l1, 'a.js')
+    b = Resource(l2, 'b.js')
+
+    needed = NeededResources(bundle=True)
+    needed.need(a)
+    needed.need(b)
+
+    resources = needed.resources()
+
+    assert len(resources) == 2
+    assert resources[0] is a
+    assert resources[1] is b
+
+def test_bundle_different_directory():
+    # resources with different directories aren't bundled
+    foo = Library('foo', '')
+    a = Resource(foo, 'first/a.css')
+    b = Resource(foo, 'second/b.css')
+
+    needed = NeededResources(bundle=True)
+    needed.need(a)
+    needed.need(b)
+
+    resources = needed.resources()
+
+    assert len(resources) == 2
+    assert resources[0] is a
+    assert resources[1] is b
+
+def test_bundle_empty_list():
+    # we can successfully bundle an empty list of resources
+    needed = NeededResources(bundle=True)
+
+    resources = needed.resources()
+    assert resources == []
+
+def test_bundle_single_entry():
+    # we can successfully bundle a single resource (it's not bundled though)
+    foo = Library('foo', '')
+    a = Resource(foo, 'a.js')
+
+    needed = NeededResources(bundle=True)
+    needed.need(a)
+    resources = needed.resources()
+
+    assert resources == [a]
+
+def test_bundle_single_dont_bundle_entry():
+    foo = Library('foo', '')
+    a = Resource(foo, 'a.js', dont_bundle=True)
+
+    needed = NeededResources(bundle=True)
+    needed.need(a)
+    resources = needed.resources()
+
+    assert resources == [a]
 
 # XXX tests for hashed resources when this is enabled. Needs some plausible
 # directory to test for hashes
