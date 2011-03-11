@@ -99,7 +99,7 @@ We are working on a pretty overview of the buildbot status.
 For now, just search for ``fanstatic`` in the `list of projects <http://dev.thehealthagency.com/buildbot/one_box_per_builder>`_.
 
 The configuration of the buildbot lives on
-http://svn.zope.org/Sandbox/janjaapdriessen
+svn+ssh://svn.zope.org/repos/main/Sandbox/janjaapdriessen/buildbot
 
 Building the documentation
 --------------------------
