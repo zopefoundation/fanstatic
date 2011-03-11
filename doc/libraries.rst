@@ -1,3 +1,5 @@
+.. _packaged_libs:
+
 Pre-packaged libraries
 ======================
 
