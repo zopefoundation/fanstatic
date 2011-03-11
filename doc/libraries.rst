@@ -49,6 +49,10 @@ Here's a list of currently available libraries:
       - the jQuery plugin `Text Children <http://plugins.learningjquery.com/textchildren>`_
       - `bitbucket <http://bitbucket.org/fanstatic/js.jquery_textchildren>`_
 
+    * - :pypi:`js.jquery_tools`
+      - the jQuery plugin `Tooltip http://flowplayer.org/tools/index.html`_
+      - `bitbucket <http://bitbucket.org/fanstatic/js.jquery_tools>`_
+
     * - :pypi:`js.jquery_tooltip`
       - the jQuery plugin `Tooltip <http://bassistance.de/jquery-plugins/jquery-plugin-tooltip>`_
       - `bitbucket <http://bitbucket.org/fanstatic/js.jquery_tooltip>`_
