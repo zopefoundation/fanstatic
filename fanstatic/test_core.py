@@ -906,27 +906,27 @@ def test_sort_group_per_library():
     c = Resource(bar, 'c.js', depends=[e])
     b = Resource(bar, 'b.js')
     a = Resource(bar, 'a.js', depends=[c])
-    
+
     needed = NeededResources()
     needed.need(a)
     needed.need(b)
     needed.need(c)
     needed.need(d)
     needed.need(e)
-    
+
     assert needed.resources() == [e, d, b, c, a]
 
 def test_sort_library_by_name():
     b_lib = Library('b_lib', '')
     a_lib = Library('a_lib', '')
-    
+
     a_a = Resource(a_lib, 'a.js')
-    a_b = Resource(b_lib, 'a.js') 
-                 
+    a_b = Resource(b_lib, 'a.js')
+
     needed = NeededResources()
     needed.need(a_b)
     needed.need(a_a)
-    
+
     assert needed.resources() == [a_a, a_b]
 
 def test_sort_resources_libraries_together():
@@ -969,7 +969,7 @@ def test_sort_resources_library_sorting():
     c2 = Resource(Y, 'c2.js', depends=[c1])
     d = Resource(Z, 'd.js', depends=[c])
     e = Resource(Z, 'e.js')
-    
+
     needed = NeededResources()
     needed.need(b)
     needed.need(c2)
@@ -987,7 +987,7 @@ def test_sort_resources_library_sorting_by_name():
     a = Resource(X, 'a.js')
     b = Resource(Y, 'b.js')
     c = Resource(Z, 'c.js')
-    
+
     needed = NeededResources()
     needed.need(a)
     needed.need(b)
@@ -1004,7 +1004,7 @@ def test_sort_resources_library_sorting_by_name_deeper():
     a = Resource(X, 'a.js')
     c = Resource(Z, 'c.js')
     b = Resource(Y, 'b.js', depends=[a, c])
-    
+
     needed = NeededResources()
     needed.need(b)
     assert needed.resources() == [a, c, b]
