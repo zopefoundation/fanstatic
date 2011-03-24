@@ -53,7 +53,12 @@ class Injector(object):
 
         # The wrapped application may have `needed` resources.
         if needed.has_resources():
-            response.body = needed.render_topbottom_into_html(response.body)
+            result = needed.render_topbottom_into_html(response.body)
+            # Reset the body...
+            response.body = ''
+            # And write the result. The `write` method handles unicode results.
+            response.write(result)
+
         return response
 
 def make_injector(app, global_config, **local_config):

@@ -40,3 +40,18 @@ def test_incorrect_configuration_options():
     assert (
         "__init__() got an unexpected "
         "keyword argument 'incorrect'") in str(e)
+
+def test_inject_unicode_base_url():
+    foo = Library('foo', '')
+    x1 = Resource(foo, 'a.js')
+
+    def app(environ, start_response):
+        start_response('200 OK', [])
+        x1.need()
+        return ['<html><head></head><body</body></html>']
+
+    request = webob.Request.blank('/')
+    wrapped = Fanstatic(app, base_url=u'http://localhost')
+    # Fanstatic used to choke on unicode content.
+    response = request.get_response(wrapped)
+
