@@ -1,10 +1,10 @@
 CHANGES
 *******
 
-0.10.2 (unreleased)
+0.10.2 (2011-03-25)
 ===================
 
-- Nothing changed yet.
+- Bugfix: Fanstatic used to choke on unicode content.
 
 
 0.10.1 (2011-02-06)
