@@ -8,6 +8,8 @@ DEFAULT_SIGNATURE = 'fanstatic'
 
 VERSION_PREFIX = ':version:'
 
+BUNDLE_PREFIX = ':bundle:'
+
 NEEDED = 'fanstatic.needed'
 
 DEBUG = 'debug'
@@ -836,14 +838,23 @@ class Bundle(Renderable):
     def __init__(self):
         self._resources = []
 
+    @property
+    def library(self):
+        return self._resources[0].library
+        
     def resources(self):
         """This is used to test resources, not because this is a dependable.
         """
         return self._resources
         
     def render(self, library_url):
-        # XXX how?
-        pass
+        paths = [resource.relpath for resource in self._resources]
+        # XXX URL may become too long:
+        # http://www.boutell.com/newfaq/misc/urllength.html
+        relpath = ''.join(self.dirname + '/',
+                          BUNDLE_PREFIX,
+                          ';'.join(paths))
+        return self.renderer('%s/%s' % (library_url, relpath))
 
     def fits(self, resource):
         if resource.dont_bundle:
@@ -859,7 +870,6 @@ class Bundle(Renderable):
 
     def append(self, resource):
         self._resources.append(resource)
-
 
     def add_to_list(self, result):
         """Add the bundle to list, taking single-resource bundles into account.
