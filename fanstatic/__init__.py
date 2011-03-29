@@ -1,5 +1,6 @@
 from fanstatic.core import (Library,
                             Resource,
+                            Group,
                             GroupResource,
                             NeededResources,
                             DEFAULT_SIGNATURE,

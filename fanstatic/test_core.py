@@ -5,7 +5,7 @@ import pytest
 from fanstatic import (Library,
                        Resource,
                        NeededResources,
-                       GroupResource,
+                       Group,
                        init_needed,
                        get_needed,
                        clear_needed,
@@ -15,7 +15,7 @@ from fanstatic import (Library,
                        LibraryDependencyCycle,
                        UnknownResourceExtension)
 
-from fanstatic.core import inclusion_renderers, normalize_resource
+from fanstatic.core import inclusion_renderers, normalize_string
 
 
 def test_resource():
@@ -34,7 +34,7 @@ def test_group_resource():
     foo = Library('foo', '')
     x1 = Resource(foo, 'a.js')
     x2 = Resource(foo, 'b.css')
-    group = GroupResource([x1, x2])
+    group = Group([x1, x2])
 
     needed = NeededResources()
     needed.need(group)
@@ -96,7 +96,7 @@ def test_convenience_group_resource_need():
     x1 = Resource(foo, 'a.js')
     x2 = Resource(foo, 'b.css')
     y1 = Resource(foo, 'c.js')
-    group = GroupResource([x1, x2, y1])
+    group = Group([x1, x2, y1])
 
     needed = init_needed()
     assert get_needed() == needed
@@ -106,7 +106,23 @@ def test_convenience_group_resource_need():
 
     assert get_needed().resources() == [x2, x1, y1]
 
-
+def test_depend_on_group():
+    foo = Library('foo', '')
+    a = Resource(foo, 'a.js')
+    b = Resource(foo, 'b.js')
+    g = Group([a, b])
+    c = Resource(foo, 'c.js', depends=[g])
+    g2 = Group([g])
+    g3 = Group([g, g2])
+    
+    assert c.depends == [a, b]
+    assert g2.depends == [a, b]
+    assert g3.depends == [a, b]
+    
+    needed = NeededResources()
+    needed.need(c)
+    assert needed.resources() == [a, b, c]
+    
 def test_redundant_resource():
     foo = Library('foo', '')
     x1 = Resource(foo, 'a.js')
@@ -877,11 +893,11 @@ def test_convenience_clear():
     z2.need()
     assert needed.resources() == [x1, z1, z2]
 
-def test_normalize_resource():
+def test_normalize_string():
     foo = Library('foo', '')
-    assert isinstance(normalize_resource(foo, 'f.css'), Resource)
+    assert isinstance(normalize_string(foo, 'f.css'), Resource)
     r1 = Resource(foo, 'f.js')
-    assert normalize_resource(foo, r1) == r1
+    assert normalize_string(foo, r1) == r1
 
 def test_sort_group_per_renderer():
     foo = Library('foo', '')

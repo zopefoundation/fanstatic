@@ -150,8 +150,33 @@ register_inclusion_renderer('.js', render_js, 20)
 
 register_inclusion_renderer('.ico', render_ico, 30)
 
+class Renderable(object):
+    """A renderable.
 
-class Resource(object):
+    A renderable must have a library attribute, a library_nr and
+    a dependency_nr.
+    """
+    def render(self, library_url):
+        """Render this renderable as something to insert in HTML.
+
+        This returns a snippet.
+        """
+
+class Dependable(object):
+    """A dependable.
+
+    A dependable must have a depends attribute, which is a sequence
+    of those dependables that this dependable depends on directly.
+    """
+
+    def resources(self):
+        """Return the renderable resources that this dependable depends on.
+
+        This might possibly include the object itself, as for a normal
+        Resource.
+        """
+
+class Resource(Renderable, Dependable):
     """A resource.
 
     A resource specifies a single resource in a library so that it can
@@ -244,22 +269,23 @@ class Resource(object):
 
         assert not isinstance(depends, basestring)
         depends = depends or []
-        self.depends = normalize_resources(library, depends)
-
+        depends = normalize_groups(depends)
+        self.depends = normalize_strings(library, depends)
+        
         # Check for library dependency cycles.
         self.library.check_dependency_cycle(self)
 
         # generate an internal number for sorting the resource
         # on dependency within the library
-        init_dependency_nr(self)
+        self.init_dependency_nr()
 
         self.modes = {}
         if debug is not None:
-            self.modes[DEBUG] = normalize_resource(library, debug)
+            self.modes[DEBUG] = normalize_string(library, debug)
             self.modes[DEBUG].dependency_nr = self.dependency_nr
             self.modes[DEBUG].library_nr = self.library_nr
         if minified is not None:
-            self.modes[MINIFIED] = normalize_resource(library, minified)
+            self.modes[MINIFIED] = normalize_string(library, minified)
             self.modes[MINIFIED].dependency_nr = self.dependency_nr
             self.modes[MINIFIED].library_nr = self.library_nr
 
@@ -283,6 +309,20 @@ class Resource(object):
                     continue
                 mode.supersedes.append(superseded_mode)
                 superseded_mode.rollups.append(mode)
+
+    def init_dependency_nr(self):
+        # on dependency within the library
+        dependency_nr = 0
+        library_nr = 0
+        for depend in self.depends:
+            if depend.library is not self.library:
+                library_nr = max(depend.library_nr + 1, library_nr)
+            else:
+                library_nr = max(depend.library_nr, library_nr)
+            dependency_nr = max(depend.dependency_nr + 1,
+                                dependency_nr)
+        self.dependency_nr = dependency_nr
+        self.library_nr = library_nr
 
     def render(self, library_url):
         return self.renderer('%s/%s' % (library_url, self.relpath))
@@ -333,25 +373,24 @@ class Resource(object):
         return result
 
 
-class GroupResource(object):
+class Group(Dependable):
     """A resource used to group resources together.
 
     It doesn't define a resource file itself, but instead depends on
-    other resources. When a GroupResources is depended on, all the
-    resources grouped together will be included.
+    other resources. When a Group is depended on, all the resources
+    grouped together will be included.
 
    :param depends: a list of resources that this resource depends
      on. Entries in the list can be :py:class:`Resource` instances, or
-     :py:class:`GroupResource` instances.
+     :py:class:`Group` instances.
     """
     def __init__(self, depends):
-        self.depends = depends
-        init_dependency_nr(self)
-
+        self.depends = normalize_groups(depends)
+        
     def need(self):
         """Need this group resource.
 
-        If you call ``.need()`` on ``GroupResource`` sometime
+        If you call ``.need()`` on ``Group`` sometime
         during the rendering process of your web page, all dependencies
         of this group resources will be inserted into the web page.
         """
@@ -366,34 +405,26 @@ class GroupResource(object):
             result.extend(depend.resources())
         return result
 
-def init_dependency_nr(resource):
-    # on dependency within the library
-    dependency_nr = 0
-    library_nr = 0
-    for depend in resource.depends:
-        if (not isinstance(resource, GroupResource) and
-            not isinstance(depend, GroupResource)):
-            if depend.library is not resource.library:
-                library_nr = max(depend.library_nr + 1, library_nr)
-            else:
-                library_nr = max(depend.library_nr, library_nr)
+# backwards compatibility alias
+GroupResource = Group
+
+def normalize_groups(resources):
+    result = []
+    for resource in resources:
+        if not isinstance(resource, Renderable):
+            result.extend(resource.depends)
         else:
-            library_nr = max(depend.library_nr, library_nr)
-        dependency_nr = max(depend.dependency_nr + 1,
-                            dependency_nr)
-    resource.dependency_nr = dependency_nr
-    resource.library_nr = library_nr
+            result.append(resource)
+    return remove_duplicates(result)
 
-def normalize_resources(library, resources):
-    return [normalize_resource(library, resource)
-            for resource in resources]
+def normalize_strings(library, resources):
+    return [normalize_string(library, resource) for resource in resources]
 
-
-def normalize_resource(library, resource):
+def normalize_string(library, resource):
     if isinstance(resource, basestring):
         return Resource(library, resource)
     return resource
-
+    
 
 class NeededResources(object):
     """The current selection of needed resources..
@@ -801,14 +832,18 @@ def sort_resources(resources):
             resource.relpath)
     return sorted(resources, key=key)
 
-# XXX there is a concept of a 'renderable' perhaps, that's
-# base to all resources?
-class Bundle(object):
+class Bundle(Renderable):
     def __init__(self):
         self._resources = []
 
     def resources(self):
+        """This is used to test resources, not because this is a dependable.
+        """
         return self._resources
+        
+    def render(self, library_url):
+        # XXX how?
+        pass
 
     def fits(self, resource):
         if resource.dont_bundle:
@@ -816,9 +851,6 @@ class Bundle(object):
         # an empty resource fits anything
         if not self._resources:
             return True
-        # group resources cannot be bundled XXX does this happen? make tests
-        if isinstance(resource, GroupResource):
-            return False
         # a resource fits if it's like the resources already inside
         bundle_resource = self._resources[0]
         return (resource.library is bundle_resource.library and
@@ -828,9 +860,6 @@ class Bundle(object):
     def append(self, resource):
         self._resources.append(resource)
 
-    def render(self, library_url):
-        # XXX how?
-        pass
 
     def add_to_list(self, result):
         """Add the bundle to list, taking single-resource bundles into account.
