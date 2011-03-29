@@ -487,7 +487,7 @@ class NeededResources(object):
         self._recompute_hashes = recompute_hashes
         self._bottom = bottom
         self._force_bottom = force_bottom
-        self.set_base_url(base_url)
+        self._base_url = base_url
         self._publisher_signature = publisher_signature
         self._rollup = rollup
         self._bundle = bundle
@@ -508,7 +508,7 @@ class NeededResources(object):
     def has_base_url(self):
         """Returns True if base_url has been set.
         """
-        return bool(self._base_url)
+        return self._base_url is not None
 
     def set_base_url(self, url):
         """Set the base_url. The base_url can only be set (1) if it has not
