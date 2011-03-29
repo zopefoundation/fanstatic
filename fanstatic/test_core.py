@@ -1,5 +1,5 @@
 from __future__ import with_statement
-
+import threading
 import pytest
 
 from fanstatic import (Library,
@@ -7,15 +7,18 @@ from fanstatic import (Library,
                        NeededResources,
                        GroupResource,
                        init_needed,
+                       del_needed,
                        get_needed,
                        clear_needed,
                        register_inclusion_renderer,
                        sort_resources_topological,
                        ConfigurationError,
-                       UnknownResourceExtension)
+                       UnknownResourceExtension,
+                       NEEDED,
+                       )
 
 from fanstatic.core import inclusion_renderers, normalize_resource
-
+from fanstatic.core import thread_local_needed_data
 
 def test_resource():
     foo = Library('foo', '')
@@ -65,7 +68,7 @@ def test_convenience_need_not_initialized():
         dummy.render()
 
 
-def test_convenience_clear_not_initialized():
+def test_init_needed():
     # This test is put near the top of this module, or at least before
     # the very first time ``init_needed()`` is called.
     dummy = get_needed()
@@ -74,6 +77,28 @@ def test_convenience_clear_not_initialized():
     with pytest.raises(NotImplementedError):
         clear_needed()
 
+    # Initialize a needed resources object.
+    needed = init_needed()
+    assert get_needed() == needed
+    assert thread_local_needed_data.__dict__[NEEDED] == needed
+
+    # Clear it.
+    del_needed()
+
+    # It is gone, really.
+    with pytest.raises(KeyError):
+        thread_local_needed_data.__dict__[NEEDED]
+
+    # Clearing it again is OK.
+    del_needed()
+
+    # get_needed still work, dummy-style.
+    dummy2 = get_needed()
+    assert dummy2 != needed
+    with pytest.raises(NotImplementedError):
+        dummy.clear()
+    with pytest.raises(NotImplementedError):
+        clear_needed()
 
 def test_convenience_need():
     foo = Library('foo', '')

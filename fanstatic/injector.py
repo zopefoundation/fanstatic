@@ -37,6 +37,7 @@ class Injector(object):
         if not request.method in ['GET', 'POST']:
             return request.get_response(self.app)
 
+        # Initialize a needed resources object.
         # XXX this will set the needed on the thread local data, even
         # if the wrapped framework only gets the needed from the WSGI
         # environ.
@@ -53,6 +54,8 @@ class Injector(object):
         # We only continue if the content-type is appropriate.
         if not (response.content_type and
                 response.content_type.lower() in ['text/html', 'text/xml']):
+            # Clean up after our behinds.
+            fanstatic.del_needed()
             return response
 
         # The wrapped application may have `needed` resources.
@@ -63,8 +66,8 @@ class Injector(object):
             # And write the result. The `write` method handles unicode results.
             response.write(result)
 
-        # XXX shouldn't the needed object be removed from the thread
-        # local data here?
+        # Clean up after our behinds.
+        fanstatic.del_needed()
 
         return response
 

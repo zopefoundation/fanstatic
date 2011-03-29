@@ -227,7 +227,7 @@ class Resource(object):
         # generate an internal number for sorting the resource
         # on dependency within the library
         init_dependency_nr(self)
-        
+
         self.modes = {}
         if debug is not None:
             self.modes[DEBUG] = normalize_resource(library, debug)
@@ -322,7 +322,7 @@ class GroupResource(object):
     def __init__(self, depends):
         self.depends = depends
         init_dependency_nr(self)
-        
+
     def need(self):
         """Need this group resource.
 
@@ -665,10 +665,24 @@ thread_local_needed_data = threading.local()
 
 
 def init_needed(*args, **kw):
+    """Initialize a NeededResources object in the thread-local data. Arguments
+    are passed verbatim to the NeededResource __init__.
+    """
     needed = NeededResources(*args, **kw)
     thread_local_needed_data.__dict__[NEEDED] = needed
     return needed
 
+def del_needed():
+    """Delete the NeededResources object from the thread-local data to leave a
+    clean environment.
+
+    This function will silently pass whenever there is no NeededResources
+    object in the thread-local in the first place.
+    """
+    try:
+        del thread_local_needed_data.__dict__[NEEDED]
+    except KeyError:
+        pass
 
 def get_needed():
     needed = thread_local_needed_data.__dict__.get(NEEDED)
