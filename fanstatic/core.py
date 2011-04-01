@@ -247,7 +247,9 @@ class Resource(Renderable, Dependable):
                  minified=None):
         self.library = library
         self.relpath = relpath
-        self.dirname = os.path.dirname(relpath)
+        self.dirname, self.filename = os.path.split(relpath)
+        if self.dirname and not self.dirname.endswith('/'):
+            self.dirname += '/'
         self.bottom = bottom
         self.dont_bundle = dont_bundle
 
@@ -839,8 +841,16 @@ class Bundle(Renderable):
         self._resources = []
 
     @property
+    def dirname(self):
+        return self._resources[0].dirname
+        
+    @property
     def library(self):
         return self._resources[0].library
+        
+    @property
+    def renderer(self):
+        return self._resources[0].renderer
         
     def resources(self):
         """This is used to test resources, not because this is a dependable.
@@ -848,12 +858,10 @@ class Bundle(Renderable):
         return self._resources
         
     def render(self, library_url):
-        paths = [resource.relpath for resource in self._resources]
-        # XXX URL may become too long:
+        paths = [resource.filename for resource in self._resources]
+        # URL may become too long:
         # http://www.boutell.com/newfaq/misc/urllength.html
-        relpath = ''.join(self.dirname + '/',
-                          BUNDLE_PREFIX,
-                          ';'.join(paths))
+        relpath = ''.join([self.dirname, BUNDLE_PREFIX, ';'.join(paths)])
         return self.renderer('%s/%s' % (library_url, relpath))
 
     def fits(self, resource):

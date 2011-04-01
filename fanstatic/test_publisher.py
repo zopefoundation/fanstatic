@@ -40,7 +40,7 @@ def test_just_library(tmpdir):
 
     request = webob.Request.blank('/foo')
     response = request.get_response(app)
-    assert response.status == '403 Forbidden'
+    assert response.status == '404 Not Found'
 
 
 def test_unknown_library(tmpdir):
@@ -179,3 +179,44 @@ def test_publisher_ignores(tmpdir):
     request = webob.Request.blank('/foo/logo.psd')
     response = request.get_response(publisher)
     assert response.status_int == 404
+
+    request = webob.Request.blank('/foo/:bundle:logo.psd')
+    response = request.get_response(publisher)
+    assert response.status_int == 404
+
+def test_bundle_resources(tmpdir):
+    foo_library_dir = tmpdir.mkdir('foo')
+    tmpdir.join('foo').join('test1.js').write('/* a test 1 */')
+    tmpdir.join('foo').join('test2.js').write('/* a test 2 */')
+
+    libraries = LibraryRegistry([Library('foo', foo_library_dir.strpath)])
+
+    app = Publisher(libraries)
+
+    request = webob.Request.blank('/foo/:bundle:test1.js;test2.js')
+    response = request.get_response(app)
+    assert response.body == '''/* a test 1 */
+/* a test 2 */'''
+    assert response.cache_control.max_age is None
+
+    request = webob.Request.blank('/foo/:version:123/:bundle:test1.js;test2.js')
+    response = request.get_response(app)
+    assert response
+    assert response.cache_control.max_age is not None
+
+    request = webob.Request.blank('/foo/:bundle:XXX.js')
+    response = request.get_response(app)
+    assert response.status_int == 404
+
+    request = webob.Request.blank('/foo/:bundle:/etc/passwd;/etc/shadow.js')
+    response = request.get_response(app)
+    assert response.status_int == 404
+
+    subdir = tmpdir.join('foo').mkdir('sub').mkdir('sub')
+    subdir.join('r1.css').write('r1')
+    subdir.join('r2.css').write('r2')
+
+    request = webob.Request.blank('/foo/sub/sub/:bundle:r1.css;r2.css')
+    response = request.get_response(app)
+    assert response.body == '''r1
+r2'''

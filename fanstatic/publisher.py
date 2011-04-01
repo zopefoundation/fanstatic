@@ -1,9 +1,12 @@
+import os
 import fnmatch
 import webob
 import webob.dec
 import webob.exc
 import time
-from paste.fileapp import DirectoryApp
+import os.path
+from paste.fileapp import DirectoryApp, FileApp, DataApp
+from paste.httpheaders import CACHE_CONTROL
 
 import fanstatic
 
@@ -15,6 +18,55 @@ YEAR_IN_SECONDS = DAY_IN_SECONDS * 365
 # arbitrarily define forever as 10 years in the future
 FOREVER = YEAR_IN_SECONDS * 10
 
+def check_ignore(ignores, filename):
+    for ignore in ignores:
+        if fnmatch.filter(filename.split('/'), ignore):
+            raise webob.exc.HTTPNotFound()
+
+
+class BundleApp(FileApp):
+    def __init__(self, rootpath, bundlename, ignores):
+        # Let FileApp determine content_type and encoding based on bundlename.
+        FileApp.__init__(self, bundlename)
+
+        try:
+            filenames = bundlename.split(';')
+        except TypeError:
+            # Invalid bundle.
+            raise webob.exc.HTTPNotFound()
+
+        self.filenames = []
+        # Check for ignores and rogue paths.
+        for filename in filenames:
+            check_ignore(ignores, filename)
+            fullpath = os.path.join(rootpath, filename)
+            if not os.path.normpath(fullpath).startswith(rootpath):
+                # Raising forbidden here would expose private information.
+                raise webob.exc.HTTPNotFound()
+            if not os.path.exists(fullpath):
+                raise webob.exc.HTTPNotFound()
+            self.filenames.append(fullpath)
+
+    # XXX see the fileapp/dataapp for returning a filewrapper/fileiter / 206
+    def update(self, force=False):
+        mtime = max([os.stat(fn).st_mtime for fn in self.filenames])
+        if not force and mtime == self.last_modified:
+            return
+        self.last_modified = mtime
+
+        contents = []
+        for filename in self.filenames:
+            fh = open(filename,"rb")
+            contents.append(fh.read())
+            fh.close()
+        self.set_content('\n'.join(contents), mtime)
+
+    def get(self, environ, start_response):
+        if 'max-age=0' in CACHE_CONTROL(environ).lower():
+            self.update(force=True) # RFC 2616 13.2.6
+        else:
+            self.update()
+        return DataApp.get(self, environ, start_response)
 
 class DirectoryPublisher(DirectoryApp):
     """Fanstatic directory publisher WSGI application.
@@ -36,11 +88,25 @@ class DirectoryPublisher(DirectoryApp):
         super(DirectoryPublisher, self).__init__(path)
 
     def __call__(self, environ, start_response):
-        for ignore in self.ignores:
-            if fnmatch.filter(environ['PATH_INFO'].split('/'), ignore):
-                raise webob.exc.HTTPNotFound()
-        return super(DirectoryPublisher, self).__call__(environ, start_response)
+        path_info = environ['PATH_INFO']
+        check_ignore(self.ignores, path_info)
 
+        # Copied from DirectoryApp:
+        app = self.cached_apps.get(path_info)
+        if app is None:
+            path = os.path.join(self.path, path_info.lstrip('/'))
+            if not os.path.normpath(path).startswith(self.path):
+                raise webob.exc.HTTPForbidden()
+            elif fanstatic.BUNDLE_PREFIX in path:
+                base, bundle = path.split(fanstatic.BUNDLE_PREFIX, 1)
+                app = BundleApp(base, bundle, self.ignores)
+                self.cached_apps[path_info] = app
+            elif os.path.isfile(path):
+                app = self.make_fileapp(path)
+                self.cached_apps[path_info] = app
+            else:
+                raise webob.exc.HTTPNotFound()
+        return app(environ, start_response)
 
 class Publisher(object):
     """Fanstatic publisher WSGI application.
@@ -68,10 +134,16 @@ class Publisher(object):
 
     @webob.dec.wsgify
     def __call__(self, request):
+        first = request.path_info_peek()
+        # Don't allow requests on just publisher
+        if first == '':
+            raise webob.exc.HTTPForbidden()
+
         library_name = request.path_info_pop()
         # don't allow requests on just publisher
         if library_name == '':
             raise webob.exc.HTTPForbidden()
+
         # pop version if it's there
         potential_version = request.path_info_peek()
         if potential_version is not None and \
@@ -80,6 +152,10 @@ class Publisher(object):
             need_caching = True
         else:
             need_caching = False
+
+        if request.path_info == '':
+            raise webob.exc.HTTPNotFound()
+
         directory_publisher = self.directory_publishers.get(library_name)
         if directory_publisher is None:
             library = self.library_registry.get(library_name)
@@ -88,9 +164,7 @@ class Publisher(object):
                 raise webob.exc.HTTPNotFound()
             directory_publisher = self.directory_publishers.setdefault(
                 library_name, DirectoryPublisher(library.path, library.ignores))
-        # we found the library, but we are not looking for a resource in it
-        if request.path_info == '':
-            raise webob.exc.HTTPForbidden()
+
         # now delegate publishing to the directory publisher
         response = request.copy().get_response(directory_publisher)
         # set caching when needed and for successful responses
