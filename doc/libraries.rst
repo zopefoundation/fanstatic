@@ -50,7 +50,7 @@ Here's a list of currently available libraries:
       - `bitbucket <http://bitbucket.org/fanstatic/js.jquery_textchildren>`_
 
     * - :pypi:`js.jquery_tools`
-      - the jQuery plugin `Tooltip http://flowplayer.org/tools/index.html`_
+      - `jQuery tools <http://flowplayer.org/tools/index.html>`_
       - `bitbucket <http://bitbucket.org/fanstatic/js.jquery_tools>`_
 
     * - :pypi:`js.jquery_tooltip`
