@@ -1,9 +1,11 @@
 from fanstatic.core import (Library,
                             Resource,
+                            Group,
                             GroupResource,
                             NeededResources,
                             DEFAULT_SIGNATURE,
                             VERSION_PREFIX,
+                            BUNDLE_PREFIX,
                             DEBUG,
                             MINIFIED,
                             NEEDED,
@@ -15,6 +17,7 @@ from fanstatic.core import (Library,
                             clear_needed,
                             register_inclusion_renderer,
                             UnknownResourceExtension,
+                            LibraryDependencyCycle,
                             ConfigurationError)
 
 from fanstatic.registry import get_library_registry, LibraryRegistry

@@ -12,6 +12,8 @@ def test_generate_source():
     assert generate_code(i1=i1, i2=i2, i3=i3, i4=i4, i5=i5) == '''\
 from fanstatic import Library, Resource
 
+# This code is auto-generated and not PEP8 compliant
+
 foo = Library('foo', '')
 
 i1 = Resource(foo, 'i1.js')
@@ -34,6 +36,8 @@ def test_generate_source_with_modes_and_rollup():
                          non_inlinable=non_inlinable) == '''\
 from fanstatic import Library, Resource
 
+# This code is auto-generated and not PEP8 compliant
+
 bar = Library('bar', '')
 foo = Library('foo', '')
 
@@ -51,12 +55,16 @@ def test_generate_source_control_name():
     assert generate_code(hoi=i1) == '''\
 from fanstatic import Library, Resource
 
+# This code is auto-generated and not PEP8 compliant
+
 foo = Library('foo', '')
 
 hoi = Resource(foo, 'i1.js')'''
 
     assert generate_code(hoi=i1, i2=i2) == '''\
 from fanstatic import Library, Resource
+
+# This code is auto-generated and not PEP8 compliant
 
 foo = Library('foo', '')
 

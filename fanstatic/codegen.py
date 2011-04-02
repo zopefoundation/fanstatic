@@ -20,6 +20,8 @@ def generate_code(**kw):
     # import on top
     result.append("from fanstatic import Library, Resource")
     result.append("")
+    result.append("# This code is auto-generated and not PEP8 compliant")
+    result.append("")
     # define libraries
     for library in libraries:
         result.append("%s = Library('%s', '%s')" %

@@ -191,3 +191,72 @@ to let Fanstatic know about it? You just write this::
 If you now configure Fanstatic to use the ``minified`` mode, it will
 automatically pull in ``b.min.js`` instead of ``b.js`` whenever you do
 ``b.need()``.
+
+Bonus: bundling of resources
+----------------------------
+
+Bundling of resources minimizes the amount of HTTP requests from a 
+web page. Resources from the same Library can be bundled up into one,
+when they have the same renderer.::
+
+  from fanstatic import Library, Resource
+
+  qux_library = Library('qux', 'qux_resources')
+
+  a = Resource(qux, 'a.css')
+  b = Resource(qux, 'b.css')
+
+Bundling is disabled by default. If you want bundling, set `bundle` to True::
+
+  fanstatic.init_needed(bundle=True)
+
+  a.need()
+  b.need()
+
+The resulting URL looks like this::
+
+  http://localhost/fanstatic/qux/:bundle:a.css;b.css
+
+The fanstatic publisher knows about bundle URLs and serves the two files.
+
+If you don't want your Resource to be bundled, give it the ``dont_bundle``
+argument.::
+
+  c = Resource(qux, 'a.css', dont_bundle=True)
+
+Resources are bundled based on their Library. This means that bundles don't
+span Libraries. If we were to allow bundles that span Libraries, we would get
+inefficient bundles. For an example look at the following example situation.::
+
+  from fanstatic import Library, Resource
+
+  foo = Library('foo', 'foo')
+  bar = Library('bar', 'bar')
+
+  a = Resource(foo, 'a.js')
+  b = Resource(bar, 'b.js', depends=[a])
+  c = Resource(bar, 'c.js', depends=[a])
+
+If we `need()` resource b in page 1 of our application and would allow
+cross-library bundling, we would get a bundle of a + b. If we then need 
+only resource c in page 2 of our application, we would render a bundle of
+a + c. In this example we see that cross-library bundling can lead to 
+inefficient bundles, as the client downloads 2 * a + b + c. 
+Fanstatic doesn't do cross-library bundling, so the client downloads a + b + c. 
+
+When bundling resources, things could go haywire with regard to relative
+URLs in CSS files. Fanstatic prevents this by taking the dirname of the 
+Resource into account::
+
+  from fanstatic import Library, Resource
+
+  foo = Library('foo', 'foo')
+
+  a = Resource(foo, 'a.css')
+  b = Resource(foo, 'sub/sub/b.css')
+
+Fanstatic won't bundle `a` and `b`, as `b` may have relative URLs that the
+browser would not be able to resolve.
+
+By not bundling resources with different dirnames, we don't need to rewrite
+the CSS.

@@ -8,6 +8,8 @@ DEFAULT_SIGNATURE = 'fanstatic'
 
 VERSION_PREFIX = ':version:'
 
+BUNDLE_PREFIX = ':bundle:'
+
 NEEDED = 'fanstatic.needed'
 
 DEBUG = 'debug'
@@ -19,6 +21,10 @@ class UnknownResourceExtension(Exception):
 
 
 class ConfigurationError(Exception):
+    pass
+
+
+class LibraryDependencyCycle(Exception):
     pass
 
 
@@ -47,6 +53,7 @@ class Library(object):
     """
 
     _signature = None
+    _library_deps = None
 
     def __init__(self, name, rootpath, ignores=None, version=None):
         self.name = name
@@ -54,6 +61,17 @@ class Library(object):
         self.ignores = ignores or []
         self.path = os.path.join(caller_dir(), rootpath)
         self.version = version
+        self._library_deps = set()
+
+    def check_dependency_cycle(self, resource):
+        for dependency in resource.resources():
+            self._library_deps.add(dependency.library)
+        for dep in self._library_deps:
+            if dep is self:
+                continue
+            if self in dep._library_deps:
+                raise LibraryDependencyCycle(
+                    'Library cycle detected in resource %s' % resource)
 
     def signature(self, recompute_hashes=False):
         """Get a unique signature for this Library.
@@ -134,8 +152,33 @@ register_inclusion_renderer('.js', render_js, 20)
 
 register_inclusion_renderer('.ico', render_ico, 30)
 
+class Renderable(object):
+    """A renderable.
 
-class Resource(object):
+    A renderable must have a library attribute, a library_nr and
+    a dependency_nr.
+    """
+    def render(self, library_url):
+        """Render this renderable as something to insert in HTML.
+
+        This returns a snippet.
+        """
+
+class Dependable(object):
+    """A dependable.
+
+    A dependable must have a depends attribute, which is a sequence
+    of those dependables that this dependable depends on directly.
+    """
+
+    def resources(self):
+        """Return the renderable resources that this dependable depends on.
+
+        This might possibly include the object itself, as for a normal
+        Resource.
+        """
+
+class Resource(Renderable, Dependable):
     """A resource.
 
     A resource specifies a single resource in a library so that it can
@@ -184,6 +227,9 @@ class Resource(object):
       a :py:class:`Resource` instance is constructed that has the same
       library as the resource.
 
+    :param dont_bundle: Don't bundle this resource in any bundles
+      (if bundling is enabled).
+
     :param minified: optionally, a minified version of the resource.
       The argument is a :py:class:`Resource` instance, or a string that
       indicates a relative path to the resource. In the latter case
@@ -197,10 +243,15 @@ class Resource(object):
                  bottom=False,
                  renderer=None,
                  debug=None,
+                 dont_bundle=False,
                  minified=None):
         self.library = library
         self.relpath = relpath
+        self.dirname, self.filename = os.path.split(relpath)
+        if self.dirname and not self.dirname.endswith('/'):
+            self.dirname += '/'
         self.bottom = bottom
+        self.dont_bundle = dont_bundle
 
         self.ext = os.path.splitext(self.relpath)[1]
 
@@ -222,19 +273,23 @@ class Resource(object):
 
         assert not isinstance(depends, basestring)
         depends = depends or []
-        self.depends = normalize_resources(library, depends)
+        depends = normalize_groups(depends)
+        self.depends = normalize_strings(library, depends)
+        
+        # Check for library dependency cycles.
+        self.library.check_dependency_cycle(self)
 
         # generate an internal number for sorting the resource
         # on dependency within the library
-        init_dependency_nr(self)
+        self.init_dependency_nr()
 
         self.modes = {}
         if debug is not None:
-            self.modes[DEBUG] = normalize_resource(library, debug)
+            self.modes[DEBUG] = normalize_string(library, debug)
             self.modes[DEBUG].dependency_nr = self.dependency_nr
             self.modes[DEBUG].library_nr = self.library_nr
         if minified is not None:
-            self.modes[MINIFIED] = normalize_resource(library, minified)
+            self.modes[MINIFIED] = normalize_string(library, minified)
             self.modes[MINIFIED].dependency_nr = self.dependency_nr
             self.modes[MINIFIED].library_nr = self.library_nr
 
@@ -258,6 +313,20 @@ class Resource(object):
                     continue
                 mode.supersedes.append(superseded_mode)
                 superseded_mode.rollups.append(mode)
+
+    def init_dependency_nr(self):
+        # on dependency within the library
+        dependency_nr = 0
+        library_nr = 0
+        for depend in self.depends:
+            if depend.library is not self.library:
+                library_nr = max(depend.library_nr + 1, library_nr)
+            else:
+                library_nr = max(depend.library_nr, library_nr)
+            dependency_nr = max(depend.dependency_nr + 1,
+                                dependency_nr)
+        self.dependency_nr = dependency_nr
+        self.library_nr = library_nr
 
     def render(self, library_url):
         return self.renderer('%s/%s' % (library_url, self.relpath))
@@ -308,25 +377,24 @@ class Resource(object):
         return result
 
 
-class GroupResource(object):
+class Group(Dependable):
     """A resource used to group resources together.
 
     It doesn't define a resource file itself, but instead depends on
-    other resources. When a GroupResources is depended on, all the
-    resources grouped together will be included.
+    other resources. When a Group is depended on, all the resources
+    grouped together will be included.
 
    :param depends: a list of resources that this resource depends
      on. Entries in the list can be :py:class:`Resource` instances, or
-     :py:class:`GroupResource` instances.
+     :py:class:`Group` instances.
     """
     def __init__(self, depends):
-        self.depends = depends
-        init_dependency_nr(self)
-
+        self.depends = normalize_groups(depends)
+        
     def need(self):
         """Need this group resource.
 
-        If you call ``.need()`` on ``GroupResource`` sometime
+        If you call ``.need()`` on ``Group`` sometime
         during the rendering process of your web page, all dependencies
         of this group resources will be inserted into the web page.
         """
@@ -341,34 +409,26 @@ class GroupResource(object):
             result.extend(depend.resources())
         return result
 
-def init_dependency_nr(resource):
-    # on dependency within the library
-    dependency_nr = 0
-    library_nr = 0
-    for depend in resource.depends:
-        if (not isinstance(resource, GroupResource) and
-            not isinstance(depend, GroupResource)):
-            if depend.library is not resource.library:
-                library_nr = max(depend.library_nr + 1, library_nr)
-            else:
-                library_nr = max(depend.library_nr, library_nr)
+# backwards compatibility alias
+GroupResource = Group
+
+def normalize_groups(resources):
+    result = []
+    for resource in resources:
+        if not isinstance(resource, Renderable):
+            result.extend(resource.depends)
         else:
-            library_nr = max(depend.library_nr, library_nr)
-        dependency_nr = max(depend.dependency_nr + 1,
-                            dependency_nr)
-    resource.dependency_nr = dependency_nr
-    resource.library_nr = library_nr
+            result.append(resource)
+    return remove_duplicates(result)
 
-def normalize_resources(library, resources):
-    return [normalize_resource(library, resource)
-            for resource in resources]
+def normalize_strings(library, resources):
+    return [normalize_string(library, resource) for resource in resources]
 
-
-def normalize_resource(library, resource):
+def normalize_string(library, resource):
     if isinstance(resource, basestring):
         return Resource(library, resource)
     return resource
-
+    
 
 class NeededResources(object):
     """The current selection of needed resources..
@@ -423,6 +483,10 @@ class NeededResources(object):
       should be served in the URL. By default this is ``fanstatic``, so
       URLs to resources will start with ``/fanstatic/``.
 
+    :param bundle: If set to True, Fanstatic will attempt to bundle
+      resources that fit together into larger Bundle objects. These
+      can then be rendered as single URLs to these bundles.
+
     :param resources: Optionally, a list of resources we want to
       include. Normally you specify resources to include by calling
       ``.need()`` on them, or alternatively by calling ``.need()``
@@ -451,6 +515,7 @@ class NeededResources(object):
                  rollup=False,
                  base_url=None,
                  publisher_signature=DEFAULT_SIGNATURE,
+                 bundle=False,
                  resources=None,
                  ):
         self._versioning = versioning
@@ -460,6 +525,7 @@ class NeededResources(object):
         self._base_url = base_url
         self._publisher_signature = publisher_signature
         self._rollup = rollup
+        self._bundle = bundle
         self._resources = resources or []
         self._url_cache = {}  # prevent multiple computations per request
         if (debug and minified):
@@ -516,7 +582,8 @@ class NeededResources(object):
             resources = consolidate(resources)
         resources = sort_resources(resources)
         resources = remove_duplicates(resources)
-
+        if self._bundle:
+            resources = bundle_resources(resources)
         return resources
 
     def clear(self):
@@ -782,6 +849,88 @@ def sort_resources(resources):
             resource.dependency_nr,
             resource.relpath)
     return sorted(resources, key=key)
+
+class Bundle(Renderable):
+    def __init__(self):
+        self._resources = []
+
+    @property
+    def dirname(self):
+        return self._resources[0].dirname
+        
+    @property
+    def library(self):
+        return self._resources[0].library
+        
+    @property
+    def renderer(self):
+        return self._resources[0].renderer
+        
+    def resources(self):
+        """This is used to test resources, not because this is a dependable.
+        """
+        return self._resources
+        
+    def render(self, library_url):
+        paths = [resource.filename for resource in self._resources]
+        # URL may become too long:
+        # http://www.boutell.com/newfaq/misc/urllength.html
+        relpath = ''.join([self.dirname, BUNDLE_PREFIX, ';'.join(paths)])
+        return self.renderer('%s/%s' % (library_url, relpath))
+
+    def fits(self, resource):
+        if resource.dont_bundle:
+            return False
+        # an empty resource fits anything
+        if not self._resources:
+            return True
+        # a resource fits if it's like the resources already inside
+        bundle_resource = self._resources[0]
+        return (resource.library is bundle_resource.library and
+                resource.renderer is bundle_resource.renderer and
+                resource.dirname == bundle_resource.dirname)
+
+    def append(self, resource):
+        self._resources.append(resource)
+
+    def add_to_list(self, result):
+        """Add the bundle to list, taking single-resource bundles into account.
+        """
+        amount = len(self._resources)
+        if amount == 0:
+            # empty bundle; don't add it to list
+            return
+        elif amount == 1:
+            # if it only contains a single entry, add it by itself
+            result.append(self._resources[0])
+        else:
+            # add the bundle itself
+            result.append(self)
+
+def bundle_resources(resources):
+    """Bundle sorted resources together.
+
+    resources is expected to be a list previously sorted by sorted_resources.
+
+    Returns a list of renderable resources, which can include several
+    resources bundled together into Bundles.
+    """
+    result = []
+    bundle = Bundle()
+    for resource in resources:
+        if bundle.fits(resource):
+            bundle.append(resource)
+        else:
+            # add the previous bundle to the list and create new bundle
+            bundle.add_to_list(result)
+            bundle = Bundle()
+            if resource.dont_bundle:
+                result.append(resource)
+            else:
+                bundle.append(resource)
+    # add the last bundle to the list
+    bundle.add_to_list(result)
+    return result
 
 def sort_resources_topological(resources):
     """Sort resources by dependency and supersedes.
