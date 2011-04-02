@@ -197,7 +197,8 @@ Bonus: bundling of resources
 
 Bundling of resources minimizes the amount of HTTP requests from a 
 web page. Resources from the same Library can be bundled up into one,
-when they have the same renderer.::
+when they have the same renderer. Bundling is disabled by default.
+If you want bundling, set `bundle` to True::
 
   from fanstatic import Library, Resource
 
@@ -205,8 +206,6 @@ when they have the same renderer.::
 
   a = Resource(qux, 'a.css')
   b = Resource(qux, 'b.css')
-
-Bundling is disabled by default. If you want bundling, set `bundle` to True::
 
   fanstatic.init_needed(bundle=True)
 
@@ -217,7 +216,8 @@ The resulting URL looks like this::
 
   http://localhost/fanstatic/qux/:bundle:a.css;b.css
 
-The fanstatic publisher knows about bundle URLs and serves the two files.
+The fanstatic publisher knows about bundle URLs and serves a bundle of the two
+files.
 
 If you don't want your Resource to be bundled, give it the ``dont_bundle``
 argument.::
@@ -256,7 +256,6 @@ Resource into account::
   b = Resource(foo, 'sub/sub/b.css')
 
 Fanstatic won't bundle `a` and `b`, as `b` may have relative URLs that the
-browser would not be able to resolve.
-
-By not bundling resources with different dirnames, we don't need to rewrite
-the CSS.
+browser would not be able to resolve.  We *could* rewrite the CSS and inject
+URLs to the proper resources in order to have more efficient bundles, but we 
+choose to leave the CSS unaltered.

@@ -174,5 +174,12 @@ publish resources. If you would like the root for resource publication
 to be something else in your application (such as ``resources``), you
 can change this to another string.
 
+bundle
+------
+
+Bundling of resources minimizes HTTP requests from the client by finding
+efficient bundles of resources. In order to configure bundling of resources,
+set the ``bundle`` argument to True. 
+
 .. [#well] Well, for 10 years into the future at least.
 
