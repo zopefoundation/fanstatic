@@ -770,13 +770,10 @@ def clear_needed():
 def remove_duplicates(resources):
     """Given a set of resources, consolidate them so each only occurs once.
     """
-    seen = set()
     result = []
     for resource in resources:
-        key = resource.key()
-        if key in seen:
+        if resource in result:
             continue
-        seen.add(key)
         result.append(resource)
     return result
 
