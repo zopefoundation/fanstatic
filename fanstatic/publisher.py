@@ -29,15 +29,9 @@ class BundleApp(FileApp):
         # Let FileApp determine content_type and encoding based on bundlename.
         FileApp.__init__(self, bundlename)
 
-        try:
-            filenames = bundlename.split(';')
-        except TypeError:
-            # Invalid bundle.
-            raise webob.exc.HTTPNotFound()
-
         self.filenames = []
         # Check for ignores and rogue paths.
-        for filename in filenames:
+        for filename in bundlename.split(';'):
             check_ignore(ignores, filename)
             fullpath = os.path.join(rootpath, filename)
             if not os.path.normpath(fullpath).startswith(rootpath):
@@ -136,13 +130,13 @@ class Publisher(object):
     def __call__(self, request):
         first = request.path_info_peek()
         # Don't allow requests on just publisher
-        if first == '':
-            raise webob.exc.HTTPForbidden()
+        if first is None:
+            raise webob.exc.HTTPNotFound()
 
         library_name = request.path_info_pop()
         # don't allow requests on just publisher
         if library_name == '':
-            raise webob.exc.HTTPForbidden()
+            raise webob.exc.HTTPNotFound()
 
         # pop version if it's there
         potential_version = request.path_info_peek()

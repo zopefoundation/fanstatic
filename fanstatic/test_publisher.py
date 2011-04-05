@@ -23,9 +23,13 @@ def test_resource(tmpdir):
 
 def test_just_publisher():
     app = Publisher({})
+    request = webob.Request.blank('')
+    response = request.get_response(app)
+    assert response.status == '404 Not Found'
+
     request = webob.Request.blank('/')
     response = request.get_response(app)
-    assert response.status == '403 Forbidden'
+    assert response.status == '404 Not Found'
 
 
 def test_just_library(tmpdir):
@@ -33,8 +37,7 @@ def test_just_library(tmpdir):
     resource = tmpdir.join('foo').join('test.js')
     resource.write('/* a test */')
 
-    libraries = LibraryRegistry(
-        [Library('foo', foo_library_dir.strpath)])
+    libraries = LibraryRegistry([Library('foo', foo_library_dir.strpath)])
 
     app = Publisher(libraries)
 
@@ -53,9 +56,10 @@ def test_unknown_library(tmpdir):
 
     app = Publisher(libraries)
 
-    request = webob.Request.blank('/bar')
+    request = webob.Request.blank('/bar/')
     response = request.get_response(app)
     assert response.status == '404 Not Found'
+
 
 
 def test_resource_version_skipped(tmpdir):
@@ -148,6 +152,11 @@ def test_delegator(tmpdir):
     response = request.get_response(delegator)
     assert response.body == '/* a test */'
 
+    # A deeper fanstatic.
+    request = webob.Request.blank('/foo/bar/fanstatic/foo/test.js')
+    response = request.get_response(delegator)
+    assert response.body == '/* a test */'
+
     request = webob.Request.blank('/somethingelse')
     response = request.get_response(delegator)
     assert response.body == 'Hello world!'
@@ -193,6 +202,10 @@ def test_bundle_resources(tmpdir):
 
     app = Publisher(libraries)
 
+    request = webob.Request.blank('/')
+    response = request.get_response(app)
+    assert response.status_int == 404
+
     request = webob.Request.blank('/foo/:bundle:test1.js;test2.js')
     response = request.get_response(app)
     assert response.body == '''/* a test 1 */
@@ -211,6 +224,10 @@ def test_bundle_resources(tmpdir):
     request = webob.Request.blank('/foo/:bundle:/etc/passwd;/etc/shadow.js')
     response = request.get_response(app)
     assert response.status_int == 404
+
+    request = webob.Request.blank('/foo/../:bundle:hacxor')
+    response = request.get_response(app)
+    assert response.status_int == 403
 
     subdir = tmpdir.join('foo').mkdir('sub').mkdir('sub')
     subdir.join('r1.css').write('r1')
