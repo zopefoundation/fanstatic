@@ -387,6 +387,7 @@ class Group(Dependable):
      :py:class:`Group` instances.
     """
     def __init__(self, depends):
+        # Normalize groups in order to `flatten` Groups depending on Groups.
         self.depends = set(normalize_groups(depends))
         self.resources = set()
         for depend in self.depends:
