@@ -25,7 +25,7 @@ Python components
 .. autoclass:: fanstatic.Resource
   :members:
 
-.. autoclass:: fanstatic.GroupResource
+.. autoclass:: fanstatic.Group
   :members:
 
 .. autoclass:: fanstatic.NeededResources
