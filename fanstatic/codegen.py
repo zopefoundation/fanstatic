@@ -1,5 +1,24 @@
-from fanstatic import sort_resources_topological
+def _visit(resource, result, dead):
+    if dead[(resource.library, resource.relpath)]:
+        return
+    dead[(resource.library, resource.relpath)] = True
+    for depend in resource.depends:
+        _visit(depend, result, dead)
+    for depend in resource.supersedes:
+        _visit(depend, result, dead)
+    result.append(resource)
 
+def sort_resources_topological(resources):
+    """Sort resources by dependency and supersedes.
+    """
+    dead = {}
+    result = []
+    for resource in resources:
+        dead[(resource.library, resource.relpath)] = False
+
+    for resource in resources:
+        _visit(resource, result, dead)
+    return result
 
 def generate_code(**kw):
     resource_to_name = {}
