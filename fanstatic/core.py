@@ -352,11 +352,6 @@ class Resource(Renderable, Dependable):
             # fall back on the default mode if mode not found
             return self
 
-    def key(self):
-        """A unique key that identifies this Resource.
-        """
-        return self.library.name, self.relpath
-
     def need(self):
         """Declare that the application needs this resource.
 
@@ -783,8 +778,9 @@ def consolidate(resources):
     potential_rollups = {}
     for resource in resources:
         for rollup in resource.rollups:
-            s = potential_rollups.setdefault(rollup.key(), set())
-            s.add(resource.key())
+            s = potential_rollups.setdefault(
+                (rollup.library, rollup.relpath), set())
+            s.add((resource.library, resource.relpath))
 
     # now go through resources, replacing them with rollups if
     # conditions match
@@ -793,7 +789,7 @@ def consolidate(resources):
         eager_superseders = []
         exact_superseders = []
         for rollup in resource.rollups:
-            s = potential_rollups[rollup.key()]
+            s = potential_rollups[(rollup.library, rollup.relpath)]
             if rollup.eager_superseder:
                 eager_superseders.append(rollup)
             if len(s) == len(rollup.supersedes):
@@ -935,7 +931,7 @@ def sort_resources_topological(resources):
     dead = {}
     result = []
     for resource in resources:
-        dead[resource.key()] = False
+        dead[(resource.library, resource.relpath)] = False
 
     for resource in resources:
         _visit(resource, result, dead)
@@ -943,9 +939,9 @@ def sort_resources_topological(resources):
 
 
 def _visit(resource, result, dead):
-    if dead[resource.key()]:
+    if dead[(resource.library, resource.relpath)]:
         return
-    dead[resource.key()] = True
+    dead[(resource.library, resource.relpath)] = True
     for depend in resource.depends:
         _visit(depend, result, dead)
     for depend in resource.supersedes:

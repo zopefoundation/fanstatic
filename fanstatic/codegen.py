@@ -5,7 +5,7 @@ def generate_code(**kw):
     resource_to_name = {}
     resources = []
     for name, resource in kw.items():
-        resource_to_name[resource.key()] = name
+        resource_to_name[(resource.library, resource.relpath)] = name
         resources.append(resource)
 
     # libraries with the same name are the same libraries
@@ -34,16 +34,16 @@ def generate_code(**kw):
     # now generate resource code
     for resource in resources:
         s = "%s = Resource(%s, '%s'" % (
-            resource_to_name[resource.key()],
+            resource_to_name[(resource.library, resource.relpath)],
             resource.library.name,
             resource.relpath)
         if resource.depends:
             depends_s = ', depends=[%s]' % ', '.join(
-                [resource_to_name[d.key()] for d in resource.depends])
+                [resource_to_name[(d.library, d.relpath)] for d in resource.depends])
             s += depends_s
         if resource.supersedes:
             supersedes_s = ', supersedes=[%s]' % ', '.join(
-                [resource_to_name[i.key()] for i in resource.supersedes])
+                [resource_to_name[(i.library, i.relpath)] for i in resource.supersedes])
             s += supersedes_s
         if resource.modes:
             items = []
