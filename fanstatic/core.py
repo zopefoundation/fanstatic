@@ -277,9 +277,7 @@ class Resource(Renderable, Dependable):
         assert not isinstance(depends, basestring)
         self.depends = set()
         if depends is not None:
-            # normalize the strings in the dependency declaration...
-            depends = normalize_strings(library, depends)
-            # ...normalize groups into the underlying resources...
+            # Normalize groups into the underlying resources...
             depends = normalize_groups(depends)
             # ...before updating the set of dependencies of this resource.
             self.depends.update(depends)
@@ -414,9 +412,6 @@ def normalize_groups(resources):
         else:
             result.append(resource)
     return result
-
-def normalize_strings(library, resources):
-    return [normalize_string(library, resource) for resource in resources]
 
 def normalize_string(library, resource):
     if isinstance(resource, basestring):

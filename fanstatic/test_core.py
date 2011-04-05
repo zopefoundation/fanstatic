@@ -10,7 +10,6 @@ from fanstatic import (Library,
                        get_needed,
                        clear_needed,
                        register_inclusion_renderer,
-                       sort_resources_topological,
                        ConfigurationError,
                        LibraryDependencyCycle,
                        UnknownResourceExtension,
@@ -18,6 +17,7 @@ from fanstatic import (Library,
 
 from fanstatic.core import inclusion_renderers, normalize_string
 from fanstatic.core import thread_local_needed_data
+from fanstatic.codegen import sort_resources_topological
 
 def test_resource():
     foo = Library('foo', '')
