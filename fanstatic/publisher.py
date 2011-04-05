@@ -166,7 +166,7 @@ class Publisher(object):
                 library_name, DirectoryPublisher(library.path, library.ignores))
 
         # now delegate publishing to the directory publisher
-        response = request.copy().get_response(directory_publisher)
+        response = request.get_response(directory_publisher)
         # set caching when needed and for successful responses
         if need_caching and response.status.startswith('20'):
             response.cache_control.max_age = FOREVER
