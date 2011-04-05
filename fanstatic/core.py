@@ -63,8 +63,11 @@ class Library(object):
         self.version = version
         self._library_deps = set()
 
+    def __repr__(self):
+        return "<Library '%s' at '%s'>" % (self.name, self.path)
+
     def check_dependency_cycle(self, resource):
-        for dependency in resource.resources():
+        for dependency in resource.resources:
             self._library_deps.add(dependency.library)
         for dep in self._library_deps:
             if dep is self:
@@ -171,12 +174,12 @@ class Dependable(object):
     of those dependables that this dependable depends on directly.
     """
 
-    def resources(self):
-        """Return the renderable resources that this dependable depends on.
+    resources = None
+    """A set of the renderable resources that this dependable depends on.
 
-        This might possibly include the object itself, as for a normal
-        Resource.
-        """
+    This might possibly include the object itself, as for a normal
+    Resource.
+    """
 
 class Resource(Renderable, Dependable):
     """A resource.
@@ -272,10 +275,19 @@ class Resource(Renderable, Dependable):
                 self.ext, (sys.maxint, None))
 
         assert not isinstance(depends, basestring)
-        depends = depends or []
-        depends = normalize_groups(depends)
-        self.depends = normalize_strings(library, depends)
+        self.depends = set()
+        if depends is not None:
+            # normalize the strings in the dependency declaration...
+            depends = normalize_strings(library, depends)
+            # ...normalize groups into the underlying resources...
+            depends = normalize_groups(depends)
+            # ...before updating the set of dependencies of this resource.
+            self.depends.update(depends)
         
+        self.resources = set([self])
+        for depend in self.depends:
+            self.resources.update(depend.resources)
+
         # Check for library dependency cycles.
         self.library.check_dependency_cycle(self)
 
@@ -362,15 +374,6 @@ class Resource(Renderable, Dependable):
         needed = get_needed()
         needed.need(self)
 
-    def resources(self):
-        """Get all resources needed by this resource, including itself.
-        """
-        result = []
-        for depend in self.depends:
-            result.extend(depend.resources())
-        result.append(self)
-        return result
-
 
 class Group(Dependable):
     """A resource used to group resources together.
@@ -384,8 +387,11 @@ class Group(Dependable):
      :py:class:`Group` instances.
     """
     def __init__(self, depends):
-        self.depends = normalize_groups(depends)
-        
+        self.depends = set(normalize_groups(depends))
+        self.resources = set()
+        for depend in self.depends:
+            self.resources.update(depend.resources)
+
     def need(self):
         """Need this group resource.
 
@@ -395,14 +401,6 @@ class Group(Dependable):
         """
         needed = get_needed()
         needed.need(self)
-
-    def resources(self):
-        """Get all resources needed by this resource.
-        """
-        result = []
-        for depend in self.depends:
-            result.extend(depend.resources())
-        return result
 
 # backwards compatibility alias
 GroupResource = Group
@@ -414,7 +412,7 @@ def normalize_groups(resources):
             result.extend(resource.depends)
         else:
             result.append(resource)
-    return remove_duplicates(result)
+    return result
 
 def normalize_strings(library, resources):
     return [normalize_string(library, resource) for resource in resources]
@@ -521,7 +519,7 @@ class NeededResources(object):
         self._publisher_signature = publisher_signature
         self._rollup = rollup
         self._bundle = bundle
-        self._resources = resources or []
+        self._resources = resources or set()
         self._url_cache = {}  # prevent multiple computations per request
         if (debug and minified):
             raise ConfigurationError('Choose *one* of debug and minified')
@@ -556,7 +554,7 @@ class NeededResources(object):
 
         :param resource: A :py:class:`Resource` instance.
         """
-        self._resources.append(resource)
+        self._resources.add(resource)
 
     def resources(self):
         """Retrieve the list of resources needed.
@@ -567,16 +565,15 @@ class NeededResources(object):
 
         Resources are also sorted by extension.
         """
-        resources = []
+        resources = set()
         for resource in self._resources:
-            resources.extend(resource.resources())
+            resources.update(resource.resources)
 
         resources = [resource.mode(self._mode) for resource in resources]
 
         if self._rollup:
-            resources = consolidate(resources)
+            resources = set(consolidate(resources))
         resources = sort_resources(resources)
-        resources = remove_duplicates(resources)
         if self._bundle:
             resources = bundle_resources(resources)
         return resources
@@ -586,7 +583,7 @@ class NeededResources(object):
         # XXX or should we rather revert to the list with resources
         # that potentially was passed as an argument when creating
         # this NeededResources instance?
-        self._resources = []
+        self._resources = set()
 
     def library_url(self, library):
         """Construct URL to library.
@@ -760,17 +757,6 @@ def get_needed():
 def clear_needed():
     needed = get_needed()
     needed.clear()
-
-
-def remove_duplicates(resources):
-    """Given a set of resources, consolidate them so each only occurs once.
-    """
-    result = []
-    for resource in resources:
-        if resource in result:
-            continue
-        result.append(resource)
-    return result
 
 
 def consolidate(resources):

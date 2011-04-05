@@ -40,10 +40,10 @@ def test_group_resource():
     needed = NeededResources()
     needed.need(group)
 
-    assert group.resources() == [x1, x2]
+    assert group.resources == set([x1, x2])
 
     more_stuff = Resource(foo, 'more_stuff.js', depends=[group])
-    assert more_stuff.resources() == [x1, x2, more_stuff]
+    assert more_stuff.resources == set([x1, x2, more_stuff])
 
 
 def test_convenience_need_not_initialized():
@@ -138,9 +138,9 @@ def test_depend_on_group():
     g2 = Group([g])
     g3 = Group([g, g2])
     
-    assert c.depends == [a, b]
-    assert g2.depends == [a, b]
-    assert g3.depends == [a, b]
+    assert c.depends == set([a, b])
+    assert g2.depends == set([a, b])
+    assert g3.depends == set([a, b])
     
     needed = NeededResources()
     needed.need(c)
