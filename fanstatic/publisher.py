@@ -200,19 +200,23 @@ class Delegator(object):
                  publisher_signature=fanstatic.DEFAULT_SIGNATURE):
         self.app = app
         self.publisher = publisher
-        self.trigger = '/%s/' % publisher_signature
+        self.publisher_signature = publisher_signature
+        self.trigger = '/%s/' % self.publisher_signature
+
+    def is_resource(self, request):
+        return len(request.path_info.split(self.trigger)) > 1
 
     @webob.dec.wsgify
     def __call__(self, request):
-        chunks = request.path_info.split(self.trigger, 1)
-        if len(chunks) == 1:
+        if not self.is_resource(request):
             # the trigger segment is not in the URL, so we delegate
             # to the original application
             return request.get_response(self.app)
         # the trigger is in there, so let whatever is behind the
         # trigger be handled by the publisher
-        request = request.copy()
-        request.path_info = chunks[1]
+        ignored = request.path_info_pop()
+        while ignored != self.publisher_signature:
+            ignored = request.path_info_pop()
         return request.get_response(self.publisher)
 
 
