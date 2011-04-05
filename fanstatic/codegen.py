@@ -1,4 +1,4 @@
-from fanstatic import sort_resources_topological, sort_resources
+from fanstatic import sort_resources_topological
 
 
 def generate_code(**kw):
