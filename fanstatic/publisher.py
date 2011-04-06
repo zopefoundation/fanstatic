@@ -98,7 +98,8 @@ class DirectoryPublisher(DirectoryApp):
                 for filename in bundle.split(';'):
                     if filename not in filenames:
                         filenames.append(filename)
-                app = BundleApp(base, ';'.join(filenames), filenames, self.ignores)
+                filename = ';'.join(filenames)
+                app = BundleApp(base, filename, filenames, self.ignores)
                 self.cached_apps[path_info] = app
             elif os.path.isfile(path):
                 app = self.make_fileapp(path)
