@@ -11,6 +11,7 @@ from fanstatic import (Library,
                        clear_needed,
                        register_inclusion_renderer,
                        ConfigurationError,
+                       bundle_resources,
                        LibraryDependencyCycle,
                        UnknownResourceExtension,
                        NEEDED                       )
@@ -1130,8 +1131,9 @@ def test_bundle():
     needed.need(a)
     needed.need(b)
 
-    assert len(needed.resources()) == 1
-    bundle = needed.resources()[0]
+    resources = bundle_resources(needed.resources())
+    assert len(resources) == 1
+    bundle = resources[0]
     assert bundle.resources() == [a, b]
 
 def test_bundle_dont_bundle_at_the_end():
@@ -1145,7 +1147,7 @@ def test_bundle_dont_bundle_at_the_end():
     needed.need(b)
     needed.need(c)
 
-    resources = needed.resources()
+    resources = bundle_resources(needed.resources())
     assert len(resources) == 2
     assert resources[0].resources() == [a, b]
     assert resources[-1] is c
@@ -1161,7 +1163,7 @@ def test_bundle_dont_bundle_at_the_start():
     needed.need(b)
     needed.need(c)
 
-    resources = needed.resources()
+    resources = bundle_resources(needed.resources())
     assert len(resources) == 2
     assert resources[0] is a
     assert resources[1].resources() == [b, c]
@@ -1184,6 +1186,21 @@ def test_bundle_dont_bundle_in_the_middle():
     assert resources[0] is a
     assert resources[1] is b
     assert resources[2] is c
+
+def test_bundle_resources_bottomsafe():
+    foo = Library('foo', '')
+    a = Resource(foo, 'a.css')
+    b = Resource(foo, 'b.css', bottom=True)
+
+    needed = NeededResources(resources=[a,b], bundle=True)
+    assert needed.render_topbottom() == ('''\
+<link rel="stylesheet" type="text/css" href="/fanstatic/foo/:bundle:a.css;b.css" />''', '')
+
+    needed = NeededResources(resources=[a,b], bundle=True, bottom=True)
+    assert needed.render_topbottom() == ('''\
+<link rel="stylesheet" type="text/css" href="/fanstatic/foo/a.css" />''', '''\
+<link rel="stylesheet" type="text/css" href="/fanstatic/foo/b.css" />''')
+
 
 def test_bundle_different_renderer():
     # resources with different renderers aren't bundled

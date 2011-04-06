@@ -31,7 +31,7 @@ def test_bundle_resources():
     needed.need(x2)
     # The resources are sorted by renderer order, library dependencies
     # and resource dependencies.
-    bundle = needed.resources()
+    bundle = bundle_resources(needed.resources())
     assert len(bundle) == 2
     assert isinstance(bundle[0], Bundle)
     assert bundle[1] == x3

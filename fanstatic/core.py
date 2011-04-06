@@ -515,7 +515,7 @@ class NeededResources(object):
         self._publisher_signature = publisher_signature
         self._rollup = rollup
         self._bundle = bundle
-        self._resources = resources or set()
+        self._resources = set(resources or [])
         self._url_cache = {}  # prevent multiple computations per request
         if (debug and minified):
             raise ConfigurationError('Choose *one* of debug and minified')
@@ -569,10 +569,7 @@ class NeededResources(object):
 
         if self._rollup:
             resources = set(consolidate(resources))
-        resources = sort_resources(resources)
-        if self._bundle:
-            resources = bundle_resources(resources)
-        return resources
+        return sort_resources(resources)
 
     def clear(self):
         # Clear out any resources "needed" thusfar.
@@ -616,6 +613,8 @@ class NeededResources(object):
 
         :param inclusions: A list of :py:class:`Resource` instances.
         """
+        if self._bundle:
+            resources = bundle_resources(resources)
         result = []
         for resource in resources:
             library = resource.library
