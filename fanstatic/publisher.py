@@ -25,13 +25,13 @@ def check_ignore(ignores, filename):
 
 
 class BundleApp(FileApp):
-    def __init__(self, rootpath, bundlename, ignores):
+    def __init__(self, rootpath, filename, filenames, ignores):
         # Let FileApp determine content_type and encoding based on bundlename.
-        FileApp.__init__(self, bundlename)
+        FileApp.__init__(self, filename)
 
         self.filenames = []
         # Check for ignores and rogue paths.
-        for filename in bundlename.split(';'):
+        for filename in filenames:
             check_ignore(ignores, filename)
             fullpath = os.path.join(rootpath, filename)
             if not os.path.normpath(fullpath).startswith(rootpath):
@@ -93,7 +93,12 @@ class DirectoryPublisher(DirectoryApp):
                 raise webob.exc.HTTPForbidden()
             elif fanstatic.BUNDLE_PREFIX in path:
                 base, bundle = path.split(fanstatic.BUNDLE_PREFIX, 1)
-                app = BundleApp(base, bundle, self.ignores)
+                filenames = []
+                # Filter duplicate filenames:
+                for filename in bundle.split(';'):
+                    if filename not in filenames:
+                        filenames.append(filename)
+                app = BundleApp(base, ';'.join(filenames), filenames, self.ignores)
                 self.cached_apps[path_info] = app
             elif os.path.isfile(path):
                 app = self.make_fileapp(path)
