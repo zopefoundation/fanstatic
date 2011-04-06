@@ -212,11 +212,18 @@ def test_bundle_resources(tmpdir):
 /* a test 2 */'''
     assert response.cache_control.max_age is None
 
-    # duplicate filenames are filtered out.
+    # Implementation detail: there is only one cached app:
+    assert len(app.directory_publishers['foo'].cached_apps) == 1
+
+    # Duplicate filenames are filtered out.
     request = webob.Request.blank('/foo/:bundle:test1.js;test2.js;test1.js')
     response = request.get_response(app)
     assert response.body == '''/* a test 1 */
 /* a test 2 */'''
+
+    # After requesting a bundle with multiple occurrences of the same
+    # resource, the cached_apps is the same. 
+    assert len(app.directory_publishers['foo'].cached_apps) == 1
 
     request = webob.Request.blank('/foo/:version:123/:bundle:test1.js;test2.js')
     response = request.get_response(app)

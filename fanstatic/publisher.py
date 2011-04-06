@@ -25,9 +25,9 @@ def check_ignore(ignores, filename):
 
 
 class BundleApp(FileApp):
-    def __init__(self, rootpath, filename, filenames, ignores):
+    def __init__(self, rootpath, bundle, filenames, ignores):
         # Let FileApp determine content_type and encoding based on bundlename.
-        FileApp.__init__(self, filename)
+        FileApp.__init__(self, bundle)
 
         self.filenames = []
         # Check for ignores and rogue paths.
@@ -94,13 +94,24 @@ class DirectoryPublisher(DirectoryApp):
             elif fanstatic.BUNDLE_PREFIX in path:
                 base, bundle = path.split(fanstatic.BUNDLE_PREFIX, 1)
                 filenames = []
+                dirty = False
                 # Filter duplicate filenames:
                 for filename in bundle.split(';'):
-                    if filename not in filenames:
+                    if filename in filenames:
+                        dirty = True
+                    else:
                         filenames.append(filename)
-                filename = ';'.join(filenames)
-                app = BundleApp(base, filename, filenames, self.ignores)
-                self.cached_apps[path_info] = app
+                if dirty:
+                    # We had a dirty bundle request, try to find a cached app
+                    # for the cleaned up bundle:
+                    bundle = ';'.join(filenames)
+                    path_info = path_info.split(fanstatic.BUNDLE_PREFIX)[0] + \
+                        fanstatic.BUNDLE_PREFIX + bundle
+                    app = self.cached_apps.get(path_info)
+                if app is None:
+                    # We could not find a BundleApp with the cleaned up bundle.
+                    app = BundleApp(base, bundle, filenames, self.ignores)
+                    self.cached_apps[path_info] = app
             elif os.path.isfile(path):
                 app = self.make_fileapp(path)
                 self.cached_apps[path_info] = app
