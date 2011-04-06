@@ -225,6 +225,18 @@ def test_bundle_resources(tmpdir):
     # resource, the cached_apps is the same. 
     assert len(app.directory_publishers['foo'].cached_apps) == 1
 
+    # If we request a dirty bundle first, a clean version of the bundle is
+    # cached:
+    app = Publisher(libraries)
+    # Duplicate filenames are filtered out.
+    request = webob.Request.blank('/foo/:bundle:test1.js;test2.js;test1.js')
+    response = request.get_response(app)
+    assert len(app.directory_publishers['foo'].cached_apps) == 1
+    request = webob.Request.blank('/foo/:bundle:test1.js;test2.js')
+    response = request.get_response(app)
+    assert len(app.directory_publishers['foo'].cached_apps) == 1
+
+
     request = webob.Request.blank('/foo/:version:123/:bundle:test1.js;test2.js')
     response = request.get_response(app)
     assert response
