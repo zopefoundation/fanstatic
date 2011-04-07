@@ -8,6 +8,10 @@ CHANGES
   be served in one HTTP request. Bundle URLs are constructed by the 
   fanstatic injector and served by the fanstatic publisher.
 
+- Remove rollup functionality in favor of bundling resources.
+  This removes the rollup argument to NeededResources and the 
+  supersedes and eager_superseder arguments to Resource.
+
 - Abstracted features of Resource, Group, Bundle into base classes
   Renderable and Dependable.
 
