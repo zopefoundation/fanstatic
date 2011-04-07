@@ -310,6 +310,16 @@ def test_mode_shortcut():
     assert needed.resources()[0].relpath == 'k-debug.js'
 
 
+def test_mode_inherit_dependency_nr():
+    foo = Library('foo', '')
+    k = Resource(foo, 'k.js')
+    l_debug = Resource(foo, 'l-debug.js')
+    assert l_debug.dependency_nr == 0
+    l = Resource(foo, 'l.js', debug=l_debug, depends=[k])
+    assert l_debug.dependency_nr == 1
+
+    
+
 def test_rendering():
     foo = Library('foo', '')
     x1 = Resource(foo, 'a.js')
