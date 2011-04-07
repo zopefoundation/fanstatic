@@ -78,6 +78,12 @@ class Library(object):
                     'Library cycle detected in resource %s' % resource)
 
     def register(self, resource):
+        """Register a Resource with this Library. 
+
+        A Resource knows about its Library. After a Resource has registered
+        itself with its Library, the Library knows about the Resources 
+        associated to it. 
+        """
         if resource.relpath in self.known_resources:
             raise ConfigurationError(
                 'Resource path %s is already defined.' % resource.relpath)
