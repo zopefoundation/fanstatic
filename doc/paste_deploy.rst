@@ -64,9 +64,9 @@ To serve ``debug`` resources where available::
 
   debug = True
 
-Use rolled up resources where possible and where they are available::
+Use bundling of resources::
 
-  rollup = true
+  bundle = true
 
 A complete ``[filter:fanstatic]`` section could look like this::
 

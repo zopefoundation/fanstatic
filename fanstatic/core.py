@@ -210,16 +210,6 @@ class Resource(Renderable, Dependable):
       resources. If a string is given, a :py:class:`Resource` instance
       is constructed that has the same library as this resource.
 
-    :param supersedes: optionally, a list of :py:class:`Resource`
-      instances that this resource supersedes as a rollup
-      resource. If all these resources are required for render a page,
-      the superseding resource will be included instead.
-
-    :param eager_superseder: normally superseding resources will only
-      show up if all resources that the resource supersedes are
-      required in a page. If this flag is set, even if only part of the
-      requirements are met, the superseding resource will show up.
-
     :param bottom: indicate that this resource is "bottom safe": it
       can be safely included on the bottom of the page (just before
       ``</body>``). This can be used to improve the performance of
@@ -251,12 +241,16 @@ class Resource(Renderable, Dependable):
 
     def __init__(self, library, relpath,
                  depends=None,
-                 supersedes=None, eager_superseder=False,
                  bottom=False,
                  renderer=None,
                  debug=None,
                  dont_bundle=False,
-                 minified=None):
+                 minified=None,
+                 supersedes=None, eager_superseder=None,
+                 ):
+        if supersedes is not None or eager_superseder is not None:
+            raise DeprecationWarning(
+                'Supersede functionality has been superseded by bundling')
         self.library = library
         self.relpath = relpath
         self.dirname, self.filename = os.path.split(relpath)
@@ -311,27 +305,6 @@ class Resource(Renderable, Dependable):
             self.modes[MINIFIED] = normalize_string(library, minified)
             self.modes[MINIFIED].dependency_nr = self.dependency_nr
             self.modes[MINIFIED].library_nr = self.library_nr
-
-        assert not isinstance(supersedes, basestring)
-        self.supersedes = supersedes or []
-        self.eager_superseder = eager_superseder
-
-        self.rollups = []
-        # create a reference to the superseder in the superseded resource
-        for resource in self.supersedes:
-            resource.rollups.append(self)
-        # also create a reference to the superseding mode in the superseded
-        # mode
-        # XXX what if mode is full-fledged resource which lists
-        # supersedes itself?
-        for mode_name, mode in self.modes.items():
-            for resource in self.supersedes:
-                superseded_mode = resource.mode(mode_name)
-                # if there is no such mode, let's skip it
-                if superseded_mode is resource:
-                    continue
-                mode.supersedes.append(superseded_mode)
-                superseded_mode.rollups.append(mode)
 
         # Register ourself with the Library.
         self.library.register(self)
@@ -471,10 +444,6 @@ class NeededResources(object):
       An exception is raised when both the ``debug`` and ``minified``
       parameters are ``True``.
 
-    :param rollup: If set to True (default is False) rolled up
-      combined resources will be served if they exist and supersede
-      existing resources that are needed.
-
     :param base_url: This URL will be prefixed in front of all resource
       URLs. This can be useful if your web framework wants the resources
       to be published on a sub-URL. Note that this can also be set
@@ -513,19 +482,21 @@ class NeededResources(object):
                  force_bottom=False,
                  minified=False,
                  debug=False,
-                 rollup=False,
                  base_url=None,
                  publisher_signature=DEFAULT_SIGNATURE,
                  bundle=False,
                  resources=None,
+                 rollup=None,
                  ):
+        if rollup is not None:
+            raise DeprecationWarning(
+                'Rollup has been superseded by bundling')
         self._versioning = versioning
         self._recompute_hashes = recompute_hashes
         self._bottom = bottom
         self._force_bottom = force_bottom
         self._base_url = base_url
         self._publisher_signature = publisher_signature
-        self._rollup = rollup
         self._bundle = bundle
         self._resources = set(resources or [])
         self._url_cache = {}  # prevent multiple computations per request
@@ -578,9 +549,6 @@ class NeededResources(object):
             resources.update(resource.resources)
 
         resources = [resource.mode(self._mode) for resource in resources]
-
-        if self._rollup:
-            resources = set(consolidate(resources))
         return sort_resources(resources)
 
     def clear(self):
@@ -765,42 +733,6 @@ def clear_needed():
     needed = get_needed()
     needed.clear()
 
-
-def consolidate(resources):
-    # keep track of rollups: rollup key -> set of resource keys
-    potential_rollups = {}
-    for resource in resources:
-        for rollup in resource.rollups:
-            s = potential_rollups.setdefault(
-                (rollup.library, rollup.relpath), set())
-            s.add((resource.library, resource.relpath))
-
-    # now go through resources, replacing them with rollups if
-    # conditions match
-    result = []
-    for resource in resources:
-        eager_superseders = []
-        exact_superseders = []
-        for rollup in resource.rollups:
-            s = potential_rollups[(rollup.library, rollup.relpath)]
-            if rollup.eager_superseder:
-                eager_superseders.append(rollup)
-            if len(s) == len(rollup.supersedes):
-                exact_superseders.append(rollup)
-        if eager_superseders:
-            # use the eager superseder that rolls up the most
-            eager_superseders = sorted(eager_superseders,
-                                       key=lambda i: len(i.supersedes))
-            result.append(eager_superseders[-1])
-        elif exact_superseders:
-            # use the exact superseder that rolls up the most
-            exact_superseders = sorted(exact_superseders,
-                                       key=lambda i: len(i.supersedes))
-            result.append(exact_superseders[-1])
-        else:
-            # nothing to supersede resource so use it directly
-            result.append(resource)
-    return result
 
 def sort_resources(resources):
     """Sort resources for inclusion on web page.

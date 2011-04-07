@@ -2,7 +2,7 @@ from paste.util.converters import asbool
 from fanstatic import DEBUG, MINIFIED
 
 BOOL_CONFIG = set(['versioning', 'recompute_hashes', DEBUG, MINIFIED,
-                   'bottom', 'force_bottom', 'rollup', 'bundle'])
+                   'bottom', 'force_bottom', 'bundle'])
 
 
 def convert_config(config):

@@ -136,22 +136,6 @@ will preferentially serve minified alternatives for resources, if
 available. If no minified version is available, the default resource
 will be served.
 
-rollup
-------
-
-A performance optimization to reduce the amount of requests sent by a
-client is to roll up several resources into a bundle, so that all
-those resources are retrieved in a single request. This way a whole
-collection of resources can be served in one go.
-
-You can create special :py:class:`Resource` instances that declare
-they supersede a collection of other resources. If ``rollup`` is
-enabled, Fanstatic will serve a combined resource if it finds out that
-all individual resources that it supersedes are needed. If you also
-declare that a resource is an ``eager_superseder``, the rolled up
-resource will actually always be served, even if only some of the
-superseded resources are needed.
-
 base_url
 --------
 

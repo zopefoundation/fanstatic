@@ -15,10 +15,9 @@ here. See the :doc:`configuration section<configuration>` and the
   the mode system. You can then configure Fanstatic to preferentially
   serve resources in a certain mode, such as ``minified``.
 
-* rolling up of resources.  Resource libraries can specify rollup
-  resources that combine multiple resources into one. This reduces the
-  amount of server requests to be made by the web browser, and can
-  help with caching. This can be controlled with the ``rollup`` configuration
+* bundling of resources.  Resource bundles combine multiple resources into one.
+  This reduces the amount of server requests to be made by the web browser, and
+  help with caching. This can be controlled with the ``bundle`` configuration
   parameter.
 
 * infinite caching. Fanstatic can serve resources declaring that they

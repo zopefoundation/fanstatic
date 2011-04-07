@@ -12,7 +12,7 @@ WSGI components
 
 .. autoclass:: fanstatic.Publisher
 
-.. autoclass:: fanstatic.DirectoryPublisher
+.. autoclass:: fanstatic.LibraryPublisher
 
 .. autoclass:: fanstatic.Delegator
 
