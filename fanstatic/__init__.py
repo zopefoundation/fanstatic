@@ -27,6 +27,6 @@ from fanstatic.codegen import generate_code
 from fanstatic.injector import Injector, make_injector
 
 from fanstatic.publisher import (Publisher, Delegator, make_publisher,
-                                 DirectoryPublisher)
+                                 LibraryPublisher)
 
 from fanstatic.wsgi import Fanstatic, make_fanstatic

@@ -2,7 +2,7 @@ import webob
 
 from datetime import datetime, timedelta
 
-from fanstatic import LibraryRegistry, Library, Publisher, Delegator
+from fanstatic import LibraryRegistry, Library, Publisher, Delegator, Resource
 from fanstatic.publisher import FOREVER
 
 
@@ -195,10 +195,14 @@ def test_publisher_ignores(tmpdir):
 
 def test_bundle_resources(tmpdir):
     foo_library_dir = tmpdir.mkdir('foo')
+    foo = Library('foo', foo_library_dir.strpath)
+
+    test1 = Resource(foo, 'test1.js')
     tmpdir.join('foo').join('test1.js').write('/* a test 1 */')
+    test2 = Resource(foo, 'test2.js')
     tmpdir.join('foo').join('test2.js').write('/* a test 2 */')
 
-    libraries = LibraryRegistry([Library('foo', foo_library_dir.strpath)])
+    libraries = LibraryRegistry([foo])
 
     app = Publisher(libraries)
 
@@ -215,27 +219,10 @@ def test_bundle_resources(tmpdir):
     # Implementation detail: there is only one cached app:
     assert len(app.directory_publishers['foo'].cached_apps) == 1
 
-    # Duplicate filenames are filtered out.
+    # Dirty bundles yield a 404:
     request = webob.Request.blank('/foo/:bundle:test1.js;test2.js;test1.js')
     response = request.get_response(app)
-    assert response.body == '''/* a test 1 */
-/* a test 2 */'''
-
-    # After requesting a bundle with multiple occurrences of the same
-    # resource, the cached_apps is the same. 
-    assert len(app.directory_publishers['foo'].cached_apps) == 1
-
-    # If we request a dirty bundle first, a clean version of the bundle is
-    # cached:
-    app = Publisher(libraries)
-    assert len(app.directory_publishers) == 0
-    request = webob.Request.blank('/foo/:bundle:test1.js;test2.js;test1.js')
-    response = request.get_response(app)
-    assert len(app.directory_publishers['foo'].cached_apps) == 1
-    request = webob.Request.blank('/foo/:bundle:test1.js;test2.js')
-    response = request.get_response(app)
-    assert len(app.directory_publishers['foo'].cached_apps) == 1
-
+    assert response.status_int == 404
 
     request = webob.Request.blank('/foo/:version:123/:bundle:test1.js;test2.js')
     response = request.get_response(app)
@@ -255,10 +242,19 @@ def test_bundle_resources(tmpdir):
     assert response.status_int == 403
 
     subdir = tmpdir.join('foo').mkdir('sub').mkdir('sub')
+    r1 = Resource(foo, 'sub/sub/r1.css')
     subdir.join('r1.css').write('r1')
+    r2 = Resource(foo, 'sub/sub/r2.css')
     subdir.join('r2.css').write('r2')
 
     request = webob.Request.blank('/foo/sub/sub/:bundle:r1.css;r2.css')
     response = request.get_response(app)
     assert response.body == '''r1
 r2'''
+
+    r3 = Resource(foo, 'r3.css')
+    # r3 does not exist, trigger bundleapp error.
+    request = webob.Request.blank('/foo/:bundle:r3.css')
+    response = request.get_response(app)
+    assert response.status_int == 404
+

@@ -31,6 +31,13 @@ def test_resource():
 
     assert needed.resources() == [x2, x1, y1]
 
+def test_resource_register_with_library():
+    foo = Library('foo', '')
+    x1 = Resource(foo, 'a.js', minified='a.min.js')
+
+    assert len(foo.known_resources) == 2
+    assert x1 in foo.known_resources
+    
 
 def test_group_resource():
     foo = Library('foo', '')

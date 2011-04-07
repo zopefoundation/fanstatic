@@ -62,6 +62,7 @@ class Library(object):
         self.path = os.path.join(caller_dir(), rootpath)
         self.version = version
         self._library_deps = set()
+        self.known_resources = set()
 
     def __repr__(self):
         return "<Library '%s' at '%s'>" % (self.name, self.path)
@@ -75,6 +76,14 @@ class Library(object):
             if self in dep._library_deps:
                 raise LibraryDependencyCycle(
                     'Library cycle detected in resource %s' % resource)
+
+    def register(self, resource):
+        self.known_resources.add(resource)
+        for mode_resource in resource.modes.values():
+            self.known_resources.add(mode_resource)
+
+    def known_paths(self):
+        return [resource.relpath for resource in self.known_resources]
 
     def signature(self, recompute_hashes=False):
         """Get a unique signature for this Library.
@@ -323,6 +332,9 @@ class Resource(Renderable, Dependable):
                     continue
                 mode.supersedes.append(superseded_mode)
                 superseded_mode.rollups.append(mode)
+
+        # Register ourself with the Library.
+        self.library.register(self)
 
     def init_dependency_nr(self):
         # on dependency within the library

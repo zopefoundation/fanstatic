@@ -30,13 +30,11 @@ class BundleApp(FileApp):
         FileApp.__init__(self, bundle)
 
         self.filenames = []
-        # Check for ignores and rogue paths.
         for filename in filenames:
-            check_ignore(ignores, filename)
             fullpath = os.path.join(rootpath, filename)
             if not os.path.normpath(fullpath).startswith(rootpath):
                 # Raising forbidden here would expose private information.
-                raise webob.exc.HTTPNotFound()
+                raise webob.exc.HTTPNotFound()  # pragma: no cover
             if not os.path.exists(fullpath):
                 raise webob.exc.HTTPNotFound()
             self.filenames.append(fullpath)
@@ -62,7 +60,7 @@ class BundleApp(FileApp):
             self.update()
         return DataApp.get(self, environ, start_response)
 
-class DirectoryPublisher(DirectoryApp):
+class LibraryPublisher(DirectoryApp):
     """Fanstatic directory publisher WSGI application.
 
     This WSGI application serves a directory of static resources to
@@ -77,43 +75,43 @@ class DirectoryPublisher(DirectoryApp):
     :param ignores: A list of globs to match the requests against. If
       we have a match, the request will not be served.
     """
-    def __init__(self, path, ignores):
-        self.ignores = ignores
-        super(DirectoryPublisher, self).__init__(path)
+    def __init__(self, library):
+        self.ignores = library.ignores
+        self.library = library
+        super(LibraryPublisher, self).__init__(library.path)
 
     def __call__(self, environ, start_response):
         path_info = environ['PATH_INFO']
         check_ignore(self.ignores, path_info)
 
-        # Copied from DirectoryApp:
         app = self.cached_apps.get(path_info)
         if app is None:
-            path = os.path.join(self.path, path_info.lstrip('/'))
-            if not os.path.normpath(path).startswith(self.path):
+            fs_path = os.path.join(self.path, path_info.lstrip('/'))
+            if not os.path.normpath(fs_path).startswith(self.path):
                 raise webob.exc.HTTPForbidden()
-            elif fanstatic.BUNDLE_PREFIX in path:
-                base, bundle = path.split(fanstatic.BUNDLE_PREFIX, 1)
+            elif fanstatic.BUNDLE_PREFIX in fs_path:
+                # We are handling a bundle request.
+                dirname, bundle = path_info.split(fanstatic.BUNDLE_PREFIX, 1)
+                dirname = dirname.lstrip('/')
+
                 filenames = []
-                dirty = False
-                # Filter duplicate filenames:
+                # Check for duplicate filenames (`dirty bundles`) and check
+                # whether the filenames belong to a Resource definition.
+                known_paths = self.library.known_paths()
                 for filename in bundle.split(';'):
+                    if dirname + filename not in known_paths:
+                        raise webob.exc.HTTPNotFound()
                     if filename in filenames:
-                        dirty = True
+                        # We have a `dirty bundle` request.
+                        raise webob.exc.HTTPNotFound()
                     else:
                         filenames.append(filename)
-                if dirty:
-                    # We had a dirty bundle request, try to find a cached app
-                    # for the cleaned up bundle:
-                    bundle = ';'.join(filenames)
-                    path_info = path_info.split(fanstatic.BUNDLE_PREFIX)[0] + \
-                        fanstatic.BUNDLE_PREFIX + bundle
-                    app = self.cached_apps.get(path_info)
-                if app is None:
-                    # We could not find a BundleApp with the cleaned up bundle.
-                    app = BundleApp(base, bundle, filenames, self.ignores)
-                    self.cached_apps[path_info] = app
-            elif os.path.isfile(path):
-                app = self.make_fileapp(path)
+                base = os.path.join(self.path, dirname)
+                app = BundleApp(base, bundle, filenames, self.ignores)
+                # Cache the BundleApp under the original path_info
+                self.cached_apps[path_info] = app
+            elif os.path.isfile(fs_path):
+                app = self.make_fileapp(fs_path)
                 self.cached_apps[path_info] = app
             else:
                 raise webob.exc.HTTPNotFound()
@@ -173,8 +171,8 @@ class Publisher(object):
             if library is None:
                 # unknown library
                 raise webob.exc.HTTPNotFound()
-            directory_publisher = self.directory_publishers.setdefault(
-                library_name, DirectoryPublisher(library.path, library.ignores))
+            directory_publisher = self.directory_publishers[library_name] = \
+                LibraryPublisher(library)
 
         # now delegate publishing to the directory publisher
         response = request.get_response(directory_publisher)
