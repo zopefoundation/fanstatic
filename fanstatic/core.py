@@ -164,6 +164,7 @@ register_inclusion_renderer('.js', render_js, 20)
 
 register_inclusion_renderer('.ico', render_ico, 30)
 
+
 class Renderable(object):
     """A renderable.
 
@@ -175,6 +176,7 @@ class Renderable(object):
 
         This returns a snippet.
         """
+
 
 class Dependable(object):
     """A dependable.
@@ -189,6 +191,7 @@ class Dependable(object):
     This might possibly include the object itself, as for a normal
     Resource.
     """
+
 
 class Resource(Renderable, Dependable):
     """A resource.
@@ -284,7 +287,7 @@ class Resource(Renderable, Dependable):
             depends = normalize_groups(depends)
             # ...before updating the set of dependencies of this resource.
             self.depends.update(depends)
-        
+
         self.resources = set([self])
         for depend in self.depends:
             self.resources.update(depend.resources)
@@ -389,6 +392,7 @@ class Group(Dependable):
 # backwards compatibility alias
 GroupResource = Group
 
+
 def normalize_groups(resources):
     result = []
     for resource in resources:
@@ -398,11 +402,12 @@ def normalize_groups(resources):
             result.append(resource)
     return result
 
+
 def normalize_string(library, resource):
     if isinstance(resource, basestring):
         return Resource(library, resource)
     return resource
-    
+
 
 class NeededResources(object):
     """The current selection of needed resources..
@@ -706,6 +711,7 @@ def init_needed(*args, **kw):
     thread_local_needed_data.__dict__[NEEDED] = needed
     return needed
 
+
 def del_needed():
     """Delete the NeededResources object from the thread-local data to leave a
     clean environment.
@@ -717,6 +723,7 @@ def del_needed():
         del thread_local_needed_data.__dict__[NEEDED]
     except KeyError:
         pass
+
 
 def get_needed():
     needed = thread_local_needed_data.__dict__.get(NEEDED)
@@ -768,6 +775,7 @@ def sort_resources(resources):
             resource.relpath)
     return sorted(resources, key=key)
 
+
 class Bundle(Renderable):
     def __init__(self):
         self._resources = []
@@ -775,20 +783,20 @@ class Bundle(Renderable):
     @property
     def dirname(self):
         return self._resources[0].dirname
-        
+
     @property
     def library(self):
         return self._resources[0].library
-        
+
     @property
     def renderer(self):
         return self._resources[0].renderer
-        
+
     def resources(self):
         """This is used to test resources, not because this is a dependable.
         """
         return self._resources
-        
+
     def render(self, library_url):
         paths = [resource.filename for resource in self._resources]
         # URL may become too long:
@@ -824,6 +832,7 @@ class Bundle(Renderable):
         else:
             # add the bundle itself
             result.append(self)
+
 
 def bundle_resources(resources):
     """Bundle sorted resources together.

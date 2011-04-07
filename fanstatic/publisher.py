@@ -18,6 +18,7 @@ YEAR_IN_SECONDS = DAY_IN_SECONDS * 365
 # arbitrarily define forever as 10 years in the future
 FOREVER = YEAR_IN_SECONDS * 10
 
+
 def check_ignore(ignores, filename):
     for ignore in ignores:
         if fnmatch.filter(filename.split('/'), ignore):
@@ -48,17 +49,18 @@ class BundleApp(FileApp):
 
         contents = []
         for filename in self.filenames:
-            fh = open(filename,"rb")
+            fh = open(filename, 'rb')
             contents.append(fh.read())
             fh.close()
         self.set_content('\n'.join(contents), mtime)
 
     def get(self, environ, start_response):
         if 'max-age=0' in CACHE_CONTROL(environ).lower():
-            self.update(force=True) # RFC 2616 13.2.6
+            self.update(force=True)  # RFC 2616 13.2.6
         else:
             self.update()
         return DataApp.get(self, environ, start_response)
+
 
 class LibraryPublisher(DirectoryApp):
     """Fanstatic directory publisher WSGI application.
@@ -116,6 +118,7 @@ class LibraryPublisher(DirectoryApp):
             else:
                 raise webob.exc.HTTPNotFound()
         return app(environ, start_response)
+
 
 class Publisher(object):
     """Fanstatic publisher WSGI application.

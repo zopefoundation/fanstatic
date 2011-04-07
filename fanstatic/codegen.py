@@ -6,6 +6,7 @@ def _visit(resource, result, dead):
         _visit(depend, result, dead)
     result.append(resource)
 
+
 def sort_resources_topological(resources):
     """Sort resources by dependency.
     """
@@ -17,6 +18,7 @@ def sort_resources_topological(resources):
     for resource in resources:
         _visit(resource, result, dead)
     return result
+
 
 def generate_code(**kw):
     resource_to_name = {}
