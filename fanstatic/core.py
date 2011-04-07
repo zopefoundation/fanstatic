@@ -62,7 +62,7 @@ class Library(object):
         self.path = os.path.join(caller_dir(), rootpath)
         self.version = version
         self._library_deps = set()
-        self.known_resources = set()
+        self.known_resources = {}
 
     def __repr__(self):
         return "<Library '%s' at '%s'>" % (self.name, self.path)
@@ -78,12 +78,10 @@ class Library(object):
                     'Library cycle detected in resource %s' % resource)
 
     def register(self, resource):
-        self.known_resources.add(resource)
-        for mode_resource in resource.modes.values():
-            self.known_resources.add(mode_resource)
-
-    def known_paths(self):
-        return [resource.relpath for resource in self.known_resources]
+        if resource.relpath in self.known_resources:
+            raise ConfigurationError(
+                'Resource path %s is already defined.' % resource.relpath)
+        self.known_resources[resource.relpath] = resource
 
     def signature(self, recompute_hashes=False):
         """Get a unique signature for this Library.
@@ -301,16 +299,18 @@ class Resource(Renderable, Dependable):
 
         self.modes = {}
         if debug is not None:
-            self.modes[DEBUG] = normalize_string(library, debug)
-            self.modes[DEBUG].dependency_nr = self.dependency_nr
-            self.modes[DEBUG].library_nr = self.library_nr
+            debug = self.modes[DEBUG] = normalize_string(library, debug)
+            debug.dependency_nr = self.dependency_nr
+            debug.library_nr = self.library_nr
         if minified is not None:
-            self.modes[MINIFIED] = normalize_string(library, minified)
-            self.modes[MINIFIED].dependency_nr = self.dependency_nr
-            self.modes[MINIFIED].library_nr = self.library_nr
+            minified = self.modes[MINIFIED] = normalize_string(
+                library, minified)
+            minified.dependency_nr = self.dependency_nr
+            minified.library_nr = self.library_nr
 
         # Register ourself with the Library.
         self.library.register(self)
+
 
     def init_dependency_nr(self):
         # on dependency within the library

@@ -216,18 +216,15 @@ def test_bundle_resources(tmpdir):
 /* a test 2 */'''
     assert response.cache_control.max_age is None
 
-    # Implementation detail: there is only one cached app:
-    assert len(app.directory_publishers['foo'].cached_apps) == 1
+    request = webob.Request.blank('/foo/:version:123/:bundle:test1.js;test2.js')
+    response = request.get_response(app)
+    assert response
+    assert response.cache_control.max_age is not None
 
     # Dirty bundles yield a 404:
     request = webob.Request.blank('/foo/:bundle:test1.js;test2.js;test1.js')
     response = request.get_response(app)
     assert response.status_int == 404
-
-    request = webob.Request.blank('/foo/:version:123/:bundle:test1.js;test2.js')
-    response = request.get_response(app)
-    assert response
-    assert response.cache_control.max_age is not None
 
     request = webob.Request.blank('/foo/:bundle:XXX.js')
     response = request.get_response(app)
@@ -258,3 +255,16 @@ r2'''
     response = request.get_response(app)
     assert response.status_int == 404
 
+    r4 = Resource(foo, 'sub/sub/r4.css', depends=[r1, r2])
+    subdir.join('r4.css').write('r4')
+    request = webob.Request.blank('/foo/sub/sub/:bundle:r1.css;r2.css;r4.css')
+    response = request.get_response(app)
+    assert response.body == '''r1
+r2
+r4'''
+
+    # An incorrect bundle, as the order of the paths does not correspond to
+    # the dependency order of the Resources.
+    request = webob.Request.blank('/foo/sub/sub/:bundle:r1.css;r4.css;r2.css')
+    response = request.get_response(app)
+    assert response.status_int == 404

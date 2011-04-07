@@ -36,7 +36,11 @@ def test_resource_register_with_library():
     x1 = Resource(foo, 'a.js', minified='a.min.js')
 
     assert len(foo.known_resources) == 2
-    assert x1 in foo.known_resources
+    assert x1 in foo.known_resources.values()
+
+    # Can not use the same relpath for two Resource declarations.
+    with pytest.raises(ConfigurationError):
+        x2 = Resource(foo, 'a.js')
     
 
 def test_group_resource():

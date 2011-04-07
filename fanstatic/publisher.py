@@ -96,13 +96,20 @@ class LibraryPublisher(DirectoryApp):
                 dirname, bundle = path_info.split(fanstatic.BUNDLE_PREFIX, 1)
                 dirname = dirname.lstrip('/')
 
+                dependency_nr = 0
                 filenames = []
                 # Check for duplicate filenames (`dirty bundles`) and check
                 # whether the filenames belong to a Resource definition.
-                known_paths = self.library.known_paths()
                 for filename in bundle.split(';'):
-                    if dirname + filename not in known_paths:
+                    resource = self.library.known_resources.get(
+                        dirname + filename)
+                    if resource is None:
                         raise webob.exc.HTTPNotFound()
+                    if resource.dependency_nr < dependency_nr:
+                        # Invalid bundle, resources in a bundle should be
+                        # sorted by dependency_nr.
+                        raise webob.exc.HTTPNotFound()
+                    dependency_nr = resource.dependency_nr
                     if filename in filenames:
                         # We have a `dirty bundle` request.
                         raise webob.exc.HTTPNotFound()
