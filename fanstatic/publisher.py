@@ -115,7 +115,8 @@ class LibraryPublisher(DirectoryApp):
                         raise webob.exc.HTTPNotFound()
                     else:
                         filenames.append(filename)
-                base = os.path.join(self.path, dirname)
+                # normpath in order to correct the dirname on Windoze.
+                base = os.path.normpath(os.path.join(self.path, dirname))
                 app = BundleApp(base, bundle, filenames, self.ignores)
                 # Cache the BundleApp under the original path_info
                 self.cached_apps[path_info] = app
