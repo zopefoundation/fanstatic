@@ -6,10 +6,9 @@ def test_generate_source():
     i1 = Resource(foo, 'i1.js')
     i2 = Resource(foo, 'i2.js', depends=[i1])
     i3 = Resource(foo, 'i3.js', depends=[i2])
-    i4 = Resource(foo, 'i4.js', depends=[i1])
-    i5 = Resource(foo, 'i5.js', depends=[i4, i3])
+    i5 = Resource(foo, 'i5.js', depends=[i3])
 
-    assert generate_code(i1=i1, i2=i2, i3=i3, i4=i4, i5=i5) == '''\
+    assert generate_code(i1=i1, i2=i2, i3=i3, i5=i5) == '''\
 from fanstatic import Library, Resource
 
 # This code is auto-generated and not PEP8 compliant
@@ -19,9 +18,7 @@ foo = Library('foo', '')
 i1 = Resource(foo, 'i1.js')
 i2 = Resource(foo, 'i2.js', depends=[i1])
 i3 = Resource(foo, 'i3.js', depends=[i2])
-i4 = Resource(foo, 'i4.js', depends=[i1])
-i5 = Resource(foo, 'i5.js', depends=[i4, i3])'''
-
+i5 = Resource(foo, 'i5.js', depends=[i3])''' 
 
 def test_generate_source_control_name():
     foo = Library('foo', '')

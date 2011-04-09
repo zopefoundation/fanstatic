@@ -589,19 +589,6 @@ rest of head</head><body>rest of body<script type="text/javascript" src="/fansta
 <script type="text/javascript" src="/fanstatic/foo/c.js"></script></body></html>'''
 
 
-def test_sorting_resources():
-    foo = Library('foo', '')
-
-    a1 = Resource(foo, 'a1.js')
-    a2 = Resource(foo, 'a2.js', depends=[a1])
-    a3 = Resource(foo, 'a3.js', depends=[a2])
-    a4 = Resource(foo, 'a4.js', depends=[a1])
-    a5 = Resource(foo, 'a5.js', depends=[a4, a3])
-
-    assert sort_resources_topological([a5, a3, a1, a2, a4]) == [
-        a1, a4, a2, a3, a5]
-
-
 def test_inclusion_renderers():
     assert sorted(
         [(order, key) for key, (order, _) in inclusion_renderers.items()]) == [
@@ -964,11 +951,9 @@ def test_sort_resources_topological():
     a1 = Resource(foo, 'a1.js')
     a2 = Resource(foo, 'a2.js', depends=[a1])
     a3 = Resource(foo, 'a3.js', depends=[a2])
-    a4 = Resource(foo, 'a4.js', depends=[a1])
-    a5 = Resource(foo, 'a5.js', depends=[a4, a3])
+    a5 = Resource(foo, 'a5.js', depends=[a3])
 
-    assert sort_resources_topological([a5, a3, a1, a2, a4]) == [
-        a1, a4, a2, a3, a5]
+    assert sort_resources_topological([a5, a3, a1, a2]) == [a1, a2, a3, a5]
 
 def test_bundle():
     foo = Library('foo', '')

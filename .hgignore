@@ -9,6 +9,7 @@ parts
 develop-eggs
 dist
 doc/_build
+eggs
 .coverage
 htmlcov
 
