@@ -771,6 +771,11 @@ def test_normalize_string():
     r1 = Resource(foo, 'f.js')
     assert normalize_string(foo, r1) == r1
 
+    r2 = Resource(foo, 'r2.css')
+    r3 = Resource(foo, 'r3.css', depends=[r2], minified='r3.min.css')
+    needed = NeededResources(minified=True, resources=[r3])
+    assert needed.resources() == [r2, r3.modes['minified']]
+
 def test_sort_group_per_renderer():
     foo = Library('foo', '')
     a_js = Resource(foo, 'a.js')
