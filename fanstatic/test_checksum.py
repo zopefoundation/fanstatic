@@ -1,3 +1,4 @@
+import time
 import shutil
 from pkg_resources import resource_filename
 
@@ -15,9 +16,13 @@ def _copy_testdata(tmpdir):
 def test_list_directory(tmpdir):
     testdata_path = str(_copy_testdata(tmpdir))
     expected = [
+        tmpdir.join('MyPackage').strpath,
         tmpdir.join('MyPackage/setup.py').strpath,
         tmpdir.join('MyPackage/MANIFEST.in').strpath,
+        tmpdir.join('MyPackage/src').strpath,
+        tmpdir.join('MyPackage/src/mypackage').strpath,
         tmpdir.join('MyPackage/src/mypackage/__init__.py').strpath,
+        tmpdir.join('MyPackage/src/mypackage/resources').strpath,
         tmpdir.join('MyPackage/src/mypackage/resources/style.css').strpath,
         ]
     found = list(list_directory(testdata_path))
@@ -31,35 +36,44 @@ def test_checksum(tmpdir):
     # we'll have to do with circumstantial evidence.
 
     # Compute a first checksum for the test package:
-    chksum_start = checksum(testdata_path)
+    checksum_start = checksum(testdata_path)
     # Add a file (+ contents!) and see the checksum changed:
     tmpdir.join('/MyPackage/A').write('Contents for A')
-    assert checksum(testdata_path) != chksum_start
+    checksum_after_add = checksum(testdata_path)
+    assert checksum_after_add != checksum_start
 
-    # Remove the file again, the checksum is same as we started with:
+    # Remove the file again, the checksum changed:
     tmpdir.join('/MyPackage/A').remove()
-    assert checksum(testdata_path) == chksum_start
+    checksum_after_remove = checksum(testdata_path)
+    assert checksum_after_remove != checksum_after_add
+    assert checksum_after_remove != checksum_start
 
     # Obviously, changing the contents will change the checksum too:
     tmpdir.join('/MyPackage/B').write('Contents for B')
-    chksum_start = checksum(testdata_path)
+    checksum_start = checksum(testdata_path)
+    # Wait a split second in order to let the disk catch up.
+    time.sleep(0.01)
     tmpdir.join('/MyPackage/B').write('Contents for B have changed')
-    assert checksum(testdata_path) != chksum_start
+    assert checksum(testdata_path) != checksum_start
     tmpdir.join('/MyPackage/B').remove()
 
     # Moving, or renaming a file should change the checksum:
-    chksum_start = checksum(testdata_path)
+    checksum_start = checksum(testdata_path)
     tmpdir.join('/MyPackage/setup.py').rename(
         tmpdir.join('/MyPackage/setup.py.renamed'))
     expected = [
-        tmpdir.join('MyPackage/setup.py.renamed').strpath,
+        tmpdir.join('MyPackage').strpath,
         tmpdir.join('MyPackage/MANIFEST.in').strpath,
+        tmpdir.join('MyPackage/setup.py.renamed').strpath,
+        tmpdir.join('MyPackage/src').strpath,
+        tmpdir.join('MyPackage/src/mypackage').strpath,
         tmpdir.join('MyPackage/src/mypackage/__init__.py').strpath,
+        tmpdir.join('MyPackage/src/mypackage/resources').strpath,
         tmpdir.join('MyPackage/src/mypackage/resources/style.css').strpath,
         ]
     found = list(list_directory(testdata_path))
     assert sorted(found) == sorted(expected)
-    assert checksum(testdata_path) != chksum_start
+    assert checksum(testdata_path) != checksum_start
 
 
 def test_checksum_no_vcs_name(tmpdir):
@@ -67,10 +81,15 @@ def test_checksum_no_vcs_name(tmpdir):
     tmpdir.join('/MyPackage/.novcs').ensure(dir=True)
     tmpdir.join('/MyPackage/.novcs/foo').write('Contents of foo')
     expected = [
+        tmpdir.join('MyPackage').strpath,
+        tmpdir.join('MyPackage/.novcs').strpath,
         tmpdir.join('MyPackage/.novcs/foo').strpath,
         tmpdir.join('MyPackage/setup.py').strpath,
         tmpdir.join('MyPackage/MANIFEST.in').strpath,
+        tmpdir.join('MyPackage/src').strpath,
+        tmpdir.join('MyPackage/src/mypackage').strpath,
         tmpdir.join('MyPackage/src/mypackage/__init__.py').strpath,
+        tmpdir.join('MyPackage/src/mypackage/resources').strpath,
         tmpdir.join('MyPackage/src/mypackage/resources/style.css').strpath,
         ]
     found = list(list_directory(testdata_path))
@@ -83,9 +102,13 @@ def test_checksum_vcs_name(tmpdir):
         tmpdir.join('/MyPackage/%s' % name).ensure(dir=True)
         tmpdir.join('/MyPackage/%s/foo' % name).write('Contents of foo')
         expected = [
+            tmpdir.join('MyPackage').strpath,
             tmpdir.join('MyPackage/setup.py').strpath,
             tmpdir.join('MyPackage/MANIFEST.in').strpath,
+            tmpdir.join('MyPackage/src').strpath,
+            tmpdir.join('MyPackage/src/mypackage').strpath,
             tmpdir.join('MyPackage/src/mypackage/__init__.py').strpath,
+            tmpdir.join('MyPackage/src/mypackage/resources').strpath,
             tmpdir.join('MyPackage/src/mypackage/resources/style.css').strpath,
             ]
         found = list(list_directory(testdata_path))
@@ -97,10 +120,14 @@ def test_checksum_dot_file(tmpdir):
     testdata_path = str(_copy_testdata(tmpdir))
     tmpdir.join('/MyPackage/.woekie').ensure()
     expected = [
+        tmpdir.join('MyPackage').strpath,
         tmpdir.join('MyPackage/.woekie').strpath,
         tmpdir.join('MyPackage/setup.py').strpath,
         tmpdir.join('MyPackage/MANIFEST.in').strpath,
+        tmpdir.join('MyPackage/src').strpath,
+        tmpdir.join('MyPackage/src/mypackage').strpath,
         tmpdir.join('MyPackage/src/mypackage/__init__.py').strpath,
+        tmpdir.join('MyPackage/src/mypackage/resources').strpath,
         tmpdir.join('MyPackage/src/mypackage/resources/style.css').strpath,
         ]
     found = list(list_directory(testdata_path))
@@ -112,9 +139,13 @@ def test_checksum_ignored_extensions(tmpdir):
     for ext in IGNORED_EXTENSIONS:
         tmpdir.join('/MyPackage/bar%s' % ext).ensure()
         expected = [
+            tmpdir.join('MyPackage').strpath,
             tmpdir.join('MyPackage/setup.py').strpath,
             tmpdir.join('MyPackage/MANIFEST.in').strpath,
+            tmpdir.join('MyPackage/src').strpath,
+            tmpdir.join('MyPackage/src/mypackage').strpath,
             tmpdir.join('MyPackage/src/mypackage/__init__.py').strpath,
+            tmpdir.join('MyPackage/src/mypackage/resources').strpath,
             tmpdir.join('MyPackage/src/mypackage/resources/style.css').strpath,
             ]
         found = list(list_directory(testdata_path))
