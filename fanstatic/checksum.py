@@ -13,8 +13,6 @@ def list_directory(path):
                 dirs.remove(dir)
             except ValueError:
                 pass
-        # We are also interested in the directories.
-        yield os.path.join(root)
         for file in files:
             _, ext = os.path.splitext(file)
             if ext in IGNORED_EXTENSIONS:
@@ -23,8 +21,20 @@ def list_directory(path):
 
 
 def checksum(path):
+    # Ignored extensions.
     chcksm = hashlib.md5()
     for path in list_directory(path):
+        # Use the full path name for the checksum to track file renames.
         chcksm.update(path)
-        chcksm.update(str(os.stat(path).st_mtime))
+        try:
+            f = open(path, 'rb')
+            while True:
+                # 256kb chunks.
+                # XXX how to optimize chunk size?
+                chunk = f.read(0x40000)
+                if not chunk:
+                    break
+                chcksm.update(chunk)
+        finally:
+            f.close()
     return chcksm.hexdigest()
