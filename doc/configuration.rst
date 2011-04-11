@@ -62,10 +62,11 @@ in which the Library is defined: it takes the explicit version
 information from this. If no version information can be found or if
 the python package is installed in `development mode`_, we still want
 to be able to create a unique version that changes whenever the
-content of the resources changes. To this end, a hash of the contents
-of the Library directory is automatically calculated. Whenever you
-make any changes to a resource in the library, the hash version will
-be automatically recalculated.
+content of the resources changes.
+
+To this end, the most recent modification time from the files and directories
+in the Library directory is taken. Whenever you make any changes to a resource
+in the library, the hash version will be automatically recalculated.
 
 The benefit of calculating a hash for the Library directory is that
 resource URLs change when a referenced resource changes; If resource A
@@ -73,6 +74,11 @@ resource URLs change when a referenced resource changes; If resource A
 (i.e. ``style.css``) changes, the URL for resource A changes, not
 because A changed, but because the contents of the library to which A
 and B belong has changed.
+
+Fanstatic also provides an MD5-based algorithm for the Library version
+calculation. This algorithm is slower, but you may use if you don't trust
+your filesystem. Use it through the ``versioning_use_md5`` parameter.
+
 
 .. _`development mode`: http://peak.telecommunity.com/DevCenter/setuptools#develop
 

@@ -2,7 +2,7 @@ import os
 import sys
 import threading
 
-from fanstatic.checksum import checksum
+import fanstatic.checksum
 
 DEFAULT_SIGNATURE = 'fanstatic'
 
@@ -120,7 +120,7 @@ class Library(object):
                 'Resource path %s is already defined.' % resource.relpath)
         self.known_resources[resource.relpath] = resource
 
-    def signature(self, recompute_hashes=False):
+    def signature(self, recompute_hashes=False, version_method=None):
         """Get a unique signature for this Library.
 
         If a version has been defined, we return the version.
@@ -136,10 +136,10 @@ class Library(object):
 
         if recompute_hashes:
             # Always re-compute.
-            sig = checksum(self.path)
+            sig = version_method(self.path)
         elif self._signature is None:
             # Only compute if not computed before.
-            sig = self._signature = checksum(self.path)
+            sig = self._signature = version_method(self.path)
         else:
             # Use cached value.
             sig = self._signature
@@ -462,6 +462,11 @@ class NeededResources(object):
       the URLs can both be infinitely cached and the resources will always
       be up to date. See also the ``recompute_hashes`` parameter.
 
+    :param versioning_use_md5: If ``True``, Fanstatic will use and md5
+      algorithm instead of an algorithm based on the last modification time of
+      the Resource files to compute versions. Use md5 if you don't trust your
+      filesystem.
+
     :param recompute_hashes: If ``True`` and versioning is enabled, Fanstatic
       will recalculate hash URLs on the fly whenever you make changes, even
       without restarting the server. This is useful during development,
@@ -523,6 +528,7 @@ class NeededResources(object):
 
     def __init__(self,
                  versioning=False,
+                 versioning_use_md5=False,
                  recompute_hashes=True,
                  bottom=False,
                  force_bottom=False,
@@ -538,6 +544,11 @@ class NeededResources(object):
             raise DeprecationWarning(
                 'Rollup has been superseded by bundling')
         self._versioning = versioning
+        if versioning_use_md5:
+            self._version_method = fanstatic.checksum.md5
+        else:
+            self._version_method = fanstatic.checksum.mtime
+
         self._recompute_hashes = recompute_hashes
         self._bottom = bottom
         self._force_bottom = force_bottom
@@ -618,7 +629,9 @@ class NeededResources(object):
         path.append(library.name)
         if self._versioning:
             path.append(
-                library.signature(recompute_hashes=self._recompute_hashes))
+                library.signature(
+                    recompute_hashes=self._recompute_hashes,
+                    version_method=self._version_method))
         return '/'.join(path)
 
     def render(self):
