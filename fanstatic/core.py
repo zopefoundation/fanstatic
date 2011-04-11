@@ -2,7 +2,7 @@ import os
 import sys
 import threading
 
-from fanstatic.checksum import checksum
+from fanstatic.checksum import md5
 
 DEFAULT_SIGNATURE = 'fanstatic'
 
@@ -105,10 +105,10 @@ class Library(object):
 
         if recompute_hashes:
             # Always re-compute.
-            sig = checksum(self.path)
+            sig = md5(self.path)
         elif self._signature is None:
             # Only compute if not computed before.
-            sig = self._signature = checksum(self.path)
+            sig = self._signature = md5(self.path)
         else:
             # Use cached value.
             sig = self._signature

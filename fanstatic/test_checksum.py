@@ -1,9 +1,8 @@
 import time
 import shutil
-import os
 from pkg_resources import resource_filename
 
-from fanstatic.checksum import list_directory, checksum
+from fanstatic.checksum import list_directory, md5, mtime
 from fanstatic.checksum import VCS_NAMES, IGNORED_EXTENSIONS
 
 
@@ -17,66 +16,25 @@ def _copy_testdata(tmpdir):
 def test_list_directory(tmpdir):
     testdata_path = str(_copy_testdata(tmpdir))
     expected = [
-        tmpdir.join('MyPackage').strpath,
         tmpdir.join('MyPackage/setup.py').strpath,
         tmpdir.join('MyPackage/MANIFEST.in').strpath,
-        tmpdir.join('MyPackage/src').strpath,
-        tmpdir.join('MyPackage/src/mypackage').strpath,
         tmpdir.join('MyPackage/src/mypackage/__init__.py').strpath,
-        tmpdir.join('MyPackage/src/mypackage/resources').strpath,
         tmpdir.join('MyPackage/src/mypackage/resources/style.css').strpath,
         ]
-    found = list(list_directory(testdata_path))
+    found = list(list_directory(testdata_path, include_directories=False))
     assert sorted(found) == sorted(expected)
 
-
-def test_checksum(tmpdir):
-    testdata_path = str(_copy_testdata(tmpdir))
-
-    # Compute a first checksum for the test package:
-    checksum_start = checksum(testdata_path)
-    # Add a file (+ contents!) and see the checksum changed:
-    tmpdir.join('/MyPackage/A').write('Contents for A')
-    checksum_after_add = checksum(testdata_path)
-    assert checksum_after_add != checksum_start
-
-    # Remove the file again, the checksum changed:
-    time.sleep(0.02) 
-    tmpdir.join('/MyPackage/A').remove()
-    checksum_after_remove = checksum(testdata_path)
-    assert checksum_after_remove != checksum_after_add
-    assert checksum_after_remove != checksum_start
-
-    # Obviously, changing the contents will change the checksum too:
-    tmpdir.join('/MyPackage/B').write('Contents for B')
-    checksum_start = checksum(testdata_path)
-    # Wait a split second in order to let the disk catch up.
-    time.sleep(0.02)
-    tmpdir.join('/MyPackage/B').write('Contents for B have changed')
-    assert checksum(testdata_path) != checksum_start
-    tmpdir.join('/MyPackage/B').remove()
-
-    # Moving, or renaming a file should change the checksum:
-    checksum_start = checksum(testdata_path)
-    time.sleep(0.02)
-    tmpdir.join('/MyPackage/setup.py').rename(
-        tmpdir.join('/MyPackage/setup.py.renamed'))
-    expected = [
+    expected.extend([
         tmpdir.join('MyPackage').strpath,
-        tmpdir.join('MyPackage/MANIFEST.in').strpath,
-        tmpdir.join('MyPackage/setup.py.renamed').strpath,
         tmpdir.join('MyPackage/src').strpath,
         tmpdir.join('MyPackage/src/mypackage').strpath,
-        tmpdir.join('MyPackage/src/mypackage/__init__.py').strpath,
         tmpdir.join('MyPackage/src/mypackage/resources').strpath,
-        tmpdir.join('MyPackage/src/mypackage/resources/style.css').strpath,
-        ]
+    ])
     found = list(list_directory(testdata_path))
     assert sorted(found) == sorted(expected)
-    assert checksum(testdata_path) != checksum_start
 
 
-def test_checksum_no_vcs_name(tmpdir):
+def test_list_directory_no_vcs_name(tmpdir):
     testdata_path = str(_copy_testdata(tmpdir))
     tmpdir.join('/MyPackage/.novcs').ensure(dir=True)
     tmpdir.join('/MyPackage/.novcs/foo').write('Contents of foo')
@@ -96,7 +54,7 @@ def test_checksum_no_vcs_name(tmpdir):
     assert sorted(found) == sorted(expected)
 
 
-def test_checksum_vcs_name(tmpdir):
+def test_list_directory_vcs_name(tmpdir):
     testdata_path = str(_copy_testdata(tmpdir))
     for name in VCS_NAMES:
         tmpdir.join('/MyPackage/%s' % name).ensure(dir=True)
@@ -116,7 +74,7 @@ def test_checksum_vcs_name(tmpdir):
         tmpdir.join('/MyPackage/%s' % name).remove(rec=True)
 
 
-def test_checksum_dot_file(tmpdir):
+def test_list_directory_dot_file(tmpdir):
     testdata_path = str(_copy_testdata(tmpdir))
     tmpdir.join('/MyPackage/.woekie').ensure()
     expected = [
@@ -134,7 +92,7 @@ def test_checksum_dot_file(tmpdir):
     assert sorted(found) == sorted(expected)
 
 
-def test_checksum_ignored_extensions(tmpdir):
+def test_list_directory_ignored_extensions(tmpdir):
     testdata_path = str(_copy_testdata(tmpdir))
     for ext in IGNORED_EXTENSIONS:
         tmpdir.join('/MyPackage/bar%s' % ext).ensure()
@@ -150,3 +108,94 @@ def test_checksum_ignored_extensions(tmpdir):
             ]
         found = list(list_directory(testdata_path))
         assert sorted(found) == sorted(expected)
+
+
+def test_mtime(tmpdir):
+    testdata_path = str(_copy_testdata(tmpdir))
+
+    # Compute a first mtime for the test package:
+    mtime_start = mtime(testdata_path)
+    # Add a file (+ contents!) and see the mtime changed:
+    tmpdir.join('/MyPackage/A').write('Contents for A')
+    mtime_after_add = mtime(testdata_path)
+    assert mtime_after_add != mtime_start
+
+    # Remove the file again, the mtime changed:
+    time.sleep(0.02) 
+    tmpdir.join('/MyPackage/A').remove()
+    mtime_after_remove = mtime(testdata_path)
+    assert mtime_after_remove != mtime_after_add
+    assert mtime_after_remove != mtime_start
+
+    # Obviously, changing the contents will change the mtime too:
+    tmpdir.join('/MyPackage/B').write('Contents for B')
+    mtime_start = mtime(testdata_path)
+    # Wait a split second in order to let the disk catch up.
+    time.sleep(0.02)
+    tmpdir.join('/MyPackage/B').write('Contents for B have changed')
+    assert mtime(testdata_path) != mtime_start
+    tmpdir.join('/MyPackage/B').remove()
+
+    # Moving, or renaming a file should change the mtime:
+    mtime_start = mtime(testdata_path)
+    time.sleep(0.02)
+    tmpdir.join('/MyPackage/setup.py').rename(
+        tmpdir.join('/MyPackage/setup.py.renamed'))
+    expected = [
+        tmpdir.join('MyPackage').strpath,
+        tmpdir.join('MyPackage/MANIFEST.in').strpath,
+        tmpdir.join('MyPackage/setup.py.renamed').strpath,
+        tmpdir.join('MyPackage/src').strpath,
+        tmpdir.join('MyPackage/src/mypackage').strpath,
+        tmpdir.join('MyPackage/src/mypackage/__init__.py').strpath,
+        tmpdir.join('MyPackage/src/mypackage/resources').strpath,
+        tmpdir.join('MyPackage/src/mypackage/resources/style.css').strpath,
+        ]
+    found = list(list_directory(testdata_path))
+    assert sorted(found) == sorted(expected)
+    assert mtime(testdata_path) != mtime_start
+
+
+def test_md5(tmpdir):
+    testdata_path = str(_copy_testdata(tmpdir))
+
+    # Compute a first md5 for the test package:
+    md5_start = md5(testdata_path)
+    # Add a file (+ contents!) and see the md5 changed:
+    tmpdir.join('/MyPackage/A').write('Contents for A')
+    md5_after_add = md5(testdata_path)
+    assert md5_after_add != md5_start
+
+    # Remove the file again, the md5 is back to the previous one:
+    # This is a difference from the mtime approach!
+    tmpdir.join('/MyPackage/A').remove()
+    md5_after_remove = md5(testdata_path)
+    assert md5_after_remove != md5_after_add
+    assert md5_after_remove == md5_start
+
+    # Obviously, changing the contents will change the md5 too:
+    tmpdir.join('/MyPackage/B').write('Contents for B')
+    md5_start = md5(testdata_path)
+    # Wait a split second in order to let the disk catch up.
+    tmpdir.join('/MyPackage/B').write('Contents for B have changed')
+    assert md5(testdata_path) != md5_start
+    tmpdir.join('/MyPackage/B').remove()
+
+    # Moving, or renaming a file should change the md5:
+    md5_start = md5(testdata_path)
+    tmpdir.join('/MyPackage/setup.py').rename(
+        tmpdir.join('/MyPackage/setup.py.renamed'))
+    expected = [
+        tmpdir.join('MyPackage').strpath,
+        tmpdir.join('MyPackage/MANIFEST.in').strpath,
+        tmpdir.join('MyPackage/setup.py.renamed').strpath,
+        tmpdir.join('MyPackage/src').strpath,
+        tmpdir.join('MyPackage/src/mypackage').strpath,
+        tmpdir.join('MyPackage/src/mypackage/__init__.py').strpath,
+        tmpdir.join('MyPackage/src/mypackage/resources').strpath,
+        tmpdir.join('MyPackage/src/mypackage/resources/style.css').strpath,
+        ]
+    found = list(list_directory(testdata_path))
+    assert sorted(found) == sorted(expected)
+    assert md5(testdata_path) != md5_start
+
