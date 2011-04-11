@@ -8,9 +8,7 @@ CHANGES
   be served in one HTTP request. Bundle URLs are constructed by the 
   fanstatic injector and served by the fanstatic publisher.
 
-- Remove rollup functionality in favor of bundling resources.
-  This removes the rollup argument to NeededResources and the 
-  supersedes and eager_superseder arguments to Resource.
+- Remove eager_superseder arguments from Resource, as this was not used.
 
 - Abstracted features of Resource, Group, Bundle into base classes
   Renderable and Dependable.
@@ -31,6 +29,10 @@ CHANGES
 - Renamed UnknownResourceExtension exception to
   UnknownResourceExtensionError. The old exception name is still
   available for backwards compatibility.
+
+- Use mtime instead of md5 for determining speeds up version computation
+  during development. The hashing method is still available for people who
+  don't trust their filesystem using the ``versioning_use_md5`` parameter.
 
 0.10.1 (2011-02-06)
 ===================
