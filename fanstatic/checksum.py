@@ -1,5 +1,6 @@
 import os
 import hashlib
+from datetime import datetime
 
 VCS_NAMES = ['.svn', '.git', '.bzr', '.hg']
 IGNORED_EXTENSIONS = ['.swp', '.tmp', '.pyc', '.pyo']
@@ -23,8 +24,8 @@ def list_directory(path):
 
 
 def checksum(path):
-    chcksm = hashlib.md5()
+    latest = 0
     for path in list_directory(path):
-        chcksm.update(path)
-        chcksm.update(str(os.stat(path).st_mtime))
-    return chcksm.hexdigest()
+        mtime = os.stat(path).st_mtime
+        latest = max(mtime, latest)
+    return datetime.fromtimestamp(latest).isoformat()[:22]
