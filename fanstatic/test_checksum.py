@@ -1,5 +1,6 @@
 import time
 import shutil
+import os
 from pkg_resources import resource_filename
 
 from fanstatic.checksum import list_directory, checksum
@@ -31,9 +32,6 @@ def test_list_directory(tmpdir):
 
 def test_checksum(tmpdir):
     testdata_path = str(_copy_testdata(tmpdir))
-    # As we cannot rely on a particular sort order of the directories,
-    # and files therein we cannot test against a given md5sum. So
-    # we'll have to do with circumstantial evidence.
 
     # Compute a first checksum for the test package:
     checksum_start = checksum(testdata_path)
@@ -43,6 +41,7 @@ def test_checksum(tmpdir):
     assert checksum_after_add != checksum_start
 
     # Remove the file again, the checksum changed:
+    time.sleep(0.02) 
     tmpdir.join('/MyPackage/A').remove()
     checksum_after_remove = checksum(testdata_path)
     assert checksum_after_remove != checksum_after_add
@@ -52,13 +51,14 @@ def test_checksum(tmpdir):
     tmpdir.join('/MyPackage/B').write('Contents for B')
     checksum_start = checksum(testdata_path)
     # Wait a split second in order to let the disk catch up.
-    time.sleep(0.01)
+    time.sleep(0.02)
     tmpdir.join('/MyPackage/B').write('Contents for B have changed')
     assert checksum(testdata_path) != checksum_start
     tmpdir.join('/MyPackage/B').remove()
 
     # Moving, or renaming a file should change the checksum:
     checksum_start = checksum(testdata_path)
+    time.sleep(0.02)
     tmpdir.join('/MyPackage/setup.py').rename(
         tmpdir.join('/MyPackage/setup.py.renamed'))
     expected = [

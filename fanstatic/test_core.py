@@ -1,6 +1,7 @@
 from __future__ import with_statement
 import re
 import pytest
+import time
 
 from fanstatic import (Library,
                        Resource,
@@ -450,6 +451,7 @@ def test_library_url_hashing_recompute(tmpdir):
 
     # now create a file
     resource = tmpdir.join('test.js')
+    time.sleep(0.02)
     resource.write('/* test */')
 
     # the hash is recalculated now, so it changes
