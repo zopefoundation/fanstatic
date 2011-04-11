@@ -167,11 +167,11 @@ What if we really want to include ``a.css`` whenever we pull in
 Whenever you ``.need()`` ``b`` now, you'll also get ``a`` included on
 your page.
 
-You can also use a :py:class:`GroupResource` to group Resources together::
+You can also use a :py:class:`Group` to group Resources together::
 
-  from fanstatic import GroupResource
+  from fanstatic import Group
 
-  c = GroupResource([a, b])
+  c = Group([a, b])
 
 Bonus: a minified version
 -------------------------
