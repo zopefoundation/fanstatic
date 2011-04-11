@@ -16,13 +16,36 @@ DEBUG = 'debug'
 MINIFIED = 'minified'
 
 
+_resource_file_existence_checking = True
+
+def set_resource_file_existence_checking(v):
+    """Set resource file existence checking to True or False.
+
+    By default, this is set to True, so that resources that point to
+    non-existent files will result in an error. We recommend you keep
+    it at this value when using Fanstatic. An
+    :py:class:`UnknownResourceError` will then be raised if you
+    accidentally refer to a non-existent resource.
+
+    When running tests it's often useful to make fake resources that
+    don't really have a filesystem representation, so this is set to
+    False temporarily; for the Fanstatic tests this is done. Inside
+    a test for this particular feature, this can temporarily be set
+    to True.
+    """
+    global _resource_file_existence_checking
+    _resource_file_existence_checking = v
+
 class UnknownResourceExtension(Exception):
     """Unknown resource extension"""
 
+class UnknownResourceError(Exception):
+    """Resource refers to unknown resource file.
+    """
 
 class ConfigurationError(Exception):
-    pass
-
+    """Impossible or illegal configuration.
+    """
 
 class LibraryDependencyCycle(Exception):
     pass
@@ -259,6 +282,10 @@ class Resource(Renderable, Dependable):
             raise DeprecationWarning(
                 'Supersede functionality has been superseded by bundling')
         self.library = library
+        fullpath = os.path.join(library.path, relpath)
+        if _resource_file_existence_checking and not os.path.exists(fullpath):
+            raise UnknownResourceError("Resource file does not exist: %s" %
+                                       fullpath)
         self.relpath = relpath
         self.dirname, self.filename = os.path.split(relpath)
         if self.dirname and not self.dirname.endswith('/'):

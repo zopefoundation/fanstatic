@@ -14,7 +14,10 @@ from fanstatic import (Library,
                        bundle_resources,
                        LibraryDependencyCycle,
                        UnknownResourceExtension,
-                       NEEDED                       )
+                       NEEDED,
+                       UnknownResourceExtension,
+                       UnknownResourceError,
+                       set_resource_file_existence_checking)
 
 from fanstatic.core import inclusion_renderers, normalize_string
 from fanstatic.core import thread_local_needed_data
@@ -30,6 +33,20 @@ def test_resource():
     needed.need(y1)
 
     assert needed.resources() == [x2, x1, y1]
+
+def test_resource_file_exists(tmpdir):
+    tmpdir.join('a.js').write('/* hello world */')
+    # by default this is set to False during the tests, but in normal
+    # non-test circumstances this is set to True, and we want to
+    # test things for real here
+    set_resource_file_existence_checking(True)
+    foo = Library('foo', tmpdir.strpath)
+    # since a.js exists, this should work
+    a = Resource(foo, 'a.js')
+    # now we try to create a resource that refers to a file
+    # that doesn't exist
+    with pytest.raises(UnknownResourceError):
+        b = Resource(foo, 'b.js')
 
 def test_resource_register_with_library():
     foo = Library('foo', '')

@@ -35,9 +35,19 @@ Python components
   :members:
   :show-inheritance:
 
+.. autoclass:: fanstatic.ConfigurationError
+  :members:
+  :show-inheritance:
+
+.. autoclass:: fanstatic.UnknownResourceError
+  :members:
+  :show-inheritance:
+
 Functions
 ---------
 
 .. autofunction:: fanstatic.get_library_registry
 
 .. autofunction:: fanstatic.register_inclusion_renderer
+
+.. autofunction:: fanstatic.set_resource_file_existence_checking

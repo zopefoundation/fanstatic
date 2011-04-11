@@ -18,7 +18,9 @@ from fanstatic.core import (Library,
                             register_inclusion_renderer,
                             UnknownResourceExtension,
                             LibraryDependencyCycle,
-                            ConfigurationError)
+                            ConfigurationError,
+                            set_resource_file_existence_checking,
+                            UnknownResourceError)
 
 from fanstatic.registry import get_library_registry, LibraryRegistry
 
