@@ -16,8 +16,9 @@ from fanstatic.core import (Library,
                             get_needed,
                             clear_needed,
                             register_inclusion_renderer,
-                            UnknownResourceExtension,
-                            LibraryDependencyCycle,
+                            UnknownResourceExtensionError,
+                            UnknownResourceExtension, # BBB
+                            LibraryDependencyCycleError,
                             ConfigurationError,
                             set_resource_file_existence_checking,
                             UnknownResourceError)

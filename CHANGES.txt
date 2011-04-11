@@ -28,6 +28,10 @@ CHANGES
 - Resources check whether the file they refer to exists or not. If
   the file doesn't exist you get an UnknownResourceError.
 
+- Renamed UnknownResourceExtension exception to
+  UnknownResourceExtensionError. The old exception name is still
+  available for backwards compatibility.
+
 0.10.1 (2011-02-06)
 ===================
 

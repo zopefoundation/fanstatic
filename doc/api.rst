@@ -43,6 +43,14 @@ Python components
   :members:
   :show-inheritance:
 
+.. autoclass:: fanstatic.UnknownResourceExtensionError
+  :members:
+  :show-inheritance:
+
+.. autoclass:: fanstatic.LibraryDependencyCycleError
+  :members:
+  :show-inheritance:
+
 Functions
 ---------
 

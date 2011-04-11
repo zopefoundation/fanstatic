@@ -12,10 +12,9 @@ from fanstatic import (Library,
                        register_inclusion_renderer,
                        ConfigurationError,
                        bundle_resources,
-                       LibraryDependencyCycle,
-                       UnknownResourceExtension,
+                       LibraryDependencyCycleError,
                        NEEDED,
-                       UnknownResourceExtension,
+                       UnknownResourceExtensionError,
                        UnknownResourceError,
                        set_resource_file_existence_checking)
 
@@ -618,7 +617,7 @@ def test_inclusion_renderers():
 def test_register_inclusion_renderer():
     foo = Library('foo', '')
 
-    with pytest.raises(UnknownResourceExtension):
+    with pytest.raises(UnknownResourceExtensionError):
         # The renderer for '.unknown' is not yet defined.
         Resource(foo, 'nothing.unknown')
 
@@ -943,7 +942,7 @@ def test_library_dependency_cycles():
     a2 = Resource(A, 'a2.js', depends=[b1])
 
     # This definition would create a library dependency cycle if permitted.
-    with pytest.raises(LibraryDependencyCycle):
+    with pytest.raises(LibraryDependencyCycleError):
         b2 = Resource(B, 'b2.js', depends=[a1])
 
     # This is an example of an indirect library dependency cycle.
@@ -963,7 +962,7 @@ def test_library_dependency_cycles():
     #
     #  c2 --> e1 --> d2
     #
-    with pytest.raises(LibraryDependencyCycle):
+    with pytest.raises(LibraryDependencyCycleError):
         c2 = Resource(C, 'c2.js', depends=[e1])
 
 

@@ -36,20 +36,28 @@ def set_resource_file_existence_checking(v):
     global _resource_file_existence_checking
     _resource_file_existence_checking = v
 
-class UnknownResourceExtension(Exception):
-    """Unknown resource extension"""
+class UnknownResourceExtensionError(Exception):
+    """A resource has an unrecognized extension.
+    """
+
+# BBB backwards compatibility
+UnknownResourceExtension = UnknownResourceExtensionError
 
 class UnknownResourceError(Exception):
-    """Resource refers to unknown resource file.
+    """Resource refers to non-existent resource file.
     """
 
 class ConfigurationError(Exception):
     """Impossible or illegal configuration.
     """
 
-class LibraryDependencyCycle(Exception):
-    pass
+class LibraryDependencyCycleError(Exception):
+    """Dependency cycles between libraries aren't allowed.
 
+    A dependency cycle between libraries occurs when the file in one
+    library depends on a file in another library, while that library
+    depends on a file in the first library.
+    """
 
 class Library(object):
     """The resource library.
@@ -97,7 +105,7 @@ class Library(object):
             if dep is self:
                 continue
             if self in dep._library_deps:
-                raise LibraryDependencyCycle(
+                raise LibraryDependencyCycleError(
                     'Library cycle detected in resource %s' % resource)
 
     def register(self, resource):
@@ -299,7 +307,7 @@ class Resource(Renderable, Dependable):
             # No custom, ad-hoc renderer for this Resource, so lookup
             # the default renderer by resource filename extension.
             if self.ext not in inclusion_renderers:
-                raise UnknownResourceExtension(
+                raise UnknownResourceExtensionError(
                     "Unknown resource extension %s for resource: %s" %
                     (self.ext, repr(self)))
             self.order, self.renderer = inclusion_renderers[self.ext]
