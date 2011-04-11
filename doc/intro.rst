@@ -53,9 +53,10 @@ Optimization
   Javascript during deployment? Debug versions during development?
   It's one configuration option away.
 
-* **Roll up resources**: roll up multiple resources into one and serve
-  the combined resource to optimize page load time. Rolled up
-  resources can be automatically served when available.
+* **Bundle up resources**: roll up multiple resources into one and
+  serve the combined resource to optimize page load time. Bundled
+  resources can be generated automatically, or can automatically
+  served when available.
 
 * **Optimize load times**: Fanstatic knows about tricks to optimize
   the load time of your Javascript, for instance by including
