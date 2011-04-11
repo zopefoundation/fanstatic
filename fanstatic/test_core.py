@@ -1,5 +1,7 @@
 from __future__ import with_statement
+import re
 import pytest
+import time
 
 from fanstatic import (Library,
                        Resource,
@@ -418,9 +420,8 @@ def test_library_url_version_hashing(tmpdir):
     foo = Library('foo', tmpdir.strpath)
 
     needed = NeededResources(versioning=True)
-
-    assert (needed.library_url(foo) ==
-            '/fanstatic/foo/:version:d41d8cd98f00b204e9800998ecf8427e')
+    assert re.match('/fanstatic/foo/:version:[a-f0-9]*',
+                    needed.library_url(foo))
 
     bar = Library('bar', '', version='1')
     assert (needed.library_url(bar) == '/fanstatic/bar/:version:1')
@@ -450,6 +451,7 @@ def test_library_url_hashing_recompute(tmpdir):
 
     # now create a file
     resource = tmpdir.join('test.js')
+    time.sleep(0.02)
     resource.write('/* test */')
 
     # the hash is recalculated now, so it changes
