@@ -1,7 +1,7 @@
 CHANGES
 *******
 
-0.11 (unreleased)
+0.11 (2011-04-11)
 =================
 
 - Add bundling support: bundles are collections of Resources that can
