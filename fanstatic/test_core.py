@@ -420,11 +420,18 @@ def test_library_url_version_hashing(tmpdir):
     foo = Library('foo', tmpdir.strpath)
 
     needed = NeededResources(versioning=True)
-    assert re.match('/fanstatic/foo/:version:[a-f0-9]*',
-                    needed.library_url(foo))
+    url = needed.library_url(foo)
+    assert re.match('/fanstatic/foo/:version:[0-9T:.-]*$', url)
 
+    # The md5 based version URL is available through the
+    # `versioning_use_md5` parameter:
+    needed = NeededResources(versioning=True, versioning_use_md5=True)
+    md5_url = needed.library_url(foo)
+    assert url != md5_url
+
+    # If the Library defines a version, the version is used.
     bar = Library('bar', '', version='1')
-    assert (needed.library_url(bar) == '/fanstatic/bar/:version:1')
+    assert needed.library_url(bar) == '/fanstatic/bar/:version:1'
 
 
 def test_library_url_hashing_norecompute(tmpdir):
