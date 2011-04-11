@@ -248,6 +248,11 @@ class Resource(Renderable, Dependable):
       resources. If a string is given, a :py:class:`Resource` instance
       is constructed that has the same library as this resource.
 
+    :param supersedes: optionally, a list of :py:class:`Resource`
+      instances that this resource supersedes as a rollup
+      resource. If all these resources are required for render a page,
+      the superseding resource will be included instead.
+
     :param bottom: indicate that this resource is "bottom safe": it
       can be safely included on the bottom of the page (just before
       ``</body>``). This can be used to improve the performance of
@@ -279,16 +284,12 @@ class Resource(Renderable, Dependable):
 
     def __init__(self, library, relpath,
                  depends=None,
+                 supersedes=None,
                  bottom=False,
                  renderer=None,
                  debug=None,
                  dont_bundle=False,
-                 minified=None,
-                 supersedes=None, eager_superseder=None,
-                 ):
-        if supersedes is not None or eager_superseder is not None:
-            raise DeprecationWarning(
-                'Supersede functionality has been superseded by bundling')
+                 minified=None):
         self.library = library
         fullpath = os.path.join(library.path, relpath)
         if _resource_file_existence_checking and not os.path.exists(fullpath):
@@ -348,6 +349,28 @@ class Resource(Renderable, Dependable):
                 library, minified)
             minified.dependency_nr = self.dependency_nr
             minified.library_nr = self.library_nr
+
+
+        assert not isinstance(supersedes, basestring)
+        self.supersedes = supersedes or []
+
+        self.rollups = []
+        # create a reference to the superseder in the superseded resource
+        for resource in self.supersedes:
+            resource.rollups.append(self)
+        # also create a reference to the superseding mode in the superseded
+        # mode
+        # XXX what if mode is full-fledged resource which lists
+        # supersedes itself?
+        for mode_name, mode in self.modes.items():
+            for resource in self.supersedes:
+                superseded_mode = resource.mode(mode_name)
+                # if there is no such mode, let's skip it
+                if superseded_mode is resource:
+                    continue
+                mode.supersedes.append(superseded_mode)
+                superseded_mode.rollups.append(mode)
+
 
         # Register ourself with the Library.
         self.library.register(self)
@@ -495,6 +518,10 @@ class NeededResources(object):
       An exception is raised when both the ``debug`` and ``minified``
       parameters are ``True``.
 
+    :param rollup: If set to True (default is False) rolled up
+      combined resources will be served if they exist and supersede
+      existing resources that are needed.
+
     :param base_url: This URL will be prefixed in front of all resource
       URLs. This can be useful if your web framework wants the resources
       to be published on a sub-URL. Note that this can also be set
@@ -534,15 +561,12 @@ class NeededResources(object):
                  force_bottom=False,
                  minified=False,
                  debug=False,
+                 rollup=False,
                  base_url=None,
                  publisher_signature=DEFAULT_SIGNATURE,
                  bundle=False,
                  resources=None,
-                 rollup=None,
                  ):
-        if rollup is not None:
-            raise DeprecationWarning(
-                'Rollup has been superseded by bundling')
         self._versioning = versioning
         if versioning_use_md5:
             self._version_method = fanstatic.checksum.md5
@@ -554,6 +578,7 @@ class NeededResources(object):
         self._force_bottom = force_bottom
         self._base_url = base_url
         self._publisher_signature = publisher_signature
+        self._rollup = rollup
         self._bundle = bundle
         self._resources = set(resources or [])
         self._url_cache = {}  # prevent multiple computations per request
@@ -606,6 +631,8 @@ class NeededResources(object):
             resources.update(resource.resources)
 
         resources = [resource.mode(self._mode) for resource in resources]
+        if self._rollup:
+            resources = set(consolidate(resources))
         return sort_resources(resources)
 
     def clear(self):
@@ -794,6 +821,33 @@ def clear_needed():
     needed = get_needed()
     needed.clear()
 
+
+def consolidate(resources):
+    # keep track of rollups: rollup key -> set of resource keys
+    potential_rollups = {}
+    for resource in resources:
+        for rollup in resource.rollups:
+            s = potential_rollups.setdefault(
+                (rollup.library, rollup.relpath), set())
+            s.add((resource.library, resource.relpath))
+
+    # now go through resources, replacing them with rollups if
+    # conditions match
+    result = []
+    for resource in resources:
+        superseders = []
+        for rollup in resource.rollups:
+            s = potential_rollups[(rollup.library, rollup.relpath)]
+            if len(s) == len(rollup.supersedes):
+                superseders.append(rollup)
+        if superseders:
+            # use the exact superseder that rolls up the most
+            superseders = sorted(superseders, key=lambda i: len(i.supersedes))
+            result.append(superseders[-1])
+        else:
+            # nothing to supersede resource so use it directly
+            result.append(resource)
+    return result
 
 def sort_resources(resources):
     """Sort resources for inclusion on web page.

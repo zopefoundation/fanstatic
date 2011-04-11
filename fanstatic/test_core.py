@@ -76,20 +76,6 @@ def test_group_resource():
     assert more_stuff.resources == set([x1, x2, more_stuff])
 
 
-def test_deprecationwarnings():
-    with pytest.raises(DeprecationWarning):
-        NeededResources(rollup=True)
-
-    foo = Library('foo', '')
-    a1 = Resource(foo, 'a1.js')
-    a2 = Resource(foo, 'a2.js')
-    with pytest.raises(DeprecationWarning):
-        a3 = Resource(foo, 'a3.js', supersedes=[a1, a2])
-
-    with pytest.raises(DeprecationWarning):
-        a3 = Resource(foo, 'a3.js', eager_superseder=True)
-
-
 def test_convenience_need_not_initialized():
     foo = Library('foo', '')
     x1 = Resource(foo, 'a.js')
@@ -336,7 +322,126 @@ def test_mode_inherit_dependency_nr():
     l = Resource(foo, 'l.js', debug=l_debug, depends=[k])
     assert l_debug.dependency_nr == 1
 
-    
+
+def test_rollup():
+    foo = Library('foo', '')
+    b1 = Resource(foo, 'b1.js')
+    b2 = Resource(foo, 'b2.js')
+    giant = Resource(foo, 'giant.js', supersedes=[b1, b2])
+
+    needed = NeededResources(rollup=True)
+    needed.need(b1)
+    needed.need(b2)
+
+    assert needed.resources() == [giant]
+
+
+def test_rollup_cannot():
+    foo = Library('foo', '')
+    b1 = Resource(foo, 'b1.js')
+    b2 = Resource(foo, 'b2.js')
+
+    giant = Resource(foo, 'giant.js', supersedes=[b1, b2])
+
+    needed = NeededResources(rollup=True)
+    needed.need(b1)
+    assert needed.resources() == [b1]
+    assert giant not in needed.resources()
+
+
+def test_rollup_larger():
+    foo = Library('foo', '')
+    c1 = Resource(foo, 'c1.css')
+    c2 = Resource(foo, 'c2.css')
+    c3 = Resource(foo, 'c3.css')
+    giant = Resource(foo, 'giant.css', supersedes=[c1, c2, c3])
+
+    needed = NeededResources(rollup=True)
+    needed.need(c1)
+
+    assert needed.resources() == [c1]
+
+    needed.need(c2)
+
+    assert needed.resources() == [c1, c2]
+
+    needed.need(c3)
+
+    assert needed.resources() == [giant]
+
+
+def test_rollup_size_competing():
+    foo = Library('foo', '')
+    d1 = Resource(foo, 'd1.js')
+    d2 = Resource(foo, 'd2.js')
+    d3 = Resource(foo, 'd3.js')
+    giant = Resource(foo, 'giant.js', supersedes=[d1, d2])
+    giant_bigger = Resource(foo, 'giant-bigger.js',
+                            supersedes=[d1, d2, d3])
+
+    needed = NeededResources(rollup=True)
+    needed.need(d1)
+    needed.need(d2)
+    needed.need(d3)
+    assert needed.resources() == [giant_bigger]
+    assert giant not in needed.resources()
+
+
+def test_rollup_modes():
+    foo = Library('foo', '')
+    f1 = Resource(foo, 'f1.js', debug='f1-debug.js')
+    f2 = Resource(foo, 'f2.js', debug='f2-debug.js')
+    giantf = Resource(foo, 'giantf.js', supersedes=[f1, f2],
+                      debug='giantf-debug.js')
+
+    needed = NeededResources(rollup=True)
+    needed.need(f1)
+    needed.need(f2)
+    assert needed.resources() == [giantf]
+
+    needed = NeededResources(rollup=True, debug=True)
+    needed.need(f1)
+    needed.need(f2)
+    assert len(needed.resources()) == 1
+    assert needed.resources()[0].relpath == 'giantf-debug.js'
+
+
+def test_rollup_meaningless_rollup_mode():
+    foo = Library('foo', '')
+    g1 = Resource(foo, 'g1.js')
+    g2 = Resource(foo, 'g2.js')
+    giantg = Resource(foo, 'giantg.js', supersedes=[g1, g2],
+                      debug='giantg-debug.js')
+    needed = NeededResources(rollup=True)
+    needed.need(g1)
+    needed.need(g2)
+    assert needed.resources() == [giantg]
+
+    needed = NeededResources(rollup=True, debug=True)
+    needed.need(g1)
+    needed.need(g2)
+    assert needed.resources() == [giantg]
+
+
+def test_rollup_without_mode():
+    foo = Library('foo', '')
+    h1 = Resource(foo, 'h1.js', debug='h1-debug.js')
+    h2 = Resource(foo, 'h2.js', debug='h2-debug.js')
+    gianth = Resource(foo, 'gianth.js', supersedes=[h1, h2])
+
+    needed = NeededResources(rollup=True)
+    needed.need(h1)
+    needed.need(h2)
+    assert needed.resources() == [gianth]
+
+    needed = NeededResources(rollup=True, debug=True)
+    needed.need(h1)
+    needed.need(h2)
+    # no mode available for rollup
+    assert len(needed.resources()) == 2
+    assert needed.resources()[0].relpath == 'h1-debug.js'
+    assert needed.resources()[1].relpath == 'h2-debug.js'
+
 
 def test_rendering():
     foo = Library('foo', '')

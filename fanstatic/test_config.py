@@ -8,6 +8,7 @@ def test_convert_config():
         'recompute_hashes': 'false',
         'bottom': 'True',
         'force_bottom': 'False',
+        'rollup': 0,
         'somethingelse': 'True',
         }
     assert convert_config(d) == {
@@ -15,6 +16,7 @@ def test_convert_config():
         'recompute_hashes': False,
         'bottom': True,
         'force_bottom': False,
+        'rollup': False,
         'somethingelse': 'True',
         }
 
@@ -25,6 +27,7 @@ def test_injector_config():
         'recompute_hashes': 'false',
         'bottom': 'True',
         'force_bottom': 'False',
+        'rollup': 0,
         }
     injector = make_injector(None, {}, **d)
     assert injector.app is None
@@ -33,6 +36,7 @@ def test_injector_config():
         'recompute_hashes': False,
         'bottom': True,
         'force_bottom': False,
+        'rollup': False,
         }
 
 
@@ -48,6 +52,7 @@ def test_fanstatic_config():
         'recompute_hashes': 'false',
         'bottom': 'True',
         'force_bottom': 'False',
+        'rollup': 0,
         'publisher_signature': 'foo',
         }
     fanstatic = make_fanstatic(None, {}, **d)
@@ -57,5 +62,6 @@ def test_fanstatic_config():
         'recompute_hashes': False,
         'bottom': True,
         'force_bottom': False,
+        'rollup': False,
         'publisher_signature': 'foo',
         }

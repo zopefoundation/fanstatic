@@ -4,11 +4,13 @@ def _visit(resource, result, dead):
     dead[(resource.library, resource.relpath)] = True
     for depend in resource.depends:
         _visit(depend, result, dead)
+    for depend in resource.supersedes:
+        _visit(depend, result, dead)
     result.append(resource)
 
 
 def sort_resources_topological(resources):
-    """Sort resources by dependency.
+    """Sort resources by dependency and supersedes.
     """
     dead = {}
     result = []
@@ -60,6 +62,10 @@ def generate_code(**kw):
             depends_s = ', depends=[%s]' % ', '.join(
                 [resource_to_name[(d.library, d.relpath)] for d in resource.depends])
             s += depends_s
+        if resource.supersedes:
+            supersedes_s = ', supersedes=[%s]' % ', '.join(
+                [resource_to_name[(i.library, i.relpath)] for i in resource.supersedes])
+            s += supersedes_s
         if resource.modes:
             items = []
             for mode_name, mode in resource.modes.items():

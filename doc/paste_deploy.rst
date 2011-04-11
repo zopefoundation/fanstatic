@@ -64,6 +64,10 @@ To serve ``debug`` resources where available::
 
   debug = True
 
+Use rolled up resources where possible and where they are available::
+
+  rollup = true
+
 Use bundling of resources::
 
   bundle = true
