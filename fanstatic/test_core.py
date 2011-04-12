@@ -402,45 +402,7 @@ def test_rollup_modes():
     needed = NeededResources(rollup=True, debug=True)
     needed.need(f1)
     needed.need(f2)
-    assert len(needed.resources()) == 1
-    assert needed.resources()[0].relpath == 'giantf-debug.js'
-
-
-def test_rollup_meaningless_rollup_mode():
-    foo = Library('foo', '')
-    g1 = Resource(foo, 'g1.js')
-    g2 = Resource(foo, 'g2.js')
-    giantg = Resource(foo, 'giantg.js', supersedes=[g1, g2],
-                      debug='giantg-debug.js')
-    needed = NeededResources(rollup=True)
-    needed.need(g1)
-    needed.need(g2)
-    assert needed.resources() == [giantg]
-
-    needed = NeededResources(rollup=True, debug=True)
-    needed.need(g1)
-    needed.need(g2)
-    assert needed.resources() == [giantg]
-
-
-def test_rollup_without_mode():
-    foo = Library('foo', '')
-    h1 = Resource(foo, 'h1.js', debug='h1-debug.js')
-    h2 = Resource(foo, 'h2.js', debug='h2-debug.js')
-    gianth = Resource(foo, 'gianth.js', supersedes=[h1, h2])
-
-    needed = NeededResources(rollup=True)
-    needed.need(h1)
-    needed.need(h2)
-    assert needed.resources() == [gianth]
-
-    needed = NeededResources(rollup=True, debug=True)
-    needed.need(h1)
-    needed.need(h2)
-    # no mode available for rollup
-    assert len(needed.resources()) == 2
-    assert needed.resources()[0].relpath == 'h1-debug.js'
-    assert needed.resources()[1].relpath == 'h2-debug.js'
+    assert needed.resources() == [giantf.modes['debug']]
 
 
 def test_rendering():

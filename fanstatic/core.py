@@ -630,9 +630,9 @@ class NeededResources(object):
         for resource in self._resources:
             resources.update(resource.resources)
 
-        resources = [resource.mode(self._mode) for resource in resources]
         if self._rollup:
             resources = set(consolidate(resources))
+        resources = [resource.mode(self._mode) for resource in resources]
         return sort_resources(resources)
 
     def clear(self):
