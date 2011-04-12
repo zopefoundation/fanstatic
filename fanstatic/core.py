@@ -2,11 +2,13 @@ import os
 import sys
 import threading
 
-from fanstatic.checksum import checksum
+import fanstatic.checksum
 
 DEFAULT_SIGNATURE = 'fanstatic'
 
 VERSION_PREFIX = ':version:'
+
+BUNDLE_PREFIX = ':bundle:'
 
 NEEDED = 'fanstatic.needed'
 
@@ -14,17 +16,48 @@ DEBUG = 'debug'
 MINIFIED = 'minified'
 
 
-class UnknownResourceExtension(Exception):
-    """Unknown resource extension"""
+_resource_file_existence_checking = True
 
+def set_resource_file_existence_checking(v):
+    """Set resource file existence checking to True or False.
+
+    By default, this is set to True, so that resources that point to
+    non-existent files will result in an error. We recommend you keep
+    it at this value when using Fanstatic. An
+    :py:class:`UnknownResourceError` will then be raised if you
+    accidentally refer to a non-existent resource.
+
+    When running tests it's often useful to make fake resources that
+    don't really have a filesystem representation, so this is set to
+    False temporarily; for the Fanstatic tests this is done. Inside
+    a test for this particular feature, this can temporarily be set
+    to True.
+    """
+    global _resource_file_existence_checking
+    _resource_file_existence_checking = v
+
+class UnknownResourceExtensionError(Exception):
+    """A resource has an unrecognized extension.
+    """
+
+# BBB backwards compatibility
+UnknownResourceExtension = UnknownResourceExtensionError
+
+class UnknownResourceError(Exception):
+    """Resource refers to non-existent resource file.
+    """
 
 class ConfigurationError(Exception):
-    pass
+    """Impossible or illegal configuration.
+    """
 
+class LibraryDependencyCycleError(Exception):
+    """Dependency cycles between libraries aren't allowed.
 
-class LibraryDependencyCycle(Exception):
-    pass
-
+    A dependency cycle between libraries occurs when the file in one
+    library depends on a file in another library, while that library
+    depends on a file in the first library.
+    """
 
 class Library(object):
     """The resource library.
@@ -60,18 +93,34 @@ class Library(object):
         self.path = os.path.join(caller_dir(), rootpath)
         self.version = version
         self._library_deps = set()
+        self.known_resources = {}
+
+    def __repr__(self):
+        return "<Library '%s' at '%s'>" % (self.name, self.path)
 
     def check_dependency_cycle(self, resource):
-        for dependency in resource.resources():
+        for dependency in resource.resources:
             self._library_deps.add(dependency.library)
         for dep in self._library_deps:
             if dep is self:
                 continue
             if self in dep._library_deps:
-                raise LibraryDependencyCycle(
+                raise LibraryDependencyCycleError(
                     'Library cycle detected in resource %s' % resource)
 
-    def signature(self, recompute_hashes=False):
+    def register(self, resource):
+        """Register a Resource with this Library. 
+
+        A Resource knows about its Library. After a Resource has registered
+        itself with its Library, the Library knows about the Resources 
+        associated to it. 
+        """
+        if resource.relpath in self.known_resources:
+            raise ConfigurationError(
+                'Resource path %s is already defined.' % resource.relpath)
+        self.known_resources[resource.relpath] = resource
+
+    def signature(self, recompute_hashes=False, version_method=None):
         """Get a unique signature for this Library.
 
         If a version has been defined, we return the version.
@@ -87,10 +136,10 @@ class Library(object):
 
         if recompute_hashes:
             # Always re-compute.
-            sig = checksum(self.path)
+            sig = version_method(self.path)
         elif self._signature is None:
             # Only compute if not computed before.
-            sig = self._signature = checksum(self.path)
+            sig = self._signature = version_method(self.path)
         else:
             # Use cached value.
             sig = self._signature
@@ -151,7 +200,35 @@ register_inclusion_renderer('.js', render_js, 20)
 register_inclusion_renderer('.ico', render_ico, 30)
 
 
-class Resource(object):
+class Renderable(object):
+    """A renderable.
+
+    A renderable must have a library attribute, a library_nr and
+    a dependency_nr.
+    """
+    def render(self, library_url):
+        """Render this renderable as something to insert in HTML.
+
+        This returns a snippet.
+        """
+
+
+class Dependable(object):
+    """A dependable.
+
+    A dependable must have a depends attribute, which is a sequence
+    of those dependables that this dependable depends on directly.
+    """
+
+    resources = None
+    """A set of the renderable resources that this dependable depends on.
+
+    This might possibly include the object itself, as for a normal
+    Resource.
+    """
+
+
+class Resource(Renderable, Dependable):
     """A resource.
 
     A resource specifies a single resource in a library so that it can
@@ -175,11 +252,6 @@ class Resource(object):
       instances that this resource supersedes as a rollup
       resource. If all these resources are required for render a page,
       the superseding resource will be included instead.
-
-    :param eager_superseder: normally superseding resources will only
-      show up if all resources that the resource supersedes are
-      required in a page. If this flag is set, even if only part of the
-      requirements are met, the superseding resource will show up.
 
     :param bottom: indicate that this resource is "bottom safe": it
       can be safely included on the bottom of the page (just before
@@ -212,15 +284,21 @@ class Resource(object):
 
     def __init__(self, library, relpath,
                  depends=None,
-                 supersedes=None, eager_superseder=False,
+                 supersedes=None,
                  bottom=False,
                  renderer=None,
                  debug=None,
                  dont_bundle=False,
                  minified=None):
         self.library = library
+        fullpath = os.path.join(library.path, relpath)
+        if _resource_file_existence_checking and not os.path.exists(fullpath):
+            raise UnknownResourceError("Resource file does not exist: %s" %
+                                       fullpath)
         self.relpath = relpath
-        self.dirname = os.path.dirname(relpath)
+        self.dirname, self.filename = os.path.split(relpath)
+        if self.dirname and not self.dirname.endswith('/'):
+            self.dirname += '/'
         self.bottom = bottom
         self.dont_bundle = dont_bundle
 
@@ -230,7 +308,7 @@ class Resource(object):
             # No custom, ad-hoc renderer for this Resource, so lookup
             # the default renderer by resource filename extension.
             if self.ext not in inclusion_renderers:
-                raise UnknownResourceExtension(
+                raise UnknownResourceExtensionError(
                     "Unknown resource extension %s for resource: %s" %
                     (self.ext, repr(self)))
             self.order, self.renderer = inclusion_renderers[self.ext]
@@ -243,29 +321,38 @@ class Resource(object):
                 self.ext, (sys.maxint, None))
 
         assert not isinstance(depends, basestring)
-        depends = depends or []
-        self.depends = normalize_resources(library, depends)
+        self.depends = set()
+        if depends is not None:
+            # Normalize groups into the underlying resources...
+            depends = normalize_groups(depends)
+            # ...before updating the set of dependencies of this resource.
+            self.depends.update(depends)
+
+        self.resources = set([self])
+        for depend in self.depends:
+            self.resources.update(depend.resources)
 
         # Check for library dependency cycles.
         self.library.check_dependency_cycle(self)
 
         # generate an internal number for sorting the resource
         # on dependency within the library
-        init_dependency_nr(self)
+        self.init_dependency_nr()
 
         self.modes = {}
         if debug is not None:
-            self.modes[DEBUG] = normalize_resource(library, debug)
-            self.modes[DEBUG].dependency_nr = self.dependency_nr
-            self.modes[DEBUG].library_nr = self.library_nr
+            debug = self.modes[DEBUG] = normalize_string(library, debug)
+            debug.dependency_nr = self.dependency_nr
+            debug.library_nr = self.library_nr
         if minified is not None:
-            self.modes[MINIFIED] = normalize_resource(library, minified)
-            self.modes[MINIFIED].dependency_nr = self.dependency_nr
-            self.modes[MINIFIED].library_nr = self.library_nr
+            minified = self.modes[MINIFIED] = normalize_string(
+                library, minified)
+            minified.dependency_nr = self.dependency_nr
+            minified.library_nr = self.library_nr
+
 
         assert not isinstance(supersedes, basestring)
         self.supersedes = supersedes or []
-        self.eager_superseder = eager_superseder
 
         self.rollups = []
         # create a reference to the superseder in the superseded resource
@@ -283,6 +370,25 @@ class Resource(object):
                     continue
                 mode.supersedes.append(superseded_mode)
                 superseded_mode.rollups.append(mode)
+
+
+        # Register ourself with the Library.
+        self.library.register(self)
+
+
+    def init_dependency_nr(self):
+        # on dependency within the library
+        dependency_nr = 0
+        library_nr = 0
+        for depend in self.depends:
+            if depend.library is not self.library:
+                library_nr = max(depend.library_nr + 1, library_nr)
+            else:
+                library_nr = max(depend.library_nr, library_nr)
+            dependency_nr = max(depend.dependency_nr + 1,
+                                dependency_nr)
+        self.dependency_nr = dependency_nr
+        self.library_nr = library_nr
 
     def render(self, library_url):
         return self.renderer('%s/%s' % (library_url, self.relpath))
@@ -308,11 +414,6 @@ class Resource(object):
             # fall back on the default mode if mode not found
             return self
 
-    def key(self):
-        """A unique key that identifies this Resource.
-        """
-        return self.library.name, self.relpath
-
     def need(self):
         """Declare that the application needs this resource.
 
@@ -323,73 +424,50 @@ class Resource(object):
         needed = get_needed()
         needed.need(self)
 
-    def resources(self):
-        """Get all resources needed by this resource, including itself.
-        """
-        result = []
-        for depend in self.depends:
-            result.extend(depend.resources())
-        result.append(self)
-        return result
 
-
-class GroupResource(object):
+class Group(Dependable):
     """A resource used to group resources together.
 
     It doesn't define a resource file itself, but instead depends on
-    other resources. When a GroupResources is depended on, all the
-    resources grouped together will be included.
+    other resources. When a Group is depended on, all the resources
+    grouped together will be included.
 
    :param depends: a list of resources that this resource depends
      on. Entries in the list can be :py:class:`Resource` instances, or
-     :py:class:`GroupResource` instances.
+     :py:class:`Group` instances.
     """
     def __init__(self, depends):
-        self.depends = depends
-        init_dependency_nr(self)
+        # Normalize groups in order to `flatten` Groups depending on Groups.
+        self.depends = set(normalize_groups(depends))
+        self.resources = set()
+        for depend in self.depends:
+            self.resources.update(depend.resources)
 
     def need(self):
         """Need this group resource.
 
-        If you call ``.need()`` on ``GroupResource`` sometime
+        If you call ``.need()`` on ``Group`` sometime
         during the rendering process of your web page, all dependencies
         of this group resources will be inserted into the web page.
         """
         needed = get_needed()
         needed.need(self)
 
-    def resources(self):
-        """Get all resources needed by this resource.
-        """
-        result = []
-        for depend in self.depends:
-            result.extend(depend.resources())
-        return result
+# backwards compatibility alias
+GroupResource = Group
 
-def init_dependency_nr(resource):
-    # on dependency within the library
-    dependency_nr = 0
-    library_nr = 0
-    for depend in resource.depends:
-        if (not isinstance(resource, GroupResource) and
-            not isinstance(depend, GroupResource)):
-            if depend.library is not resource.library:
-                library_nr = max(depend.library_nr + 1, library_nr)
-            else:
-                library_nr = max(depend.library_nr, library_nr)
+
+def normalize_groups(resources):
+    result = []
+    for resource in resources:
+        if not isinstance(resource, Renderable):
+            result.extend(resource.depends)
         else:
-            library_nr = max(depend.library_nr, library_nr)
-        dependency_nr = max(depend.dependency_nr + 1,
-                            dependency_nr)
-    resource.dependency_nr = dependency_nr
-    resource.library_nr = library_nr
-
-def normalize_resources(library, resources):
-    return [normalize_resource(library, resource)
-            for resource in resources]
+            result.append(resource)
+    return result
 
 
-def normalize_resource(library, resource):
+def normalize_string(library, resource):
     if isinstance(resource, basestring):
         return Resource(library, resource)
     return resource
@@ -406,6 +484,11 @@ class NeededResources(object):
       Since the version identifier will change when you update a resource,
       the URLs can both be infinitely cached and the resources will always
       be up to date. See also the ``recompute_hashes`` parameter.
+
+    :param versioning_use_md5: If ``True``, Fanstatic will use and md5
+      algorithm instead of an algorithm based on the last modification time of
+      the Resource files to compute versions. Use md5 if you don't trust your
+      filesystem.
 
     :param recompute_hashes: If ``True`` and versioning is enabled, Fanstatic
       will recalculate hash URLs on the fly whenever you make changes, even
@@ -472,6 +555,7 @@ class NeededResources(object):
 
     def __init__(self,
                  versioning=False,
+                 versioning_use_md5=False,
                  recompute_hashes=True,
                  bottom=False,
                  force_bottom=False,
@@ -484,14 +568,19 @@ class NeededResources(object):
                  resources=None,
                  ):
         self._versioning = versioning
+        if versioning_use_md5:
+            self._version_method = fanstatic.checksum.md5
+        else:
+            self._version_method = fanstatic.checksum.mtime
+
         self._recompute_hashes = recompute_hashes
         self._bottom = bottom
         self._force_bottom = force_bottom
-        self.set_base_url(base_url)
+        self._base_url = base_url
         self._publisher_signature = publisher_signature
         self._rollup = rollup
         self._bundle = bundle
-        self._resources = resources or []
+        self._resources = set(resources or [])
         self._url_cache = {}  # prevent multiple computations per request
         if (debug and minified):
             raise ConfigurationError('Choose *one* of debug and minified')
@@ -508,7 +597,7 @@ class NeededResources(object):
     def has_base_url(self):
         """Returns True if base_url has been set.
         """
-        return bool(self._base_url)
+        return self._base_url is not None
 
     def set_base_url(self, url):
         """Set the base_url. The base_url can only be set (1) if it has not
@@ -526,7 +615,7 @@ class NeededResources(object):
 
         :param resource: A :py:class:`Resource` instance.
         """
-        self._resources.append(resource)
+        self._resources.add(resource)
 
     def resources(self):
         """Retrieve the list of resources needed.
@@ -537,26 +626,21 @@ class NeededResources(object):
 
         Resources are also sorted by extension.
         """
-        resources = []
+        resources = set()
         for resource in self._resources:
-            resources.extend(resource.resources())
-
-        resources = [resource.mode(self._mode) for resource in resources]
+            resources.update(resource.resources)
 
         if self._rollup:
-            resources = consolidate(resources)
-        resources = sort_resources(resources)
-        resources = remove_duplicates(resources)
-        if self._bundle:
-            resources = bundle_resources(resources)
-        return resources
+            resources = set(consolidate(resources))
+        resources = [resource.mode(self._mode) for resource in resources]
+        return sort_resources(resources)
 
     def clear(self):
         # Clear out any resources "needed" thusfar.
         # XXX or should we rather revert to the list with resources
         # that potentially was passed as an argument when creating
         # this NeededResources instance?
-        self._resources = []
+        self._resources = set()
 
     def library_url(self, library):
         """Construct URL to library.
@@ -572,7 +656,9 @@ class NeededResources(object):
         path.append(library.name)
         if self._versioning:
             path.append(
-                library.signature(recompute_hashes=self._recompute_hashes))
+                library.signature(
+                    recompute_hashes=self._recompute_hashes,
+                    version_method=self._version_method))
         return '/'.join(path)
 
     def render(self):
@@ -593,6 +679,8 @@ class NeededResources(object):
 
         :param inclusions: A list of :py:class:`Resource` instances.
         """
+        if self._bundle:
+            resources = bundle_resources(resources)
         result = []
         for resource in resources:
             library = resource.library
@@ -697,9 +785,25 @@ thread_local_needed_data = threading.local()
 
 
 def init_needed(*args, **kw):
+    """Initialize a NeededResources object in the thread-local data. Arguments
+    are passed verbatim to the NeededResource __init__.
+    """
     needed = NeededResources(*args, **kw)
     thread_local_needed_data.__dict__[NEEDED] = needed
     return needed
+
+
+def del_needed():
+    """Delete the NeededResources object from the thread-local data to leave a
+    clean environment.
+
+    This function will silently pass whenever there is no NeededResources
+    object in the thread-local in the first place.
+    """
+    try:
+        del thread_local_needed_data.__dict__[NEEDED]
+    except KeyError:
+        pass
 
 
 def get_needed():
@@ -718,50 +822,28 @@ def clear_needed():
     needed.clear()
 
 
-def remove_duplicates(resources):
-    """Given a set of resources, consolidate them so each only occurs once.
-    """
-    seen = set()
-    result = []
-    for resource in resources:
-        key = resource.key()
-        if key in seen:
-            continue
-        seen.add(key)
-        result.append(resource)
-    return result
-
-
 def consolidate(resources):
     # keep track of rollups: rollup key -> set of resource keys
     potential_rollups = {}
     for resource in resources:
         for rollup in resource.rollups:
-            s = potential_rollups.setdefault(rollup.key(), set())
-            s.add(resource.key())
+            s = potential_rollups.setdefault(
+                (rollup.library, rollup.relpath), set())
+            s.add((resource.library, resource.relpath))
 
     # now go through resources, replacing them with rollups if
     # conditions match
     result = []
     for resource in resources:
-        eager_superseders = []
-        exact_superseders = []
+        superseders = []
         for rollup in resource.rollups:
-            s = potential_rollups[rollup.key()]
-            if rollup.eager_superseder:
-                eager_superseders.append(rollup)
+            s = potential_rollups[(rollup.library, rollup.relpath)]
             if len(s) == len(rollup.supersedes):
-                exact_superseders.append(rollup)
-        if eager_superseders:
-            # use the eager superseder that rolls up the most
-            eager_superseders = sorted(eager_superseders,
-                                       key=lambda i: len(i.supersedes))
-            result.append(eager_superseders[-1])
-        elif exact_superseders:
+                superseders.append(rollup)
+        if superseders:
             # use the exact superseder that rolls up the most
-            exact_superseders = sorted(exact_superseders,
-                                       key=lambda i: len(i.supersedes))
-            result.append(exact_superseders[-1])
+            superseders = sorted(superseders, key=lambda i: len(i.supersedes))
+            result.append(superseders[-1])
         else:
             # nothing to supersede resource so use it directly
             result.append(resource)
@@ -801,14 +883,34 @@ def sort_resources(resources):
             resource.relpath)
     return sorted(resources, key=key)
 
-# XXX there is a concept of a 'renderable' perhaps, that's
-# base to all resources?
-class Bundle(object):
+
+class Bundle(Renderable):
     def __init__(self):
         self._resources = []
 
+    @property
+    def dirname(self):
+        return self._resources[0].dirname
+
+    @property
+    def library(self):
+        return self._resources[0].library
+
+    @property
+    def renderer(self):
+        return self._resources[0].renderer
+
     def resources(self):
+        """This is used to test resources, not because this is a dependable.
+        """
         return self._resources
+
+    def render(self, library_url):
+        paths = [resource.filename for resource in self._resources]
+        # URL may become too long:
+        # http://www.boutell.com/newfaq/misc/urllength.html
+        relpath = ''.join([self.dirname, BUNDLE_PREFIX, ';'.join(paths)])
+        return self.renderer('%s/%s' % (library_url, relpath))
 
     def fits(self, resource):
         if resource.dont_bundle:
@@ -816,9 +918,6 @@ class Bundle(object):
         # an empty resource fits anything
         if not self._resources:
             return True
-        # group resources cannot be bundled XXX does this happen? make tests
-        if isinstance(resource, GroupResource):
-            return False
         # a resource fits if it's like the resources already inside
         bundle_resource = self._resources[0]
         return (resource.library is bundle_resource.library and
@@ -827,10 +926,6 @@ class Bundle(object):
 
     def append(self, resource):
         self._resources.append(resource)
-
-    def render(self, library_url):
-        # XXX how?
-        pass
 
     def add_to_list(self, result):
         """Add the bundle to list, taking single-resource bundles into account.
@@ -845,6 +940,7 @@ class Bundle(object):
         else:
             # add the bundle itself
             result.append(self)
+
 
 def bundle_resources(resources):
     """Bundle sorted resources together.
@@ -870,26 +966,3 @@ def bundle_resources(resources):
     # add the last bundle to the list
     bundle.add_to_list(result)
     return result
-
-def sort_resources_topological(resources):
-    """Sort resources by dependency and supersedes.
-    """
-    dead = {}
-    result = []
-    for resource in resources:
-        dead[resource.key()] = False
-
-    for resource in resources:
-        _visit(resource, result, dead)
-    return result
-
-
-def _visit(resource, result, dead):
-    if dead[resource.key()]:
-        return
-    dead[resource.key()] = True
-    for depend in resource.depends:
-        _visit(depend, result, dead)
-    for depend in resource.supersedes:
-        _visit(depend, result, dead)
-    result.append(resource)

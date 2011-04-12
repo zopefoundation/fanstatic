@@ -1,9 +1,12 @@
+import os
 import fnmatch
 import webob
 import webob.dec
 import webob.exc
 import time
-from paste.fileapp import DirectoryApp
+import os.path
+from paste.fileapp import DirectoryApp, FileApp, DataApp
+from paste.httpheaders import CACHE_CONTROL
 
 import fanstatic
 
@@ -16,7 +19,50 @@ YEAR_IN_SECONDS = DAY_IN_SECONDS * 365
 FOREVER = YEAR_IN_SECONDS * 10
 
 
-class DirectoryPublisher(DirectoryApp):
+def check_ignore(ignores, filename):
+    for ignore in ignores:
+        if fnmatch.filter(filename.split('/'), ignore):
+            raise webob.exc.HTTPNotFound()
+
+
+class BundleApp(FileApp):
+    def __init__(self, rootpath, bundle, filenames, ignores):
+        # Let FileApp determine content_type and encoding based on bundlename.
+        FileApp.__init__(self, bundle)
+
+        self.filenames = []
+        for filename in filenames:
+            fullpath = os.path.join(rootpath, filename)
+            if not os.path.normpath(fullpath).startswith(rootpath):
+                # Raising forbidden here would expose private information.
+                raise webob.exc.HTTPNotFound()  # pragma: no cover
+            if not os.path.exists(fullpath):
+                raise webob.exc.HTTPNotFound()
+            self.filenames.append(fullpath)
+
+    # XXX see the fileapp/dataapp for returning a filewrapper/fileiter / 206
+    def update(self, force=False):
+        mtime = max([os.stat(fn).st_mtime for fn in self.filenames])
+        if not force and mtime == self.last_modified:
+            return
+        self.last_modified = mtime
+
+        contents = []
+        for filename in self.filenames:
+            fh = open(filename, 'rb')
+            contents.append(fh.read())
+            fh.close()
+        self.set_content('\n'.join(contents), mtime)
+
+    def get(self, environ, start_response):
+        if 'max-age=0' in CACHE_CONTROL(environ).lower():
+            self.update(force=True)  # RFC 2616 13.2.6
+        else:
+            self.update()
+        return DataApp.get(self, environ, start_response)
+
+
+class LibraryPublisher(DirectoryApp):
     """Fanstatic directory publisher WSGI application.
 
     This WSGI application serves a directory of static resources to
@@ -31,15 +77,55 @@ class DirectoryPublisher(DirectoryApp):
     :param ignores: A list of globs to match the requests against. If
       we have a match, the request will not be served.
     """
-    def __init__(self, path, ignores):
-        self.ignores = ignores
-        super(DirectoryPublisher, self).__init__(path)
+    def __init__(self, library):
+        self.ignores = library.ignores
+        self.library = library
+        super(LibraryPublisher, self).__init__(library.path)
 
     def __call__(self, environ, start_response):
-        for ignore in self.ignores:
-            if fnmatch.filter(environ['PATH_INFO'].split('/'), ignore):
+        path_info = environ['PATH_INFO']
+        check_ignore(self.ignores, path_info)
+
+        app = self.cached_apps.get(path_info)
+        if app is None:
+            fs_path = os.path.join(self.path, path_info.lstrip('/'))
+            if not os.path.normpath(fs_path).startswith(self.path):
+                raise webob.exc.HTTPForbidden()
+            elif fanstatic.BUNDLE_PREFIX in fs_path:
+                # We are handling a bundle request.
+                dirname, bundle = path_info.split(fanstatic.BUNDLE_PREFIX, 1)
+                dirname = dirname.lstrip('/')
+
+                dependency_nr = 0
+                filenames = []
+                # Check for duplicate filenames (`dirty bundles`) and check
+                # whether the filenames belong to a Resource definition.
+                for filename in bundle.split(';'):
+                    resource = self.library.known_resources.get(
+                        dirname + filename)
+                    if resource is None:
+                        raise webob.exc.HTTPNotFound()
+                    if resource.dependency_nr < dependency_nr:
+                        # Invalid bundle, resources in a bundle should be
+                        # sorted by dependency_nr.
+                        raise webob.exc.HTTPNotFound()
+                    dependency_nr = resource.dependency_nr
+                    if filename in filenames:
+                        # We have a `dirty bundle` request.
+                        raise webob.exc.HTTPNotFound()
+                    else:
+                        filenames.append(filename)
+                # normpath in order to correct the dirname on Windoze.
+                base = os.path.normpath(os.path.join(self.path, dirname))
+                app = BundleApp(base, bundle, filenames, self.ignores)
+                # Cache the BundleApp under the original path_info
+                self.cached_apps[path_info] = app
+            elif os.path.isfile(fs_path):
+                app = self.make_fileapp(fs_path)
+                self.cached_apps[path_info] = app
+            else:
                 raise webob.exc.HTTPNotFound()
-        return super(DirectoryPublisher, self).__call__(environ, start_response)
+        return app(environ, start_response)
 
 
 class Publisher(object):
@@ -68,10 +154,16 @@ class Publisher(object):
 
     @webob.dec.wsgify
     def __call__(self, request):
+        first = request.path_info_peek()
+        # Don't allow requests on just publisher
+        if first is None:
+            raise webob.exc.HTTPNotFound()
+
         library_name = request.path_info_pop()
         # don't allow requests on just publisher
         if library_name == '':
-            raise webob.exc.HTTPForbidden()
+            raise webob.exc.HTTPNotFound()
+
         # pop version if it's there
         potential_version = request.path_info_peek()
         if potential_version is not None and \
@@ -80,19 +172,21 @@ class Publisher(object):
             need_caching = True
         else:
             need_caching = False
+
+        if request.path_info == '':
+            raise webob.exc.HTTPNotFound()
+
         directory_publisher = self.directory_publishers.get(library_name)
         if directory_publisher is None:
             library = self.library_registry.get(library_name)
             if library is None:
                 # unknown library
                 raise webob.exc.HTTPNotFound()
-            directory_publisher = self.directory_publishers.setdefault(
-                library_name, DirectoryPublisher(library.path, library.ignores))
-        # we found the library, but we are not looking for a resource in it
-        if request.path_info == '':
-            raise webob.exc.HTTPForbidden()
+            directory_publisher = self.directory_publishers[library_name] = \
+                LibraryPublisher(library)
+
         # now delegate publishing to the directory publisher
-        response = request.copy().get_response(directory_publisher)
+        response = request.get_response(directory_publisher)
         # set caching when needed and for successful responses
         if need_caching and response.status.startswith('20'):
             response.cache_control.max_age = FOREVER
@@ -126,19 +220,23 @@ class Delegator(object):
                  publisher_signature=fanstatic.DEFAULT_SIGNATURE):
         self.app = app
         self.publisher = publisher
-        self.trigger = '/%s/' % publisher_signature
+        self.publisher_signature = publisher_signature
+        self.trigger = '/%s/' % self.publisher_signature
+
+    def is_resource(self, request):
+        return len(request.path_info.split(self.trigger)) > 1
 
     @webob.dec.wsgify
     def __call__(self, request):
-        chunks = request.path_info.split(self.trigger, 1)
-        if len(chunks) == 1:
+        if not self.is_resource(request):
             # the trigger segment is not in the URL, so we delegate
             # to the original application
             return request.get_response(self.app)
         # the trigger is in there, so let whatever is behind the
         # trigger be handled by the publisher
-        request = request.copy()
-        request.path_info = chunks[1]
+        ignored = request.path_info_pop()
+        while ignored != self.publisher_signature:
+            ignored = request.path_info_pop()
         return request.get_response(self.publisher)
 
 

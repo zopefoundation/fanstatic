@@ -15,6 +15,7 @@ Contents:
    paste_deploy
    api
    libraries
+   integration
    community
    development
 

@@ -12,7 +12,7 @@ WSGI components
 
 .. autoclass:: fanstatic.Publisher
 
-.. autoclass:: fanstatic.DirectoryPublisher
+.. autoclass:: fanstatic.LibraryPublisher
 
 .. autoclass:: fanstatic.Delegator
 
@@ -25,7 +25,7 @@ Python components
 .. autoclass:: fanstatic.Resource
   :members:
 
-.. autoclass:: fanstatic.GroupResource
+.. autoclass:: fanstatic.Group
   :members:
 
 .. autoclass:: fanstatic.NeededResources
@@ -35,9 +35,27 @@ Python components
   :members:
   :show-inheritance:
 
+.. autoclass:: fanstatic.ConfigurationError
+  :members:
+  :show-inheritance:
+
+.. autoclass:: fanstatic.UnknownResourceError
+  :members:
+  :show-inheritance:
+
+.. autoclass:: fanstatic.UnknownResourceExtensionError
+  :members:
+  :show-inheritance:
+
+.. autoclass:: fanstatic.LibraryDependencyCycleError
+  :members:
+  :show-inheritance:
+
 Functions
 ---------
 
 .. autofunction:: fanstatic.get_library_registry
 
 .. autofunction:: fanstatic.register_inclusion_renderer
+
+.. autofunction:: fanstatic.set_resource_file_existence_checking

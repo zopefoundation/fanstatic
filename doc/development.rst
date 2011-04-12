@@ -88,6 +88,9 @@ To run pyflakes_, you can type::
 
 .. _pyflakes: http://divmod.org/trac/wiki/DivmodPyflakes
 
+
+.. _buildbot:
+
 Buildbot
 --------
 
@@ -95,6 +98,8 @@ The fanstatic tests are run daily on the `THA buildbot <http://dev.thehealthagen
 We are working on a pretty overview of the buildbot status.
 For now, just search for ``fanstatic`` in the `list of projects <http://dev.thehealthagency.com/buildbot/one_box_per_builder>`_.
 
+The configuration of the buildbot lives on
+svn+ssh://svn.zope.org/repos/main/Sandbox/janjaapdriessen/buildbot
 
 Building the documentation
 --------------------------
@@ -146,4 +151,13 @@ Pre-packaged libraries
 If you want to make an existing JS library into a fanstatic package, use the
 fanstatic paster template from the :pypi:`fanstatictemplate` package.
 
+The pre-packaged libraries live in the http://bitbucket.org/fanstatic account.
 
+In order to add a new library, ask one of the fanstatic administrators to create
+a repository for you. In the new repository, run :pypi:`fanstatictemplate` and
+push your changes.
+
+Register the newly created package on PyPI and add the fanstatic administrators
+(currently `faassen`, `jw` and `janjaapdriessen`) as owners. After that, add
+your library to the list of :ref:`packaged_libs` and update the :ref:`buildbot`
+configuration.

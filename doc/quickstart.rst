@@ -118,4 +118,14 @@ Fanstatic wrapped app::
       server = make_server('127.0.0.1', 8080, fanstatic_app)
       server.serve_forever()
 
+The resulting HTML looks like this::
+
+  <html>
+    <head>
+      <script type="text/javascript" src="/fanstatic/jquery/jquery.js"></script>
+    </head>
+    <body>
+    </body>
+  </html>
+
 Now you're off and running with Fanstatic!

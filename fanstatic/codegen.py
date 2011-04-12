@@ -1,11 +1,32 @@
-from fanstatic import sort_resources_topological, sort_resources
+def _visit(resource, result, dead):
+    if dead[(resource.library, resource.relpath)]:
+        return
+    dead[(resource.library, resource.relpath)] = True
+    for depend in resource.depends:
+        _visit(depend, result, dead)
+    for depend in resource.supersedes:
+        _visit(depend, result, dead)
+    result.append(resource)
+
+
+def sort_resources_topological(resources):
+    """Sort resources by dependency and supersedes.
+    """
+    dead = {}
+    result = []
+    for resource in resources:
+        dead[(resource.library, resource.relpath)] = False
+
+    for resource in resources:
+        _visit(resource, result, dead)
+    return result
 
 
 def generate_code(**kw):
     resource_to_name = {}
     resources = []
     for name, resource in kw.items():
-        resource_to_name[resource.key()] = name
+        resource_to_name[(resource.library, resource.relpath)] = name
         resources.append(resource)
 
     # libraries with the same name are the same libraries
@@ -20,6 +41,8 @@ def generate_code(**kw):
     # import on top
     result.append("from fanstatic import Library, Resource")
     result.append("")
+    result.append("# This code is auto-generated and not PEP8 compliant")
+    result.append("")
     # define libraries
     for library in libraries:
         result.append("%s = Library('%s', '%s')" %
@@ -32,16 +55,16 @@ def generate_code(**kw):
     # now generate resource code
     for resource in resources:
         s = "%s = Resource(%s, '%s'" % (
-            resource_to_name[resource.key()],
+            resource_to_name[(resource.library, resource.relpath)],
             resource.library.name,
             resource.relpath)
         if resource.depends:
             depends_s = ', depends=[%s]' % ', '.join(
-                [resource_to_name[d.key()] for d in resource.depends])
+                [resource_to_name[(d.library, d.relpath)] for d in resource.depends])
             s += depends_s
         if resource.supersedes:
             supersedes_s = ', supersedes=[%s]' % ', '.join(
-                [resource_to_name[i.key()] for i in resource.supersedes])
+                [resource_to_name[(i.library, i.relpath)] for i in resource.supersedes])
             s += supersedes_s
         if resource.modes:
             items = []

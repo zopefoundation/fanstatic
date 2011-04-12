@@ -21,6 +21,11 @@ here. See the :doc:`configuration section<configuration>` and the
   help with caching. This can be controlled with the ``rollup`` configuration
   parameter.
 
+* bundling of resources.  Resource bundles combine multiple resources into one.
+  This reduces the amount of server requests to be made by the web browser, and
+  help with caching. This can be controlled with the ``bundle`` configuration
+  parameter.
+
 * infinite caching. Fanstatic can serve resources declaring that they
   should be cached forever by the web browser (or proxy cache),
   reducing the amount of hits on the server. Fanstatic makes this safe

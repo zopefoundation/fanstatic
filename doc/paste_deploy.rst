@@ -68,6 +68,10 @@ Use rolled up resources where possible and where they are available::
 
   rollup = true
 
+Use bundling of resources::
+
+  bundle = true
+
 A complete ``[filter:fanstatic]`` section could look like this::
 
   [filter:fanstatic]
