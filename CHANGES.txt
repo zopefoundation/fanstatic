@@ -1,11 +1,10 @@
 CHANGES
 *******
 
-0.12 (unreleased)
-=================
+0.11.1 (unreleased)
+===================
 
-- Nothing changed yet.
-
+- Consolidate the resources (find rollups) before applying the mode.
 
 0.11 (2011-04-11)
 =================
