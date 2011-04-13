@@ -291,7 +291,7 @@ class Resource(Renderable, Dependable):
                  dont_bundle=False,
                  minified=None):
         self.library = library
-        fullpath = os.path.join(library.path, relpath)
+        fullpath = os.path.normpath(os.path.join(library.path, relpath))
         if _resource_file_existence_checking and not os.path.exists(fullpath):
             raise UnknownResourceError("Resource file does not exist: %s" %
                                        fullpath)
