@@ -112,6 +112,11 @@ def test_list_directory_ignored_extensions(tmpdir):
 
 def test_mtime(tmpdir):
     testdata_path = str(_copy_testdata(tmpdir))
+    sleep = 0.02
+    # Sleep extra long on filesystems that report in seconds
+    # instead of milliseconds.
+    if os.path.getmtime(os.curdir).is_integer():
+        sleep += 1
 
     # Compute a first mtime for the test package:
     mtime_start = mtime(testdata_path)
@@ -121,7 +126,7 @@ def test_mtime(tmpdir):
     assert mtime_after_add != mtime_start
 
     # Remove the file again, the mtime changed:
-    time.sleep(0.02) 
+    time.sleep(sleep) 
     tmpdir.join('/MyPackage/A').remove()
     mtime_after_remove = mtime(testdata_path)
     assert mtime_after_remove != mtime_after_add
@@ -131,14 +136,14 @@ def test_mtime(tmpdir):
     tmpdir.join('/MyPackage/B').write('Contents for B')
     mtime_start = mtime(testdata_path)
     # Wait a split second in order to let the disk catch up.
-    time.sleep(0.02)
+    time.sleep(sleep)
     tmpdir.join('/MyPackage/B').write('Contents for B have changed')
     assert mtime(testdata_path) != mtime_start
     tmpdir.join('/MyPackage/B').remove()
 
     # Moving, or renaming a file should change the mtime:
     mtime_start = mtime(testdata_path)
-    time.sleep(0.02)
+    time.sleep(sleep)
     tmpdir.join('/MyPackage/setup.py').rename(
         tmpdir.join('/MyPackage/setup.py.renamed'))
     expected = [

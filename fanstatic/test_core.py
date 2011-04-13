@@ -1,4 +1,5 @@
 from __future__ import with_statement
+import os
 import re
 import pytest
 import time
@@ -552,7 +553,12 @@ def test_library_url_hashing_recompute(tmpdir):
 
     # now create a file
     resource = tmpdir.join('test.js')
+
     time.sleep(0.02)
+    # Sleep extra long on filesystems that report in seconds
+    # instead of milliseconds.
+    if os.path.getmtime(os.curdir).is_integer():
+        time.sleep(1)
     resource.write('/* test */')
 
     # the hash is recalculated now, so it changes
