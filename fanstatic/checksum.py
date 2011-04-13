@@ -27,7 +27,7 @@ def list_directory(path, include_directories=True):
 def mtime(path):
     latest = 0
     for path in list_directory(path):
-        mtime = os.stat(path).st_mtime
+        mtime = os.path.getmtime(path)
         latest = max(mtime, latest)
     return datetime.fromtimestamp(latest).isoformat()[:22]
 

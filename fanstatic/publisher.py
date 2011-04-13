@@ -42,7 +42,7 @@ class BundleApp(FileApp):
 
     # XXX see the fileapp/dataapp for returning a filewrapper/fileiter / 206
     def update(self, force=False):
-        mtime = max([os.stat(fn).st_mtime for fn in self.filenames])
+        mtime = max([os.path.getmtime(fn) for fn in self.filenames])
         if not force and mtime == self.last_modified:
             return
         self.last_modified = mtime
