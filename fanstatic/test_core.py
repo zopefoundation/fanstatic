@@ -50,6 +50,9 @@ def test_resource_file_exists(tmpdir):
     with pytest.raises(UnknownResourceError):
         b = Resource(foo, 'b.js')
 
+    sub_c = tmpdir.mkdir('sub').join('c.css').write('c')
+    c = Resource(foo, 'sub/c.css')
+
 def test_resource_register_with_library():
     foo = Library('foo', '')
     x1 = Resource(foo, 'a.js', minified='a.min.js')
