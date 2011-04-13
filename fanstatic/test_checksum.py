@@ -1,5 +1,6 @@
 import time
 import shutil
+import os
 from pkg_resources import resource_filename
 
 from fanstatic.checksum import list_directory, md5, mtime
