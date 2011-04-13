@@ -405,6 +405,17 @@ def test_rollup_modes():
     assert needed.resources() == [giantf.modes['debug']]
 
 
+def test_rollup_without_mode():
+    foo = Library('foo', '')
+    h1 = Resource(foo, 'h1.js', debug='h1-debug.js')
+    h2 = Resource(foo, 'h2.js', debug='h2-debug.js')
+    gianth = Resource(foo, 'gianth.js', supersedes=[h1, h2])
+
+    needed = NeededResources(resources=[h1, h2], rollup=True, debug=True)
+    # no mode available for rollup, use the rollup.
+    assert needed.resources() == [gianth]
+     
+
 def test_rendering():
     foo = Library('foo', '')
     x1 = Resource(foo, 'a.js')
