@@ -69,4 +69,28 @@ Here's a list of currently available libraries:
       - the `YUI Library <http://developer.yahoo.com/yui>`_
       - `bitbucket <http://bitbucket.org/fanstatic/js.yui>`_
 
+    * - :pypi:`js.jquery_datalink`
+      - the jQuery plugin `Datalink <https://github.com/nje/jquery-datalink>`_
+      - `bitbucket <http://bitbucket.org/fanstatic/js.jquery_datalink>`_
+
+    * - :pypi:`js.jquery_datatables`
+      - the jQuery plugin `DataTable <http://www.datatables.net>`_
+      - `bitbucket <http://bitbucket.org/fanstatic/js.jquery_datatables>`_
+
+    * - :pypi:`js.jquery_form`
+      - the jQuery plugin `Form <http://jquery.malsup.com/form>`_
+      - `bitbucket <http://bitbucket.org/fanstatic/js.jquery_form>`_
+
+    * - :pypi:`js.jquery_jstree`
+      - the jQuery plugin `JsTree <http://www.jstree.com/>`_
+      - `bitbucket <http://bitbucket.org/fanstatic/js.jquery_jstree>`_
+
+    * - :pypi:`js.jquery_qunit`
+      - the jQuery plugin `QUnit <http://docs.jquery.com/Qunit>`_
+      - `bitbucket <http://bitbucket.org/fanstatic/js.jquery_qunit>`_
+
+    * - :pypi:`js.jquery_utils`
+      - `jQuery Utils <http://code.google.com/p/jquery-utils/>`_
+      - `bitbucket <http://bitbucket.org/fanstatic/js.jquery_utils>`_
+
 Follow the instructions in the :doc:`development section <development>` to learn how to package your own library.
