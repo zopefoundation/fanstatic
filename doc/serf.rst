@@ -1,4 +1,4 @@
-Serf: A standalone Fanstatic WSGI spplication
+Serf: A standalone Fanstatic WSGI application
 =============================================
 
 .. py:module:: fanstatic
