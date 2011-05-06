@@ -5,9 +5,9 @@ import pytest
 import webob
 
 from fanstatic import (Library, Resource,
-                       get_needed)
+                       get_needed, make_serf)
 
-from fanstatic import Fanstatic
+from fanstatic import Fanstatic, ConfigurationError
 
 
 def test_inject():
@@ -55,4 +55,25 @@ def test_inject_unicode_base_url():
     wrapped = Fanstatic(app, base_url=u'http://localhost')
     # Fanstatic used to choke on unicode content.
     response = request.get_response(wrapped)
+
+def test_serf():
+    # also test serf config
+    d = {
+        'resource': 'py:mypackage.style'
+        }
+    serf = make_serf({}, **d)
+    serf = Fanstatic(serf, versioning=False)
+    request = webob.Request.blank('/')
+    response = request.get_response(serf)
+    assert response.body == '''\
+<html><head>
+    <link rel="stylesheet" type="text/css" href="/fanstatic/foo/style.css" />
+</head><body></body></html>'''
+
+def test_serf_unknown_library():
+    d = {
+        'resource': 'unknown_library:unknown_resource'
+        }
+    with pytest.raises(ConfigurationError):
+        serf = make_serf({}, **d)
 

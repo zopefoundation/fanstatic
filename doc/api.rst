@@ -8,6 +8,8 @@ WSGI components
 
 .. autofunction:: fanstatic.Fanstatic
 
+.. autofunction:: fanstatic.Serf
+
 .. autoclass:: fanstatic.Injector
 
 .. autoclass:: fanstatic.Publisher

@@ -32,4 +32,4 @@ from fanstatic.injector import Injector, make_injector
 from fanstatic.publisher import (Publisher, Delegator, make_publisher,
                                  LibraryPublisher)
 
-from fanstatic.wsgi import Fanstatic, make_fanstatic
+from fanstatic.wsgi import Fanstatic, make_fanstatic, Serf, make_serf

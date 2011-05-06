@@ -29,4 +29,7 @@ setup(
             'publisher = fanstatic:make_publisher',
             'injector = fanstatic:make_injector',
             ],
+        'paste.app_factory': [
+            'serf = fanstatic:make_serf',
+            ],
     })

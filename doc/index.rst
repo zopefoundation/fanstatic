@@ -13,6 +13,7 @@ Contents:
    optimization
    configuration
    paste_deploy
+   serf
    api
    libraries
    integration
