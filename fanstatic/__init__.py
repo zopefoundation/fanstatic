@@ -1,5 +1,6 @@
 from fanstatic.core import (Library,
                             Resource,
+                            Slot,
                             Group,
                             GroupResource,
                             NeededResources,
@@ -20,6 +21,7 @@ from fanstatic.core import (Library,
                             UnknownResourceExtension, # BBB
                             LibraryDependencyCycleError,
                             ConfigurationError,
+                            SlotError,
                             set_resource_file_existence_checking,
                             UnknownResourceError)
 
