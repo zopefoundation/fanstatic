@@ -27,6 +27,9 @@ Python components
 .. autoclass:: fanstatic.Resource
   :members:
 
+.. autoclass:: fanstatic.Slot
+  :members:
+
 .. autoclass:: fanstatic.Group
   :members:
 
@@ -50,6 +53,10 @@ Python components
   :show-inheritance:
 
 .. autoclass:: fanstatic.LibraryDependencyCycleError
+  :members:
+  :show-inheritance:
+
+.. autoclass:: fanstatic.SlotError
   :members:
   :show-inheritance:
 

@@ -434,11 +434,12 @@ class Resource(Renderable, Dependable):
         rendering process of your web page, this resource and all its
         dependencies will be inserted as inclusions into the web page.
 
-        :param slots: an optional dictionary mapping from :py:class:`Slot`
-        instances to :py:class:`Resource` instances. This dictionary
-        describes how to fill in the slots that this resource might
-        depend on (directly or indirectly). If a slot is required,
-        the dictionary must contain an entry for it. 
+        :param slots: an optional dictionary mapping from
+          :py:class:`Slot` instances to :py:class:`Resource`
+          instances. This dictionary describes how to fill in the
+          slots that this resource might depend on (directly or
+          indirectly). If a slot is required, the dictionary must
+          contain an entry for it.
         """
         needed = get_needed()
         needed.need(self)
@@ -447,7 +448,15 @@ class Resource(Renderable, Dependable):
 # that's a FilledSlot.
 class Slot(Renderable, Dependable):
     """A resource slot.
-    
+
+    Sometimes only the application has knowledge on how to fill in a
+    dependency for a resource, and this cannot be known at resource
+    definition time. In this case you can define a slot, and make your
+    resource depend on that. This slot can then be filled in with a
+    real resource by the application when you ``.need()`` that
+    resource (or when you need something that depends on the slot
+    indirectly).
+  
     :param library: the :py:class:`Library` this slot is in.
 
     :param ext: the extension of the slot, for instance '.js'. This
@@ -455,8 +464,8 @@ class Slot(Renderable, Dependable):
 
     :param required: a boolean indicating whether this slot is
       required to be filled in when a resource that depends on a slot
-      is ``need()``ed, or whether it's optional. By default filling in
-      a slot is required.
+      is needed, or whether it's optional. By default filling in a
+      slot is required.
       
     :param depends: optionally, a list of resources that this slot
       depends on. Resources that are slotted in here need to have
@@ -501,10 +510,6 @@ class Slot(Renderable, Dependable):
                                 dependency_nr)
         self.dependency_nr = dependency_nr
         self.library_nr = library_nr
-
-    def fill(resource):
-        """Return a FilledSlot for this resource.
-        """
 
 class FilledSlot(Renderable, Dependable):
     def __init__(self, slot, resource):
