@@ -64,6 +64,19 @@ class LibraryDependencyCycleError(Exception):
     depends on a file in the first library.
     """
 
+class SlotError(Exception):
+    """A slot was filled in incorrectly.
+
+    If a slot is required, it must be filled in by passing an extra
+    dictionary parameter to the ``.need`` method, containing a mapping
+    from the required :py:class:`Slot` to :py:class:`Resource`.
+    
+    When a slot is filled, the resource filled in should have
+    the same dependencies as the slot, or a subset of the dependencies
+    of the slot. It should also have the same extension as the slot.
+    If this is not the case, it is an error.
+    """
+    
 class Library(object):
     """The resource library.
 
@@ -424,17 +437,137 @@ class Resource(Renderable, Dependable):
             # fall back on the default mode if mode not found
             return self
 
-    def need(self):
+    def need(self, slots=None):
         """Declare that the application needs this resource.
 
         If you call ``.need()`` on ``Resource`` sometime during the
         rendering process of your web page, this resource and all its
         dependencies will be inserted as inclusions into the web page.
+
+        :param slots: an optional dictionary mapping from
+          :py:class:`Slot` instances to :py:class:`Resource`
+          instances. This dictionary describes how to fill in the
+          slots that this resource might depend on (directly or
+          indirectly). If a slot is required, the dictionary must
+          contain an entry for it.
         """
         needed = get_needed()
         needed.need(self)
 
+# XXX have to lie here: a slot itself is not directly renderable,
+# that's a FilledSlot.
+class Slot(Renderable, Dependable):
+    """A resource slot.
 
+    Sometimes only the application has knowledge on how to fill in a
+    dependency for a resource, and this cannot be known at resource
+    definition time. In this case you can define a slot, and make your
+    resource depend on that. This slot can then be filled in with a
+    real resource by the application when you ``.need()`` that
+    resource (or when you need something that depends on the slot
+    indirectly).
+  
+    :param library: the :py:class:`Library` this slot is in.
+
+    :param ext: the extension of the slot, for instance '.js'. This
+      determines what kind of resources can be slotted in here.
+
+    :param required: a boolean indicating whether this slot is
+      required to be filled in when a resource that depends on a slot
+      is needed, or whether it's optional. By default filling in a
+      slot is required.
+      
+    :param depends: optionally, a list of resources that this slot
+      depends on. Resources that are slotted in here need to have
+      the same dependencies as that of the slot, or a strict subset.
+    """
+
+    def __init__(self, library, extension, depends=None, required=True):
+        self.library = library
+        assert extension.startswith('.')
+        self.ext = extension
+        self.required = required
+        
+        assert not isinstance(depends, basestring)
+        self.depends = set()
+        if depends is not None:
+            # Normalize groups into the underlying resources...
+            depends = normalize_groups(depends)
+            # ...before updating the set of dependencies of this resource.
+            self.depends.update(depends)
+
+        self.resources = set([self])
+        for depend in self.depends:
+            self.resources.update(depend.resources)
+
+        # Check for library dependency cycles.
+        self.library.check_dependency_cycle(self)
+
+        # generate an internal number for sorting the resource
+        # on dependency within the library
+        self.init_dependency_nr()
+
+    def init_dependency_nr(self):
+        # on dependency within the library
+        dependency_nr = 0
+        library_nr = 0
+        for depend in self.depends:
+            if depend.library is not self.library:
+                library_nr = max(depend.library_nr + 1, library_nr)
+            else:
+                library_nr = max(depend.library_nr, library_nr)
+            dependency_nr = max(depend.dependency_nr + 1,
+                                dependency_nr)
+        self.dependency_nr = dependency_nr
+        self.library_nr = library_nr
+
+class FilledSlot(Renderable, Dependable):
+    def __init__(self, slot, resource):
+        self.library = resource.library
+        self.relpath = resource.relpath
+        self.dirname, self.filename = resource.dirname, resource.filename
+        self.bottom = resource.bottom
+        self.dont_bundle = resource.dont_bundle
+        if slot.ext != resource.ext:
+            raise SlotError(
+                "slot requires extension %s but filled with resource "
+                "with extension %s" %
+                (slot.ext, resource.ext))
+
+        self.ext = resource.ext
+        self.order = resource.order
+        self.renderer = resource.renderer
+        self.library_nr = slot.library_nr
+        self.dependency_nr = slot.dependency_nr
+
+        self.modes = {}
+        for key, resource in resource.modes.items():
+            self.modes[key] = FilledSlot(slot, resource)
+
+        if not resource.depends.issubset(slot.depends):
+            raise SlotError(
+                "slot filled in with resource that has dependencies that "
+                "are not a strict subset of dependencies of slot")
+        
+        # XXX how do slots interact with rollups?
+
+    def render(self, library_url):
+        return self.renderer('%s/%s' % (library_url, self.relpath))
+
+    def __repr__(self):
+        return "<FilledSlot '%s' in library '%s'>" % (
+            self.relpath, self.library.name)
+
+    def mode(self, mode):
+        if mode is None:
+            return self
+        # try getting the alternative
+        try:
+            return self.modes[mode]
+        except KeyError:
+            # fall back on the default mode if mode not found
+            return self
+        
 class Group(Dependable):
     """A resource used to group resources together.
 
@@ -585,6 +718,7 @@ class NeededResources(object):
         self._rollup = rollup
         self._bundle = bundle
         self._resources = set(resources or [])
+        self._slots = {}
         self._url_cache = {}  # prevent multiple computations per request
         if (debug and minified):
             raise ConfigurationError('Choose *one* of debug and minified')
@@ -611,16 +745,25 @@ class NeededResources(object):
         if not self.has_base_url():
             self._base_url = url
 
-    def need(self, resource):
+    def need(self, resource, slots=None):
         """Add a particular resource to the needed resources.
 
         This is an alternative to calling ``.need()`` on the resource
         directly.
 
         :param resource: A :py:class:`Resource` instance.
-        """
-        self._resources.add(resource)
 
+        :param slots: an optional dictionary mapping from
+          :py:class:`Slot` instances to :py:class:`Resource`
+          instances. This dictionary describes how to fill in the
+          slots that the given resource might depend on (directly or
+          indirectly). If a slot is required, the dictionary must
+          contain an entry for it.
+        """
+        slots = slots or {}
+        self._resources.add(resource)
+        self._slots.update(slots)
+        
     def resources(self):
         """Retrieve the list of resources needed.
 
@@ -634,11 +777,28 @@ class NeededResources(object):
         for resource in self._resources:
             resources.update(resource.resources)
 
+        resources = self._fill_slots(resources)
+
         if self._rollup:
             resources = set(consolidate(resources))
         resources = [resource.mode(self._mode) for resource in resources]
         return sort_resources(resources)
 
+    def _fill_slots(self, resources):
+        result = set()
+        for resource in resources:
+            if not isinstance(resource, Slot):
+                result.add(resource)
+                continue
+            fill_resource = self._slots.get(resource)
+            if fill_resource is None:
+                if not resource.required:
+                    continue
+                raise SlotError("slot %r was required but not filled in" %
+                                resource)
+            result.add(FilledSlot(resource, fill_resource))
+        return result
+            
     def clear(self):
         # Clear out any resources "needed" thusfar.
         # XXX or should we rather revert to the list with resources
