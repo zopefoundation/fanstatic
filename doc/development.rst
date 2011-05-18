@@ -159,5 +159,4 @@ push your changes.
 
 Register the newly created package on PyPI and add the fanstatic administrators
 (currently `faassen`, `jw` and `janjaapdriessen`) as owners. After that, add
-your library to the list of :ref:`packaged_libs` and update the :ref:`buildbot`
-configuration.
+your library to the list of :ref:`packaged_libs`.
