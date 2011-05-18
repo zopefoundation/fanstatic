@@ -40,6 +40,11 @@ class UnknownResourceExtensionError(Exception):
     """A resource has an unrecognized extension.
     """
 
+class ModeResourceDependencyError(Exception):
+    """A Mode Resource does not have the same dependencies as the
+    resource it replaces.
+    """
+
 # BBB backwards compatibility
 UnknownResourceExtension = UnknownResourceExtensionError
 
@@ -340,16 +345,21 @@ class Resource(Renderable, Dependable):
         self.init_dependency_nr()
 
         self.modes = {}
-        if debug is not None:
-            debug = self.modes[DEBUG] = normalize_string(library, debug)
-            debug.dependency_nr = self.dependency_nr
-            debug.library_nr = self.library_nr
-        if minified is not None:
-            minified = self.modes[MINIFIED] = normalize_string(
-                library, minified)
-            minified.dependency_nr = self.dependency_nr
-            minified.library_nr = self.library_nr
+        for mode_name, argument in [(DEBUG, debug), (MINIFIED, minified)]:
+            if argument is None:
+                continue
+            elif isinstance(argument, basestring):
+                mode_resource = Resource(library, argument)
+            else:
+                # The dependencies of a mode resource should be the same 
+                # or a subset of the dependencies this mode replaces.
+                if len(argument.depends - self.depends) > 0:
+                    raise ModeResourceDependencyError
+                mode_resource = argument
 
+            mode_resource.dependency_nr = self.dependency_nr
+            mode_resource.library_nr = self.library_nr
+            self.modes[mode_name] = mode_resource
 
         assert not isinstance(supersedes, basestring)
         self.supersedes = supersedes or []
@@ -465,12 +475,6 @@ def normalize_groups(resources):
         else:
             result.append(resource)
     return result
-
-
-def normalize_string(library, resource):
-    if isinstance(resource, basestring):
-        return Resource(library, resource)
-    return resource
 
 
 class NeededResources(object):

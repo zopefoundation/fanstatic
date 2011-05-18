@@ -21,8 +21,9 @@ from fanstatic import (Library,
                        UnknownResourceError,
                        set_resource_file_existence_checking)
 
-from fanstatic.core import inclusion_renderers, normalize_string
+from fanstatic.core import inclusion_renderers
 from fanstatic.core import thread_local_needed_data
+from fanstatic.core import ModeResourceDependencyError
 from fanstatic.codegen import sort_resources_topological
 
 def test_resource():
@@ -877,16 +878,26 @@ def test_convenience_clear():
     z2.need()
     assert needed.resources() == [x1, z1, z2]
 
+
+def test_check_resource_dependencies():
+    foo = Library('foo', '')
+
+    r1 = Resource(foo, 'r1.css')
+    r2 = Resource(foo, 'r2.css')
+    r3 = Resource(foo, 'r3.css', depends=[r1, r2])
+    # https://bitbucket.org/fanstatic/fanstatic/issue/63
+    # If a resource is a mode (debug, minified) of a resource, its
+    # dependencies should be the same or a subset of the dependencies that
+    # this mode replaces.
+    with pytest.raises(ModeResourceDependencyError):
+        Resource(foo, 'r4.css', depends=[r1], minified=r3)
+
+
 def test_normalize_string():
     foo = Library('foo', '')
-    assert isinstance(normalize_string(foo, 'f.css'), Resource)
-    r1 = Resource(foo, 'f.js')
-    assert normalize_string(foo, r1) == r1
+    r1 = Resource(foo, 'r1.css', minified='r1.min.css')
+    assert isinstance(r1.modes['minified'], Resource)
 
-    r2 = Resource(foo, 'r2.css')
-    r3 = Resource(foo, 'r3.css', depends=[r2], minified='r3.min.css')
-    needed = NeededResources(minified=True, resources=[r3])
-    assert needed.resources() == [r2, r3.modes['minified']]
 
 def test_sort_group_per_renderer():
     foo = Library('foo', '')
