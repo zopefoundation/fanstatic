@@ -1,6 +1,11 @@
 CHANGES
 *******
 
+0.11.2 (unreleased)
+===================
+
+- Update the docs for readthedocs.org.
+
 0.11.1 (2011-04-13)
 ===================
 
