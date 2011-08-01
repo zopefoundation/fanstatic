@@ -261,10 +261,8 @@ class Resource(Renderable, Dependable):
       path) that indicates the actual resource file.
 
     :param depends: optionally, a list of resources that this resource
-      depends on. Entries in the list can be :py:class:`Resource`
-      instances, or, as a shortcut, strings that are paths to
-      resources. If a string is given, a :py:class:`Resource` instance
-      is constructed that has the same library as this resource.
+      depends on. Entries in the list are :py:class:`Resource`
+      instances. 
 
     :param supersedes: optionally, a list of :py:class:`Resource`
       instances that this resource supersedes as a rollup
