@@ -1240,6 +1240,27 @@ def test_bundle_single_dont_bundle_entry():
 
     assert resources == [a]
 
+def test_inter_library_dependencies_ordering():
+    lib1 = Library('lib1', '')
+    lib2 = Library('lib2', '')
+    lib3 = Library('lib3', '')
+    lib4 = Library('lib4', '')
+    
+    js1 = Resource(lib1, 'js1.js')
+    js2 = Resource(lib2, 'js2.js', depends=[js1]) 
+    js3 = Resource(lib3, 'js3.js', depends=[js2])
+    
+    style1 = Resource(lib3, 'style1.css')
+    style2 = Resource(lib4, 'style2.css', depends=[style1])
+
+    needed = NeededResources()
+
+    needed.need(js3)
+    needed.need(style2)
+    resources = needed.resources()
+    assert resources == [style1, style2, js1, js2, js3]
+
+
 # XXX tests for hashed resources when this is enabled. Needs some plausible
 # directory to test for hashes
 

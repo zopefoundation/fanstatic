@@ -1032,14 +1032,20 @@ def sort_resources(resources):
     """
     library_nrs = {}
     for resource in resources:
-        library_nr = library_nrs.get(resource.library, 0)
+        # the order is used to distinguish library numbers between
+        # types of resources. without the order here, a resource can
+        # end up being in the wrong place if another resource in that
+        # library has a deeper dependency structure; order should always
+        # trump library nr
+        rkey = resource.order, resource.library
+        library_nr = library_nrs.get(rkey, 0)
         library_nr = max(resource.library_nr, library_nr)
-        library_nrs[resource.library] = library_nr
+        library_nrs[rkey] = library_nr
 
     def key(resource):
         return (
             resource.order,
-            library_nrs[resource.library],
+            library_nrs[(resource.order, resource.library)],
             resource.library.name,
             resource.dependency_nr,
             resource.relpath)
