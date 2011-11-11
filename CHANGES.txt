@@ -1,12 +1,17 @@
 CHANGES
 *******
 
-0.11.2 (2011-11-11)
+0.11.3 (2011-11-11)
 ===================
 
 - There was a bug with ordering resources when multiple libraries
   are involved: https://bitbucket.org/fanstatic/fanstatic/issue/67/ordering-of-resources-when-multiple
-  
+
+0.11.2 (2011-05-19)
+-------------------
+
+- Update the docs for readthedocs.org.
+
 0.11.1 (2011-04-13)
 ===================
 
