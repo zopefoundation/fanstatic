@@ -1,8 +1,8 @@
 CHANGES
 *******
 
-0.12 (unreleased)
-=================
+0.11.2 (unreleased)
+===================
 
 - There was a bug with ordering resources when multiple libraries
   are involved: https://bitbucket.org/fanstatic/fanstatic/issue/67/ordering-of-resources-when-multiple
