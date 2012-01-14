@@ -1036,9 +1036,13 @@ def test_library_nr():
     c = Resource(Z, 'c.js')
     b = Resource(Y, 'b.js', depends=[a, c])
 
-    assert a.library_nr == 0
-    assert c.library_nr == 0
-    assert b.library_nr == 1
+    X.init_library_nr()
+    Y.init_library_nr()
+    Z.init_library_nr()
+                              
+    assert a.library.library_nr == 0
+    assert c.library.library_nr == 0
+    assert b.library.library_nr == 1
 
 def test_library_dependency_cycles():
     A = Library('A', '')
@@ -1260,7 +1264,43 @@ def test_inter_library_dependencies_ordering():
     resources = needed.resources()
     assert resources == [style1, style2, js1, js2, js3]
 
+def test_library_ordering_bug():
+    jquery_lib = Library('jquery', '')
+    jqueryui_lib = Library('jqueryui', '')
+    obviel_lib = Library('obviel', '')
+    bread_lib = Library('bread', '')
+    app_lib = Library('app', '')
+    
+    jquery = Resource(jquery_lib, 'jquery.js')
+    jqueryui = Resource(jqueryui_lib, 'jqueryui.js', depends=[jquery])
 
+    obviel = Resource(obviel_lib, 'obviel.js', depends=[jquery])
+    obviel_forms = Resource(obviel_lib, 'obviel_forms.js',
+                            depends=[obviel])
+    obviel_datepicker = Resource(obviel_lib, 'obviel_datepicker.js',
+                                 depends=[obviel_forms, jqueryui])
+
+    vtab = Resource(bread_lib, 'vtab.js', depends=[jqueryui])
+
+    tabview = Resource(bread_lib, 'tabview.js', depends=[obviel, vtab])
+    
+    bread = Resource(bread_lib, 'bread.js', depends=[tabview, obviel_forms])
+
+    app = Resource(app_lib, 'app.js', depends=[bread, obviel_datepicker])
+    
+    needed = NeededResources()
+
+    needed.need(app)
+    resources = needed.resources()
+    #for resource in resources:
+     #   print resource, resource.library_nr
+    assert resources == [jquery, jqueryui, obviel, obviel_forms,
+                         obviel_datepicker, vtab, tabview, bread, app]
+    
+
+    #assert resources == [obviel, forms, forms_autocomplete, tabview, bread,
+    #                     zorgdas]
+    
 # XXX tests for hashed resources when this is enabled. Needs some plausible
 # directory to test for hashes
 

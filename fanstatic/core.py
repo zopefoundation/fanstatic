@@ -112,9 +112,35 @@ class Library(object):
         self.version = version
         self._library_deps = set()
         self.known_resources = {}
-
+        self.library_nr = None
+        
     def __repr__(self):
         return "<Library '%s' at '%s'>" % (self.name, self.path)
+
+    def init_library_nr(self):
+        """This can only be called once all resources are known.
+
+        i.e. once sort_resources is called this can be called.
+        once library numbers are calculated once this will be done
+        very quickly.
+        """
+        # if there already is a known library nr, we're done
+        if self.library_nr is not None:
+            return
+        # the maximum library number is the maximum number of the
+        # depending libraries + 1
+        max_library_nr = 0
+        for resource in self.known_resources.values():
+            for dep in resource.depends:
+                # we don't care about resources in the same library
+                if dep.library is self:
+                    continue
+                # assign library number of library we are dependent on
+                # recursively if necessary
+                if dep.library.library_nr is None:
+                    dep.library.init_library_nr()
+                max_library_nr = max(max_library_nr, dep.library.library_nr + 1)
+        self.library_nr = max_library_nr
 
     def check_dependency_cycle(self, resource):
         for dependency in resource.resources:
@@ -221,8 +247,7 @@ register_inclusion_renderer('.ico', render_ico, 30)
 class Renderable(object):
     """A renderable.
 
-    A renderable must have a library attribute, a library_nr and
-    a dependency_nr.
+    A renderable must have a library attribute and a dependency_nr.
     """
     def render(self, library_url):
         """Render this renderable as something to insert in HTML.
@@ -369,7 +394,6 @@ class Resource(Renderable, Dependable):
                 mode_resource = argument
 
             mode_resource.dependency_nr = self.dependency_nr
-            mode_resource.library_nr = self.library_nr
             self.modes[mode_name] = mode_resource
 
         assert not isinstance(supersedes, basestring)
@@ -396,21 +420,14 @@ class Resource(Renderable, Dependable):
         # Register ourself with the Library.
         self.library.register(self)
 
-
     def init_dependency_nr(self):
         # on dependency within the library
         dependency_nr = 0
-        library_nr = 0
         for depend in self.depends:
-            if depend.library is not self.library:
-                library_nr = max(depend.library_nr + 1, library_nr)
-            else:
-                library_nr = max(depend.library_nr, library_nr)
             dependency_nr = max(depend.dependency_nr + 1,
                                 dependency_nr)
         self.dependency_nr = dependency_nr
-        self.library_nr = library_nr
-
+   
     def render(self, library_url):
         return self.renderer('%s/%s' % (library_url, self.relpath))
 
@@ -508,17 +525,11 @@ class Slot(Renderable, Dependable):
     def init_dependency_nr(self):
         # on dependency within the library
         dependency_nr = 0
-        library_nr = 0
         for depend in self.depends:
-            if depend.library is not self.library:
-                library_nr = max(depend.library_nr + 1, library_nr)
-            else:
-                library_nr = max(depend.library_nr, library_nr)
             dependency_nr = max(depend.dependency_nr + 1,
                                 dependency_nr)
         self.dependency_nr = dependency_nr
-        self.library_nr = library_nr
-
+        
 class FilledSlot(Renderable, Dependable):
     def __init__(self, slot, resource):
         self.library = resource.library
@@ -535,7 +546,6 @@ class FilledSlot(Renderable, Dependable):
         self.ext = resource.ext
         self.order = resource.order
         self.renderer = resource.renderer
-        self.library_nr = slot.library_nr
         self.dependency_nr = slot.dependency_nr
 
         self.modes = {}
@@ -1010,7 +1020,7 @@ def consolidate(resources):
             # nothing to supersede resource so use it directly
             result.append(resource)
     return result
-
+    
 def sort_resources(resources):
     """Sort resources for inclusion on web page.
 
@@ -1030,22 +1040,13 @@ def sort_resources(resources):
     Note this sorting algorithm guarantees a consistent ordering, no
     matter in what order resources were needed.
     """
-    library_nrs = {}
     for resource in resources:
-        # the order is used to distinguish library numbers between
-        # types of resources. without the order here, a resource can
-        # end up being in the wrong place if another resource in that
-        # library has a deeper dependency structure; order should always
-        # trump library nr
-        rkey = resource.order, resource.library
-        library_nr = library_nrs.get(rkey, 0)
-        library_nr = max(resource.library_nr, library_nr)
-        library_nrs[rkey] = library_nr
-
+        resource.library.init_library_nr()
+        
     def key(resource):
         return (
             resource.order,
-            library_nrs[(resource.order, resource.library)],
+            resource.library.library_nr,
             resource.library.name,
             resource.dependency_nr,
             resource.relpath)
