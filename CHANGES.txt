@@ -4,8 +4,27 @@ CHANGES
 0.11.4 (unreleased)
 ===================
 
-- Nothing changed yet.
+- There was another bug with ordering resources when multiple libraries
+  were involved. This time the way library_nr was calculated was changed
+  so that it wouldn't happen anymore. 
+   
+  The intent of library_nr was to have it always be 1 higher than the
+  maximum library_nr of any libraries this library is based on.
 
+  In practice this wouldn't always happen, because each resource had
+  its own library_nr. In some circumstances the resources in libraries
+  depending on other libraries would consistently get a library_nr too
+  low, as each resource they were based on had a library_nr that was
+  too low as well, even though another resource could exist in that
+  library with a higher library_nr. This could cause the library_nr of 
+  all resources in a library to be too low.
+
+  This is now fixed to moving library_nr to the place it should've
+  maintained on in the first place: the library itself. It is
+  calculated now once per library, just before the resources are
+  sorted for the first time during the application's run. Since by the
+  time resources need to be sorted all resources are known, the library_nr
+  can be calculated correctly.
 
 0.11.3 (2011-11-11)
 ===================

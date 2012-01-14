@@ -1292,8 +1292,8 @@ def test_library_ordering_bug():
 
     needed.need(app)
     resources = needed.resources()
-    #for resource in resources:
-     #   print resource, resource.library_nr
+    for resource in resources:
+        print resource, resource.library.library_nr
     assert resources == [jquery, jqueryui, obviel, obviel_forms,
                          obviel_datepicker, vtab, tabview, bread, app]
     
