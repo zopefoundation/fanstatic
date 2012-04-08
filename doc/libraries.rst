@@ -113,4 +113,45 @@ Here's a list of currently available libraries:
       - `less.js <http://lesscss.org/>`_
       - `bitbucket <https://bitbucket.org/fanstatic/js.lesscss>`__
 
+    * - :pypi:`js.bootstrap`
+      - `Bootstrap, from Twitter <http://twitter.github.com/bootstrap/index.html>`_
+      - `github <https://github.com/RedTurtle/js.bootstrap>`__
+
+    * - :pypi:`js.chosen`
+      - `Chosen <http://harvesthq.github.com/chosen/>`_
+      - ?
+
+    * - :pypi:`js.modernizr`
+      - `Modernizr <http://modernizr.com/>`_
+      - ?
+
+    * - :pypi:`js.spin`
+      - `spin.js <http://fgnass.github.com/spin.js/>`_
+      - ?
+
+    * - :pypi:`js.raphael`
+      - `Raphael <http://raphaeljs.com/>`_
+      - ?
+
+    * - :pypi:`js.underscore`
+      - `underscore.js <http://documentcloud.github.com/underscore/>`_
+      - ?
+
+    * - :pypi:`js.sugar`
+      - `Sugar <http://sugarjs.com/>`_
+      - `github <https://github.com/disko/js.sugar>`__
+
+    * - :pypi:`js.lightbox`
+      - `jquery lightbox <http://leandrovieira.com/projects/jquery/lightbox/>`_
+      - `github <https://github.com/amleczko/js.lightbox>`__
+
+    * - :pypi:`js.ace`
+      - `Ajax.org Cloud9 Editor <https://github.com/ajaxorg/ace>`_
+      - `bitbucket <https://bitbucket.org/fanstatic/js.ace>`__
+
+    * - :pypi:`js.ckeditor`
+      - `CKEditor <http://ckeditor.com/>`_
+      - ?
+
+
 Follow the instructions in the :doc:`development section <development>` to learn how to package your own library.
