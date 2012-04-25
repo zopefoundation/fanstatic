@@ -21,6 +21,10 @@ Here's a list of currently available libraries:
       - `Ajax.org Cloud9 Editor <https://github.com/ajaxorg/ace>`_
       - `bitbucket <https://bitbucket.org/fanstatic/js.ace>`__
 
+    * - :pypi:`js.amcharts`
+      - `amCharts <http://www.amcharts.com>`_
+      - `Github <https://github.com/securactive/js.amcharts>`__
+
     * - :pypi:`js.bootstrap`
       - `Bootstrap, from Twitter <http://twitter.github.com/bootstrap/index.html>`_
       - `github <https://github.com/RedTurtle/js.bootstrap>`__
