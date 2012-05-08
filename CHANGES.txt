@@ -6,13 +6,16 @@ CHANGES
 
 - Documentation fix in code samples, thanks to Toby Dacre.
 
+- Fix #72, `.need() broken when <head> tag has attributes`,
+  thanks to Randall Leeds.
+
 0.11.4 (2012-01-14)
 ===================
 
 - There was another bug with ordering resources when multiple libraries
   were involved. This time the way library_nr was calculated was changed
-  so that it wouldn't happen anymore. 
-   
+  so that it wouldn't happen anymore.
+
   The intent of library_nr was to have it always be 1 higher than the
   maximum library_nr of any libraries this library is based on.
 
@@ -21,7 +24,7 @@ CHANGES
   depending on other libraries would consistently get a library_nr too
   low, as each resource they were based on had a library_nr that was
   too low as well, even though another resource could exist in that
-  library with a higher library_nr. This could cause the library_nr of 
+  library with a higher library_nr. This could cause the library_nr of
   all resources in a library to be too low.
 
   This is now fixed to moving library_nr to the place it should've
@@ -51,7 +54,7 @@ CHANGES
 =================
 
 - Add bundling support: bundles are collections of Resources that can
-  be served in one HTTP request. Bundle URLs are constructed by the 
+  be served in one HTTP request. Bundle URLs are constructed by the
   fanstatic injector and served by the fanstatic publisher.
 
 - Remove eager_superseder arguments from Resource, as this was not used.
