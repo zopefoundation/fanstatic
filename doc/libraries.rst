@@ -38,8 +38,7 @@ Here's a list of currently available libraries:
       - ?
 
     * - :pypi:`js.classy`
-      - `Classy
-      - Classes for JavaScript <http://classy.pocoo.org/>`_
+      - `Classy - Classes for JavaScript <http://classy.pocoo.org/>`_
       - `bitbucket <https://bitbucket.org/fanstatic/js.classy>`__
 
     * - :pypi:`js.extjs`
