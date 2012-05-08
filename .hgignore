@@ -5,6 +5,7 @@ parts
 .installed.cfg
 *.egg-info
 *.pyc
+*.swp
 *~
 develop-eggs
 dist
