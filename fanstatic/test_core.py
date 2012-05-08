@@ -64,7 +64,7 @@ def test_resource_register_with_library():
     # Can not use the same relpath for two Resource declarations.
     with pytest.raises(ConfigurationError):
         x2 = Resource(foo, 'a.js')
-    
+
 
 def test_group_resource():
     foo = Library('foo', '')
@@ -172,15 +172,15 @@ def test_depend_on_group():
     c = Resource(foo, 'c.js', depends=[g])
     g2 = Group([g])
     g3 = Group([g, g2])
-    
+
     assert c.depends == set([a, b])
     assert g2.depends == set([a, b])
     assert g3.depends == set([a, b])
-    
+
     needed = NeededResources()
     needed.need(c)
     assert needed.resources() == [a, b, c]
-    
+
 def test_redundant_resource():
     foo = Library('foo', '')
     x1 = Resource(foo, 'a.js')
@@ -419,7 +419,7 @@ def test_rollup_without_mode():
     needed = NeededResources(resources=[h1, h2], rollup=True, debug=True)
     # no mode available for rollup, use the rollup.
     assert needed.resources() == [gianth]
-     
+
 
 def test_rendering():
     foo = Library('foo', '')
@@ -514,6 +514,17 @@ def test_library_url_base_url():
     assert (needed.library_url(foo) ==
             'http://example.com/something/fanstatic/foo')
 
+def test_library_url_script_name():
+    foo = Library('foo', '')
+    needed = NeededResources(script_name='/root')
+    assert needed.library_url(foo) == '/root/fanstatic/foo'
+
+def test_library_url_script_name_base_url():
+    foo = Library('foo', '')
+    needed = NeededResources(
+        base_url='http://static.example.com', script_name='/root')
+    assert needed.library_url(foo) == \
+        'http://static.example.com/root/fanstatic/foo'
 
 def test_library_url_version_hashing(tmpdir):
     foo = Library('foo', tmpdir.strpath)
@@ -1039,7 +1050,7 @@ def test_library_nr():
     X.init_library_nr()
     Y.init_library_nr()
     Z.init_library_nr()
-                              
+
     assert a.library.library_nr == 0
     assert c.library.library_nr == 0
     assert b.library.library_nr == 1
@@ -1249,11 +1260,11 @@ def test_inter_library_dependencies_ordering():
     lib2 = Library('lib2', '')
     lib3 = Library('lib3', '')
     lib4 = Library('lib4', '')
-    
+
     js1 = Resource(lib1, 'js1.js')
-    js2 = Resource(lib2, 'js2.js', depends=[js1]) 
+    js2 = Resource(lib2, 'js2.js', depends=[js1])
     js3 = Resource(lib3, 'js3.js', depends=[js2])
-    
+
     style1 = Resource(lib3, 'style1.css')
     style2 = Resource(lib4, 'style2.css', depends=[style1])
 
@@ -1270,7 +1281,7 @@ def test_library_ordering_bug():
     obviel_lib = Library('obviel', '')
     bread_lib = Library('bread', '')
     app_lib = Library('app', '')
-    
+
     jquery = Resource(jquery_lib, 'jquery.js')
     jqueryui = Resource(jqueryui_lib, 'jqueryui.js', depends=[jquery])
 
@@ -1283,11 +1294,11 @@ def test_library_ordering_bug():
     vtab = Resource(bread_lib, 'vtab.js', depends=[jqueryui])
 
     tabview = Resource(bread_lib, 'tabview.js', depends=[obviel, vtab])
-    
+
     bread = Resource(bread_lib, 'bread.js', depends=[tabview, obviel_forms])
 
     app = Resource(app_lib, 'app.js', depends=[bread, obviel_datepicker])
-    
+
     needed = NeededResources()
 
     needed.need(app)
@@ -1296,11 +1307,11 @@ def test_library_ordering_bug():
         print resource, resource.library.library_nr
     assert resources == [jquery, jqueryui, obviel, obviel_forms,
                          obviel_datepicker, vtab, tabview, bread, app]
-    
+
 
     #assert resources == [obviel, forms, forms_autocomplete, tabview, bread,
     #                     zorgdas]
-    
+
 # XXX tests for hashed resources when this is enabled. Needs some plausible
 # directory to test for hashes
 

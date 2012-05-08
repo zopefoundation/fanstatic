@@ -70,13 +70,13 @@ class SlotError(Exception):
     If a slot is required, it must be filled in by passing an extra
     dictionary parameter to the ``.need`` method, containing a mapping
     from the required :py:class:`Slot` to :py:class:`Resource`.
-    
+
     When a slot is filled, the resource filled in should have
     the same dependencies as the slot, or a subset of the dependencies
     of the slot. It should also have the same extension as the slot.
     If this is not the case, it is an error.
     """
-    
+
 class Library(object):
     """The resource library.
 
@@ -113,7 +113,7 @@ class Library(object):
         self._library_deps = set()
         self.known_resources = {}
         self.library_nr = None
-        
+
     def __repr__(self):
         return "<Library '%s' at '%s'>" % (self.name, self.path)
 
@@ -153,11 +153,11 @@ class Library(object):
                     'Library cycle detected in resource %s' % resource)
 
     def register(self, resource):
-        """Register a Resource with this Library. 
+        """Register a Resource with this Library.
 
         A Resource knows about its Library. After a Resource has registered
-        itself with its Library, the Library knows about the Resources 
-        associated to it. 
+        itself with its Library, the Library knows about the Resources
+        associated to it.
         """
         if resource.relpath in self.known_resources:
             raise ConfigurationError(
@@ -287,7 +287,7 @@ class Resource(Renderable, Dependable):
 
     :param depends: optionally, a list of resources that this resource
       depends on. Entries in the list are :py:class:`Resource`
-      instances. 
+      instances.
 
     :param supersedes: optionally, a list of :py:class:`Resource`
       instances that this resource supersedes as a rollup
@@ -387,7 +387,7 @@ class Resource(Renderable, Dependable):
             elif isinstance(argument, basestring):
                 mode_resource = Resource(library, argument)
             else:
-                # The dependencies of a mode resource should be the same 
+                # The dependencies of a mode resource should be the same
                 # or a subset of the dependencies this mode replaces.
                 if len(argument.depends - self.depends) > 0:
                     raise ModeResourceDependencyError
@@ -427,7 +427,7 @@ class Resource(Renderable, Dependable):
             dependency_nr = max(depend.dependency_nr + 1,
                                 dependency_nr)
         self.dependency_nr = dependency_nr
-   
+
     def render(self, library_url):
         return self.renderer('%s/%s' % (library_url, self.relpath))
 
@@ -481,7 +481,7 @@ class Slot(Renderable, Dependable):
     real resource by the application when you ``.need()`` that
     resource (or when you need something that depends on the slot
     indirectly).
-  
+
     :param library: the :py:class:`Library` this slot is in.
 
     :param ext: the extension of the slot, for instance '.js'. This
@@ -491,7 +491,7 @@ class Slot(Renderable, Dependable):
       required to be filled in when a resource that depends on a slot
       is needed, or whether it's optional. By default filling in a
       slot is required.
-      
+
     :param depends: optionally, a list of resources that this slot
       depends on. Resources that are slotted in here need to have
       the same dependencies as that of the slot, or a strict subset.
@@ -502,7 +502,7 @@ class Slot(Renderable, Dependable):
         assert extension.startswith('.')
         self.ext = extension
         self.required = required
-        
+
         assert not isinstance(depends, basestring)
         self.depends = set()
         if depends is not None:
@@ -529,7 +529,7 @@ class Slot(Renderable, Dependable):
             dependency_nr = max(depend.dependency_nr + 1,
                                 dependency_nr)
         self.dependency_nr = dependency_nr
-        
+
 class FilledSlot(Renderable, Dependable):
     def __init__(self, slot, resource):
         self.library = resource.library
@@ -556,7 +556,7 @@ class FilledSlot(Renderable, Dependable):
             raise SlotError(
                 "slot filled in with resource that has dependencies that "
                 "are not a strict subset of dependencies of slot")
-        
+
         # XXX how do slots interact with rollups?
 
     def render(self, library_url):
@@ -575,7 +575,7 @@ class FilledSlot(Renderable, Dependable):
         except KeyError:
             # fall back on the default mode if mode not found
             return self
-        
+
 class Group(Dependable):
     """A resource used to group resources together.
 
@@ -669,8 +669,10 @@ class NeededResources(object):
 
     :param base_url: This URL will be prefixed in front of all resource
       URLs. This can be useful if your web framework wants the resources
-      to be published on a sub-URL. Note that this can also be set
-      with the set_base_url method on a ``NeededResources`` instance.
+      to be published on a sub-URL. By default, there is no ``base_url``,
+      and resources are served in the script root. Note that this can
+      also be set with the set_base_url method on a ``NeededResources``
+      instance.
 
     :param publisher_signature: The name under which resource libraries
       should be served in the URL. By default this is ``fanstatic``, so
@@ -708,6 +710,7 @@ class NeededResources(object):
                  debug=False,
                  rollup=False,
                  base_url=None,
+                 script_name=None,
                  publisher_signature=DEFAULT_SIGNATURE,
                  bundle=False,
                  resources=None,
@@ -722,6 +725,7 @@ class NeededResources(object):
         self._bottom = bottom
         self._force_bottom = force_bottom
         self._base_url = base_url
+        self._script_name = script_name
         self._publisher_signature = publisher_signature
         self._rollup = rollup
         self._bundle = bundle
@@ -771,7 +775,7 @@ class NeededResources(object):
         slots = slots or {}
         self._resources.add(resource)
         self._slots.update(slots)
-        
+
     def resources(self):
         """Retrieve the list of resources needed.
 
@@ -806,7 +810,7 @@ class NeededResources(object):
                                 resource)
             result.add(FilledSlot(resource, fill_resource))
         return result
-            
+
     def clear(self):
         # Clear out any resources "needed" thusfar.
         # XXX or should we rather revert to the list with resources
@@ -822,7 +826,14 @@ class NeededResources(object):
 
         :param library: A :py:class:`Library` instance.
         """
-        path = [self._base_url or '']
+        start = self._base_url or ''
+        if self._script_name:
+            # script_name typically starts with a '/', so we
+            # want to consume it early in order to avoid double forward slashes
+            # when joining the path segments later.
+            start += self._script_name
+
+        path = [start]
         if self._publisher_signature:
             path.append(self._publisher_signature)
         path.append(library.name)
@@ -1020,7 +1031,7 @@ def consolidate(resources):
             # nothing to supersede resource so use it directly
             result.append(resource)
     return result
-    
+
 def sort_resources(resources):
     """Sort resources for inclusion on web page.
 
@@ -1042,7 +1053,7 @@ def sort_resources(resources):
     """
     for resource in resources:
         resource.library.init_library_nr()
-        
+
     def key(resource):
         return (
             resource.order,
