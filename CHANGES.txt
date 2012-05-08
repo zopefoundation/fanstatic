@@ -1,11 +1,10 @@
 CHANGES
 *******
 
-0.11.5 (unreleased)
+0.12 (unreleased)
 ===================
 
-- Nothing changed yet.
-
+- Documentation fix in code samples, thanks to Toby Dacre.
 
 0.11.4 (2012-01-14)
 ===================

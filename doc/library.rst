@@ -160,9 +160,9 @@ What if we really want to include ``a.css`` whenever we pull in
 
   bar_library = Library('bar', 'bar_resources')
 
-  a = Resource(bar, 'a.css')
+  a = Resource(bar_library, 'a.css')
 
-  b = Resource(bar, 'b.js', depends=[a])
+  b = Resource(bar_library, 'b.js', depends=[a])
 
 Whenever you ``.need()`` ``b`` now, you'll also get ``a`` included on
 your page.
@@ -184,9 +184,9 @@ to let Fanstatic know about it? You just write this::
 
   bar_library = Library('bar', 'bar_resources')
 
-  a = Resource(bar, 'a.css')
+  a = Resource(bar_library, 'a.css')
 
-  b = Resource(bar, 'b.js', minified='b.min.js')
+  b = Resource(bar_library, 'b.js', minified='b.min.js')
 
 If you now configure Fanstatic to use the ``minified`` mode, it will
 automatically pull in ``b.min.js`` instead of ``b.js`` whenever you do
@@ -204,8 +204,8 @@ If you want bundling, set `bundle` to True::
 
   qux_library = Library('qux', 'qux_resources')
 
-  a = Resource(qux, 'a.css')
-  b = Resource(qux, 'b.css')
+  a = Resource(qux_library, 'a.css')
+  b = Resource(qux_library, 'b.css')
 
   fanstatic.init_needed(bundle=True)
 
@@ -222,7 +222,7 @@ files.
 If you don't want your Resource to be bundled, give it the ``dont_bundle``
 argument.::
 
-  c = Resource(qux, 'a.css', dont_bundle=True)
+  c = Resource(qux_library, 'a.css', dont_bundle=True)
 
 Resources are bundled based on their Library. This means that bundles don't
 span Libraries. If we were to allow bundles that span Libraries, we would get
