@@ -9,6 +9,9 @@ CHANGES
 - Fix #72, `.need() broken when <head> tag has attributes`,
   thanks to Randall Leeds.
 
+- Also inject resources when the content-type is 'application/xhtml+xml',
+  as per Bernie Frankpitt's suggestion.
+
 0.11.4 (2012-01-14)
 ===================
 

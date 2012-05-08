@@ -4,6 +4,7 @@ import webob.dec
 from fanstatic.config import convert_config
 import fanstatic
 
+CONTENT_TYPES = ['text/html', 'text/xml', 'application/xhtml+xml']
 
 class Injector(object):
     """Fanstatic injector WSGI framework component.
@@ -53,7 +54,7 @@ class Injector(object):
 
         # We only continue if the content-type is appropriate.
         if not (response.content_type and
-                response.content_type.lower() in ['text/html', 'text/xml']):
+                response.content_type.lower() in CONTENT_TYPES):
             # Clean up after our behinds.
             fanstatic.del_needed()
             return response
