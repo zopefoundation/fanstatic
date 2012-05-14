@@ -674,6 +674,10 @@ class NeededResources(object):
       also be set with the set_base_url method on a ``NeededResources``
       instance.
 
+    :param script_name: The script_name is a fallback for computing
+      library URLs. The base_url parameter should be honoured if
+      it is provided.
+
     :param publisher_signature: The name under which resource libraries
       should be served in the URL. By default this is ``fanstatic``, so
       URLs to resources will start with ``/fanstatic/``.
@@ -826,14 +830,9 @@ class NeededResources(object):
 
         :param library: A :py:class:`Library` instance.
         """
-        start = self._base_url or ''
-        if self._script_name:
-            # script_name typically starts with a '/', so we
-            # want to consume it early in order to avoid double forward slashes
-            # when joining the path segments later.
-            start += self._script_name
-
-        path = [start]
+        # The script_name is a fallback and base_url should be honoured
+        # if it is provided.
+        path = [self._base_url or self._script_name or '']
         if self._publisher_signature:
             path.append(self._publisher_signature)
         path.append(library.name)
