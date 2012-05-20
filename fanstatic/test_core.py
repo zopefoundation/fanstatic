@@ -684,6 +684,17 @@ def test_html_bottom_safe():
 # XXX add sanity checks: cannot declare something bottom safe while
 # what it depends on isn't bottom safe
 
+def test_html_bottom_safe_used_with_minified():
+    foo = Library('foo', '')
+    a = Resource(foo, 'a.js', minified='a-minified.js', bottom=True)
+    
+    needed = NeededResources(minified=True, bottom=True)
+    needed.need(a)
+
+    top, bottom = needed.render_topbottom()
+    assert top == ''
+    assert bottom == ('<script type="text/javascript" '
+                      'src="/fanstatic/foo/a-minified.js"></script>')
 
 def test_top_bottom_insert():
     foo = Library('foo', '')

@@ -385,7 +385,7 @@ class Resource(Renderable, Dependable):
             if argument is None:
                 continue
             elif isinstance(argument, basestring):
-                mode_resource = Resource(library, argument)
+                mode_resource = Resource(library, argument, bottom=bottom)
             else:
                 # The dependencies of a mode resource should be the same 
                 # or a subset of the dependencies this mode replaces.

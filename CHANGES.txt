@@ -6,6 +6,9 @@ CHANGES
 
 - Documentation fix in code samples, thanks to Toby Dacre.
 
+- Fix issue #74, minified .js not served in bottom unless force_bottom,
+  thanks to Toby Dacre.
+
 0.11.4 (2012-01-14)
 ===================
 
