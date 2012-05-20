@@ -65,7 +65,7 @@ def test_needed_deleted_after_request():
     wrapped_app = Injector(html_app)
     request = webob.Request.blank('/')
     request.get_response(wrapped_app)
-    # There's no NeededResources objecy anymore after the request has
+    # There's no NeededResources object anymore after the request has
     # been done.
     dummy = get_needed()
     with pytest.raises(NotImplementedError):
@@ -79,7 +79,7 @@ def test_needed_deleted_after_request():
     wrapped_app = Injector(textplain_app)
     request = webob.Request.blank('/')
     request.get_response(wrapped_app)
-    # There's no NeededResources objecy anymore after the request has
+    # There's no NeededResources object anymore after the request has
     # been done, even for response content types that would not have
     # been processed by fanstatic's inclusion rendering.
     dummy = get_needed()

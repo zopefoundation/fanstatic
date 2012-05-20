@@ -1,5 +1,6 @@
 import os
 import sys
+import re
 import threading
 
 import fanstatic.checksum
@@ -15,6 +16,7 @@ NEEDED = 'fanstatic.needed'
 DEBUG = 'debug'
 MINIFIED = 'minified'
 
+_head_regex = re.compile('(<head[^>]*>)')
 
 _resource_file_existence_checking = True
 
@@ -70,13 +72,13 @@ class SlotError(Exception):
     If a slot is required, it must be filled in by passing an extra
     dictionary parameter to the ``.need`` method, containing a mapping
     from the required :py:class:`Slot` to :py:class:`Resource`.
-    
+
     When a slot is filled, the resource filled in should have
     the same dependencies as the slot, or a subset of the dependencies
     of the slot. It should also have the same extension as the slot.
     If this is not the case, it is an error.
     """
-    
+
 class Library(object):
     """The resource library.
 
@@ -113,7 +115,7 @@ class Library(object):
         self._library_deps = set()
         self.known_resources = {}
         self.library_nr = None
-        
+
     def __repr__(self):
         return "<Library '%s' at '%s'>" % (self.name, self.path)
 
@@ -153,11 +155,11 @@ class Library(object):
                     'Library cycle detected in resource %s' % resource)
 
     def register(self, resource):
-        """Register a Resource with this Library. 
+        """Register a Resource with this Library.
 
         A Resource knows about its Library. After a Resource has registered
-        itself with its Library, the Library knows about the Resources 
-        associated to it. 
+        itself with its Library, the Library knows about the Resources
+        associated to it.
         """
         if resource.relpath in self.known_resources:
             raise ConfigurationError(
@@ -287,7 +289,7 @@ class Resource(Renderable, Dependable):
 
     :param depends: optionally, a list of resources that this resource
       depends on. Entries in the list are :py:class:`Resource`
-      instances. 
+      instances.
 
     :param supersedes: optionally, a list of :py:class:`Resource`
       instances that this resource supersedes as a rollup
@@ -387,7 +389,7 @@ class Resource(Renderable, Dependable):
             elif isinstance(argument, basestring):
                 mode_resource = Resource(library, argument, bottom=bottom)
             else:
-                # The dependencies of a mode resource should be the same 
+                # The dependencies of a mode resource should be the same
                 # or a subset of the dependencies this mode replaces.
                 if len(argument.depends - self.depends) > 0:
                     raise ModeResourceDependencyError
@@ -427,7 +429,7 @@ class Resource(Renderable, Dependable):
             dependency_nr = max(depend.dependency_nr + 1,
                                 dependency_nr)
         self.dependency_nr = dependency_nr
-   
+
     def render(self, library_url):
         return self.renderer('%s/%s' % (library_url, self.relpath))
 
@@ -481,7 +483,7 @@ class Slot(Renderable, Dependable):
     real resource by the application when you ``.need()`` that
     resource (or when you need something that depends on the slot
     indirectly).
-  
+
     :param library: the :py:class:`Library` this slot is in.
 
     :param ext: the extension of the slot, for instance '.js'. This
@@ -491,7 +493,7 @@ class Slot(Renderable, Dependable):
       required to be filled in when a resource that depends on a slot
       is needed, or whether it's optional. By default filling in a
       slot is required.
-      
+
     :param depends: optionally, a list of resources that this slot
       depends on. Resources that are slotted in here need to have
       the same dependencies as that of the slot, or a strict subset.
@@ -502,7 +504,7 @@ class Slot(Renderable, Dependable):
         assert extension.startswith('.')
         self.ext = extension
         self.required = required
-        
+
         assert not isinstance(depends, basestring)
         self.depends = set()
         if depends is not None:
@@ -529,7 +531,7 @@ class Slot(Renderable, Dependable):
             dependency_nr = max(depend.dependency_nr + 1,
                                 dependency_nr)
         self.dependency_nr = dependency_nr
-        
+
 class FilledSlot(Renderable, Dependable):
     def __init__(self, slot, resource):
         self.library = resource.library
@@ -556,7 +558,7 @@ class FilledSlot(Renderable, Dependable):
             raise SlotError(
                 "slot filled in with resource that has dependencies that "
                 "are not a strict subset of dependencies of slot")
-        
+
         # XXX how do slots interact with rollups?
 
     def render(self, library_url):
@@ -575,7 +577,7 @@ class FilledSlot(Renderable, Dependable):
         except KeyError:
             # fall back on the default mode if mode not found
             return self
-        
+
 class Group(Dependable):
     """A resource used to group resources together.
 
@@ -771,7 +773,7 @@ class NeededResources(object):
         slots = slots or {}
         self._resources.add(resource)
         self._slots.update(slots)
-        
+
     def resources(self):
         """Retrieve the list of resources needed.
 
@@ -806,7 +808,7 @@ class NeededResources(object):
                                 resource)
             result.add(FilledSlot(resource, fill_resource))
         return result
-            
+
     def clear(self):
         # Clear out any resources "needed" thusfar.
         # XXX or should we rather revert to the list with resources
@@ -870,7 +872,7 @@ class NeededResources(object):
           inclusions into. This string must have a ``<head>`` section.
         """
         to_insert = self.render()
-        return html.replace('<head>', '<head>\n    %s\n' % to_insert, 1)
+        return _head_regex.sub('\\1\n    %s\n' % (to_insert,), html, count=1)
 
     def render_topbottom(self):
         """Render resource inclusions separately into top and bottom fragments.
@@ -921,7 +923,7 @@ class NeededResources(object):
         """
         top, bottom = self.render_topbottom()
         if top:
-            html = html.replace('<head>', '<head>\n    %s\n' % top, 1)
+            html = _head_regex.sub('\\1\n    %s\n' % (top,), html, count=1)
         if bottom:
             html = html.replace('</body>', '%s</body>' % bottom, 1)
         return html
@@ -1020,7 +1022,7 @@ def consolidate(resources):
             # nothing to supersede resource so use it directly
             result.append(resource)
     return result
-    
+
 def sort_resources(resources):
     """Sort resources for inclusion on web page.
 
@@ -1042,7 +1044,7 @@ def sort_resources(resources):
     """
     for resource in resources:
         resource.library.init_library_nr()
-        
+
     def key(resource):
         return (
             resource.order,

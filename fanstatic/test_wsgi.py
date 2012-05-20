@@ -57,6 +57,7 @@ def test_inject_unicode_base_url():
     response = request.get_response(wrapped)
 
 def test_serf():
+    pytest.importorskip('mypackage')
     # also test serf config
     d = {
         'resource': 'py:mypackage.style'
