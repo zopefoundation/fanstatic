@@ -42,9 +42,8 @@ class Injector(object):
         # XXX this will set the needed on the thread local data, even
         # if the wrapped framework only gets the needed from the WSGI
         # environ.
-        needed = fanstatic.init_needed(script_name=request.environ.get('SCRIPT_NAME'),
-                                       **self.config
-                                       )
+        needed = fanstatic.init_needed(
+            script_name=request.environ.get('SCRIPT_NAME'), **self.config)
 
         # Make sure the needed resource object is put in the WSGI
         # environment as well, for frameworks that choose to use it
