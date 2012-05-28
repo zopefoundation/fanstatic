@@ -671,8 +671,14 @@ class NeededResources(object):
 
     :param base_url: This URL will be prefixed in front of all resource
       URLs. This can be useful if your web framework wants the resources
-      to be published on a sub-URL. Note that this can also be set
-      with the set_base_url method on a ``NeededResources`` instance.
+      to be published on a sub-URL. By default, there is no ``base_url``,
+      and resources are served in the script root. Note that this can
+      also be set with the set_base_url method on a ``NeededResources``
+      instance.
+
+    :param script_name: The script_name is a fallback for computing
+      library URLs. The base_url parameter should be honoured if
+      it is provided.
 
     :param publisher_signature: The name under which resource libraries
       should be served in the URL. By default this is ``fanstatic``, so
@@ -710,6 +716,7 @@ class NeededResources(object):
                  debug=False,
                  rollup=False,
                  base_url=None,
+                 script_name=None,
                  publisher_signature=DEFAULT_SIGNATURE,
                  bundle=False,
                  resources=None,
@@ -724,6 +731,7 @@ class NeededResources(object):
         self._bottom = bottom
         self._force_bottom = force_bottom
         self._base_url = base_url
+        self._script_name = script_name
         self._publisher_signature = publisher_signature
         self._rollup = rollup
         self._bundle = bundle
@@ -824,7 +832,9 @@ class NeededResources(object):
 
         :param library: A :py:class:`Library` instance.
         """
-        path = [self._base_url or '']
+        # The script_name is a fallback and base_url should be honoured
+        # if it is provided.
+        path = [self._base_url or self._script_name or '']
         if self._publisher_signature:
             path.append(self._publisher_signature)
         path.append(library.name)

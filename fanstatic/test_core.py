@@ -514,6 +514,19 @@ def test_library_url_base_url():
     assert (needed.library_url(foo) ==
             'http://example.com/something/fanstatic/foo')
 
+def test_library_url_script_name():
+    foo = Library('foo', '')
+    needed = NeededResources(script_name='/root')
+    assert needed.library_url(foo) == '/root/fanstatic/foo'
+
+def test_library_url_script_name_base_url():
+    foo = Library('foo', '')
+    needed = NeededResources(
+        script_name='/root', base_url="http://example.com/something")
+
+    # base_url is set so script_name should be ignored
+    assert (needed.library_url(foo) ==
+            'http://example.com/something/fanstatic/foo')
 
 def test_library_url_version_hashing(tmpdir):
     foo = Library('foo', tmpdir.strpath)
