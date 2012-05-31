@@ -712,7 +712,7 @@ def test_html_bottom_safe():
 def test_html_bottom_safe_used_with_minified():
     foo = Library('foo', '')
     a = Resource(foo, 'a.js', minified='a-minified.js', bottom=True)
-    
+
     needed = NeededResources(minified=True, bottom=True)
     needed.need(a)
 
@@ -813,16 +813,13 @@ def test_registered_inclusion_renderers_in_order():
 
 def test_custom_renderer_for_resource():
     foo = Library('foo', '')
-
-    def render_print_css(url):
-        return ('<link rel="stylesheet" type="text/css" href="%s" media="print"/>' %
-                url)
+    from fanstatic.core import render_print_css
 
     a = Resource(foo, 'printstylesheet.css', renderer=render_print_css)
     needed = NeededResources()
     needed.need(a)
     assert needed.render() == """\
-<link rel="stylesheet" type="text/css" href="/fanstatic/foo/printstylesheet.css" media="print"/>"""
+<link rel="stylesheet" type="text/css" href="/fanstatic/foo/printstylesheet.css" media="print" />"""
 
     def render_unknown(url):
         return '<unknown href="%s"/>' % url
@@ -830,7 +827,7 @@ def test_custom_renderer_for_resource():
     b = Resource(foo, 'nothing.unknown', renderer=render_unknown)
     needed.need(b)
     assert needed.render() == """\
-<link rel="stylesheet" type="text/css" href="/fanstatic/foo/printstylesheet.css" media="print"/>
+<link rel="stylesheet" type="text/css" href="/fanstatic/foo/printstylesheet.css" media="print" />
 <unknown href="/fanstatic/foo/nothing.unknown"/>"""
 
 

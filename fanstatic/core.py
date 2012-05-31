@@ -229,15 +229,28 @@ register_inclusion_renderer = inclusion_renderers.register
 
 
 def render_ico(url):
-    return ('<link rel="shortcut icon" type="image/x-icon" href="%s"/>' % url)
+    return '<link rel="shortcut icon" type="image/x-icon" href="%s"/>' % (url,)
 
 
 def render_css(url):
-    return ('<link rel="stylesheet" type="text/css" href="%s" />' % url)
+    return '<link rel="stylesheet" type="text/css" href="%s" />' % (url,)
 
 
 def render_js(url):
-    return ('<script type="text/javascript" src="%s"></script>' % url)
+    return '<script type="text/javascript" src="%s"></script>' % (url,)
+
+
+def render_print_css(url):
+    return (
+        '<link rel="stylesheet" type="text/css" href="%s" '
+        'media="print" />') % (url,)
+
+
+def render_screen_css(url):
+    return (
+        '<link rel="stylesheet" type="text/css" media="screen" '
+        'href="%s" />') % (url,)
+
 
 register_inclusion_renderer('.css', render_css, 10)
 

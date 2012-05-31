@@ -12,6 +12,8 @@ CHANGES
 - Cherry picked pull request #1 "support-wsgi-apps-not-mounted-at-/",
   thanks to Éric Lemoine.
 
+- Add print css renderer.
+
 0.11.4 (2012-01-14)
 ===================
 
