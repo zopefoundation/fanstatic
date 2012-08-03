@@ -101,6 +101,10 @@ Here's a list of currently available libraries:
       - the jQuery plugin `Text Children <http://plugins.learningjquery.com/textchildren>`_
       - `bitbucket <http://bitbucket.org/fanstatic/js.jquery_textchildren>`__
 
+    * - :pypi:`js.jquery_tinyscrollbar`
+      - the jQuery plugin `Tiny Scrollbar <http://baijs.nl/tinyscrollbar/>`_
+      - `bitbucket <http://bitbucket.org/gocept/js.jquery_tinyscrollbar>`__
+
     * - :pypi:`js.jquery_tools`
       - `jQuery tools <http://flowplayer.org/tools/index.html>`_
       - `bitbucket <http://bitbucket.org/fanstatic/js.jquery_tools>`__
