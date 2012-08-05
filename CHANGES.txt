@@ -1,8 +1,8 @@
 CHANGES
 *******
 
-0.12 (unreleased)
-===================
+0.12 (2012-08-05)
+=================
 
 - Documentation fix in code samples, thanks to Toby Dacre.
 
