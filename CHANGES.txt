@@ -4,7 +4,10 @@ CHANGES
 0.13 (unreleased)
 =================
 
-- DummyNeededResources takes the slots argument now.
+- DummyNeededResources did not takes the slots argument.
+
+- Resource.need() did not process the slots argument, despite the argument
+  being documented.
 
 
 0.12 (2012-08-05)

@@ -1,5 +1,5 @@
-import pytest
 from fanstatic import NeededResources, Library, Resource, Slot, SlotError
+import pytest
 
 def test_fill_slot():
     needed = NeededResources()
@@ -161,3 +161,18 @@ def test_slot_minified():
     assert needed.render() == '''\
 <script type="text/javascript" src="/fanstatic/lib/b-min.js"></script>
 <script type="text/javascript" src="/fanstatic/lib/a.js"></script>'''
+
+
+def test_resource_need_should_pass_slots_to_needed():
+    import fanstatic
+    lib = Library('lib', '')
+    c = Resource(lib, 'c.js')
+    slot = Slot(lib, '.js', depends=[c])
+    a = Resource(lib, 'a.js', depends=[slot])
+    b = Resource(lib, 'b.js', depends=[c])
+    needed = fanstatic.init_needed()
+    try:
+        a.need({slot: c})
+    finally:
+        fanstatic.del_needed()
+    assert slot in needed._slots

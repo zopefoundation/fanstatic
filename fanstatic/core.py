@@ -482,7 +482,7 @@ class Resource(Renderable, Dependable):
           contain an entry for it.
         """
         needed = get_needed()
-        needed.need(self)
+        needed.need(self, slots)
 
 # XXX have to lie here: a slot itself is not directly renderable,
 # that's a FilledSlot.
