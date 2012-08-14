@@ -4,7 +4,7 @@ CHANGES
 0.13 (unreleased)
 =================
 
-- Nothing changed yet.
+- DummyNeededResources takes the slots argument now.
 
 
 0.12 (2012-08-05)

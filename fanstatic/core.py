@@ -960,7 +960,7 @@ class DummyNeededResources(object):
     needed are dropped to the floor.
     """
 
-    def need(self, resource):
+    def need(self, resource, slots=None):
         pass
 
     def has_resources(self):

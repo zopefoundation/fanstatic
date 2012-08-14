@@ -1334,6 +1334,13 @@ def test_library_ordering_bug():
     #assert resources == [obviel, forms, forms_autocomplete, tabview, bread,
     #                     zorgdas]
 
+
+def test_dummy_needed_should_take_slots_argument():
+    needed = get_needed()
+    a_resource = object()
+    needed.need(a_resource, slots={})
+
+
 # XXX tests for hashed resources when this is enabled. Needs some plausible
 # directory to test for hashes
 
