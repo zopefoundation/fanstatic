@@ -9,6 +9,8 @@ CHANGES
 - Resource.need() did not process the slots argument, despite the argument
   being documented.
 
+- Added slots argument to Group.need().
+
 
 0.12 (2012-08-05)
 =================

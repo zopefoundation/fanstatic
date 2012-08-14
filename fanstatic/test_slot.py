@@ -176,3 +176,19 @@ def test_resource_need_should_pass_slots_to_needed():
     finally:
         fanstatic.del_needed()
     assert slot in needed._slots
+
+
+def test_group_need_should_pass_slots_to_needed():
+    import fanstatic
+    lib = Library('lib', '')
+    c = Resource(lib, 'c.js')
+    slot = Slot(lib, '.js', depends=[c])
+    a = Resource(lib, 'a.js', depends=[slot])
+    b = Resource(lib, 'b.js', depends=[c])
+    g = fanstatic.Group([a, b])
+    needed = fanstatic.init_needed()
+    try:
+        g.need({slot: c})
+    finally:
+        fanstatic.del_needed()
+    assert slot in needed._slots

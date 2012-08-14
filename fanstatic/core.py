@@ -609,15 +609,22 @@ class Group(Dependable):
         for depend in self.depends:
             self.resources.update(depend.resources)
 
-    def need(self):
+    def need(self, slots=None):
         """Need this group resource.
 
         If you call ``.need()`` on ``Group`` sometime
         during the rendering process of your web page, all dependencies
         of this group resources will be inserted into the web page.
+
+        :param slots: an optional dictionary mapping from
+          :py:class:`Slot` instances to :py:class:`Resource`
+          instances. This dictionary describes how to fill in the
+          slots that this resource might depend on (directly or
+          indirectly). If a slot is required, the dictionary must
+          contain an entry for it.
         """
         needed = get_needed()
-        needed.need(self)
+        needed.need(self, slots)
 
 # backwards compatibility alias
 GroupResource = Group
