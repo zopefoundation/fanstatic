@@ -1,7 +1,7 @@
 CHANGES
 *******
 
-0.13 (unreleased)
+0.13 (2012-08-15)
 =================
 
 - DummyNeededResources did not takes the slots argument.
