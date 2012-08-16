@@ -4,8 +4,8 @@ CHANGES
 0.14 (unreleased)
 =================
 
-- Nothing changed yet.
-
+- Fixed bug where mode resources created by string 'shortcut' didn't
+  inherit the renderer, bundling, dependency parameters.
 
 0.13 (2012-08-15)
 =================

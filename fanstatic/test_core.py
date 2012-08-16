@@ -319,6 +319,22 @@ def test_mode_shortcut():
     assert needed.resources()[0].relpath == 'k-debug.js'
 
 
+def test_mode_shortcut_inherit_parameters():
+    foo = Library('foo', '')
+    def special_renderer(url):
+        return '<special href="%s"/>' % url
+    a = Resource(foo, 'a.js')
+    k = Resource(
+        foo, 'k.js', debug='k-debug.js',
+        depends=[a],
+        dont_bundle=True,
+        renderer=special_renderer)
+    debug_resource = k.modes['debug']
+    assert debug_resource.depends == k.depends
+    assert debug_resource.renderer == special_renderer
+    assert debug_resource.dont_bundle == True
+
+
 def test_mode_inherit_dependency_nr():
     foo = Library('foo', '')
     k = Resource(foo, 'k.js')
