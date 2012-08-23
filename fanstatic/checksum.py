@@ -33,7 +33,7 @@ def mtime(path):
 
 def md5(path):
     chcksm = hashlib.md5()
-    for path in list_directory(path, include_directories=False):
+    for path in sorted(list(list_directory(path, include_directories=False))):
         chcksm.update(path)
         try:
             f = open(path, 'rb')
