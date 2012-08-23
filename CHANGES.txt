@@ -1,11 +1,11 @@
 CHANGES
 *******
 
-0.14 (unreleased)
-=================
+0.13.2 (2012-08-23)
+===================
 
-- Nothing changed yet.
-
+- Fixed issue #78: "fanstatic.checksum.md5 is not guaranteed", thanks to
+  takanao ENDOH.
 
 0.13.1 (2012-08-16)
 ===================
