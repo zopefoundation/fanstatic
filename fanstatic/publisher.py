@@ -226,18 +226,18 @@ class Delegator(object):
     def is_resource(self, request):
         return len(request.path_info.split(self.trigger)) > 1
 
-    @webob.dec.wsgify
-    def __call__(self, request):
+    def __call__(self, environ, start_response):
+        request = webob.Request(environ)
         if not self.is_resource(request):
             # the trigger segment is not in the URL, so we delegate
             # to the original application
-            return request.get_response(self.app)
+            return self.app(environ, start_response)
         # the trigger is in there, so let whatever is behind the
         # trigger be handled by the publisher
         ignored = request.path_info_pop()
         while ignored != self.publisher_signature:
             ignored = request.path_info_pop()
-        return request.get_response(self.publisher)
+        return self.publisher(environ, start_response)
 
 
 def make_publisher(app, global_config,

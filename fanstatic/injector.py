@@ -1,5 +1,4 @@
 import webob
-import webob.dec
 
 from fanstatic.config import convert_config
 import fanstatic
@@ -32,11 +31,11 @@ class Injector(object):
 
         self.config = config
 
-    @webob.dec.wsgify
-    def __call__(self, request):
+    def __call__(self, environ, start_response):
+        request = webob.Request(environ)
         # We only continue if the request method is appropriate.
         if not request.method in ['GET', 'POST']:
-            return request.get_response(self.app)
+            return self.app(environ, start_response)
 
         # Initialize a needed resources object.
         # XXX this will set the needed on the thread local data, even
@@ -58,7 +57,7 @@ class Injector(object):
                 response.content_type.lower() in CONTENT_TYPES):
             # Clean up after our behinds.
             fanstatic.del_needed()
-            return response
+            return response(environ, start_response)
 
         # The wrapped application may have `needed` resources.
         if needed.has_resources():
@@ -71,7 +70,7 @@ class Injector(object):
         # Clean up after our behinds.
         fanstatic.del_needed()
 
-        return response
+        return response(environ, start_response)
 
 
 def make_injector(app, global_config, **local_config):

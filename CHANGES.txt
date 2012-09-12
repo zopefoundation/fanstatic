@@ -4,8 +4,9 @@ CHANGES
 0.14 (unreleased)
 =================
 
-- Nothing changed yet.
-
+- No longer use WebOb's wsgify decorator in both the injector and
+  delegator middlewares, as it has issues handling parent application
+  WSGI response (https://github.com/Pylons/webob/issues/74).
 
 0.13.2 (2012-08-23)
 ===================
