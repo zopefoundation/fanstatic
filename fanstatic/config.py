@@ -1,5 +1,6 @@
 from paste.util.converters import asbool
-from fanstatic import DEBUG, MINIFIED
+
+from fanstatic import DEBUG, MINIFIED, compat
 
 BOOL_CONFIG = set(['versioning', 'recompute_hashes', DEBUG, MINIFIED,
                    'bottom', 'force_bottom', 'bundle', 'rollup',
@@ -8,7 +9,7 @@ BOOL_CONFIG = set(['versioning', 'recompute_hashes', DEBUG, MINIFIED,
 
 def convert_config(config):
     result = {}
-    for key, value in config.items():
+    for key, value in compat.iteritems(config):
         if key in BOOL_CONFIG:
             result[key] = asbool(value)
         else:

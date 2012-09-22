@@ -5,7 +5,7 @@ import pytest
 import webob
 
 from fanstatic import (Library, Resource,
-                       get_needed, make_serf)
+                       get_needed, make_serf, compat)
 
 from fanstatic import Fanstatic, ConfigurationError
 
@@ -77,7 +77,7 @@ def test_inject_unicode_base_url():
         return ['<html><head></head><body</body></html>']
 
     request = webob.Request.blank('/')
-    wrapped = Fanstatic(app, base_url=u'http://localhost')
+    wrapped = Fanstatic(app, base_url=compat.u('http://localhost'))
     # Fanstatic used to choke on unicode content.
     response = request.get_response(wrapped)
 

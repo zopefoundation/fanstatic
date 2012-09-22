@@ -3,6 +3,7 @@ import sys
 import re
 import threading
 
+from fanstatic import compat
 import fanstatic.checksum
 
 DEFAULT_SIGNATURE = 'fanstatic'
@@ -132,7 +133,7 @@ class Library(object):
         # the maximum library number is the maximum number of the
         # depending libraries + 1
         max_library_nr = 0
-        for resource in self.known_resources.values():
+        for resource in compat.itervalues(self.known_resources):
             for dep in resource.depends:
                 # we don't care about resources in the same library
                 if dep.library is self:
@@ -374,9 +375,9 @@ class Resource(Renderable, Dependable):
             # If we do not know about the filename extension inclusion
             # order, we render the resource after all others.
             self.order, _ = inclusion_renderers.get(
-                self.ext, (sys.maxint, None))
+                self.ext, (compat.maxsize, None))
 
-        assert not isinstance(depends, basestring)
+        assert not isinstance(depends, compat.basestring)
         self.depends = set()
         if depends is not None:
             # Normalize groups into the underlying resources...
@@ -399,7 +400,7 @@ class Resource(Renderable, Dependable):
         for mode_name, argument in [(DEBUG, debug), (MINIFIED, minified)]:
             if argument is None:
                 continue
-            elif isinstance(argument, basestring):
+            elif isinstance(argument, compat.basestring):
                 mode_resource = Resource(
                     library, argument, bottom=bottom, renderer=renderer,
                     depends=depends, dont_bundle=dont_bundle)
@@ -413,7 +414,7 @@ class Resource(Renderable, Dependable):
             mode_resource.dependency_nr = self.dependency_nr
             self.modes[mode_name] = mode_resource
 
-        assert not isinstance(supersedes, basestring)
+        assert not isinstance(supersedes, compat.basestring)
         self.supersedes = supersedes or []
 
         self.rollups = []
@@ -424,7 +425,7 @@ class Resource(Renderable, Dependable):
         # mode
         # XXX what if mode is full-fledged resource which lists
         # supersedes itself?
-        for mode_name, mode in self.modes.items():
+        for mode_name, mode in compat.iteritems(self.modes):
             for resource in self.supersedes:
                 superseded_mode = resource.mode(mode_name)
                 # if there is no such mode, let's skip it
@@ -520,7 +521,7 @@ class Slot(Renderable, Dependable):
         self.ext = extension
         self.required = required
 
-        assert not isinstance(depends, basestring)
+        assert not isinstance(depends, compat.basestring)
         self.depends = set()
         if depends is not None:
             # Normalize groups into the underlying resources...
@@ -566,7 +567,7 @@ class FilledSlot(Renderable, Dependable):
         self.dependency_nr = slot.dependency_nr
 
         self.modes = {}
-        for key, resource in resource.modes.items():
+        for key, resource in compat.iteritems(resource.modes):
             self.modes[key] = FilledSlot(slot, resource)
 
         if not resource.depends.issubset(slot.depends):

@@ -19,7 +19,7 @@ from fanstatic import (Library,
                        NEEDED,
                        UnknownResourceExtensionError,
                        UnknownResourceError,
-                       set_resource_file_existence_checking)
+                       set_resource_file_existence_checking, compat)
 
 from fanstatic.core import inclusion_renderers
 from fanstatic.core import thread_local_needed_data
@@ -59,7 +59,7 @@ def test_resource_register_with_library():
     x1 = Resource(foo, 'a.js', minified='a.min.js')
 
     assert len(foo.known_resources) == 2
-    assert x1 in foo.known_resources.values()
+    assert x1 in compat.dict_values(foo.known_resources)
 
     # Can not use the same relpath for two Resource declarations.
     with pytest.raises(ConfigurationError):
@@ -756,7 +756,7 @@ rest of head</head><body>rest of body<script type="text/javascript" src="/fansta
 
 def test_inclusion_renderers():
     assert sorted(
-        [(order, key) for key, (order, _) in inclusion_renderers.items()]) == [
+        [(order, key) for key, (order, _) in compat.dict_items(inclusion_renderers)]) == [
         (10, '.css'), (20, '.js'), (30, '.ico')]
     _, renderer = inclusion_renderers['.js']
     assert renderer('http://localhost/script.js') == (
@@ -1342,7 +1342,7 @@ def test_library_ordering_bug():
     needed.need(app)
     resources = needed.resources()
     for resource in resources:
-        print resource, resource.library.library_nr
+        print((resource, resource.library.library_nr))
     assert resources == [jquery, jqueryui, obviel, obviel_forms,
                          obviel_datepicker, vtab, tabview, bread, app]
 

@@ -1,3 +1,6 @@
+from fanstatic import compat
+
+
 def _visit(resource, result, dead):
     if dead[(resource.library, resource.relpath)]:
         return
@@ -25,7 +28,7 @@ def sort_resources_topological(resources):
 def generate_code(**kw):
     resource_to_name = {}
     resources = []
-    for name, resource in kw.items():
+    for name, resource in compat.iteritems(kw):
         resource_to_name[(resource.library, resource.relpath)] = name
         resources.append(resource)
 
@@ -33,9 +36,9 @@ def generate_code(**kw):
     libraries = {}
     for resource in resources:
         libraries[resource.library.name] = resource.library
-        for mode_name, mode_resource in resource.modes.items():
+        for mode_name, mode_resource in compat.iteritems(resource.modes):
             libraries[mode_resource.library.name] = mode_resource.library
-    libraries = sorted(libraries.values(), key=lambda library: library.name)
+    libraries = sorted(compat.itervalues(libraries), key=lambda library: library.name)
 
     result = []
     # import on top
@@ -68,7 +71,7 @@ def generate_code(**kw):
             s += supersedes_s
         if resource.modes:
             items = []
-            for mode_name, mode in resource.modes.items():
+            for mode_name, mode in compat.iteritems(resource.modes):
                 items.append((mode_name,
                               generate_inline_resource(mode, resource)))
             items = sorted(items)
