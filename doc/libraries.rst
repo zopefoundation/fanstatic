@@ -3,10 +3,10 @@
 Pre-packaged libraries
 ======================
 
-A lot of pre-packaged Javascript libraries are available on the PyPI
+A lot of pre-packaged CSS and Javascript libraries are available on the PyPI
 and are maintained by the Fanstatic community. This can be installed
 into your project right away using easy_install, pip or buildout.
-No more complicated installation instructions, just reuse a Javascript
+No more complicated installation instructions, just reuse a CSS or Javascript
 library like you reuse Python libraries.
 
 Here's a list of currently available libraries:
@@ -16,6 +16,10 @@ Here's a list of currently available libraries:
     * - **package**
       - **library**
       - **source**
+
+    * - :pypi:`css.css3githubbuttons`
+      - `CSS3 GitHub Buttons <https://github.com/necolas/css3-github-buttons>`_
+      - `GitHub <https://github.com/davidjb/css.css3githubbuttons>`__
 
     * - :pypi:`js.ace`
       - `Ajax.org Cloud9 Editor <https://github.com/ajaxorg/ace>`_
