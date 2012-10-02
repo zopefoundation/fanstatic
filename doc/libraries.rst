@@ -77,6 +77,10 @@ Here's a list of currently available libraries:
       - `jquery.jqote2 <https://github.com/aefxx/jQote2>`_
       - `Bitbucket <https://bitbucket.org/fanstatic/js.jquery_jqote2>`__
 
+    * - :pypi:`js.jquery_json`
+      - the jQuery plugin `jquery-json <http://code.google.com/p/jquery-json/>`_
+      - `Bitbucket <http://bitbucket.org/fanstatic/js.jquery_json>`__
+
     * - :pypi:`js.jquery_jstree`
       - the jQuery plugin `JsTree <http://www.jstree.com/>`_
       - `Bitbucket <http://bitbucket.org/fanstatic/js.jquery_jstree>`__
