@@ -1,13 +1,12 @@
+import time
 import os
+import os.path
 import fnmatch
+import cStringIO
 import webob
 import webob.dec
 import webob.exc
-import time
-import os.path
-from paste.fileapp import DirectoryApp, FileApp, DataApp
-from paste.httpheaders import CACHE_CONTROL
-
+import webob.static
 import fanstatic
 
 MINUTE_IN_SECONDS = 60
@@ -19,50 +18,38 @@ YEAR_IN_SECONDS = DAY_IN_SECONDS * 365
 FOREVER = YEAR_IN_SECONDS * 10
 
 
-def check_ignore(ignores, filename):
-    for ignore in ignores:
-        if fnmatch.filter(filename.split('/'), ignore):
-            raise webob.exc.HTTPNotFound()
-
-
-class BundleApp(FileApp):
-    def __init__(self, rootpath, bundle, filenames, ignores):
+class BundleApp(webob.static.FileApp):
+    def __init__(self, rootpath, bundle, filenames):
         # Let FileApp determine content_type and encoding based on bundlename.
-        FileApp.__init__(self, bundle)
-
+        super(BundleApp, self).__init__(bundle)
         self.filenames = []
         for filename in filenames:
             fullpath = os.path.join(rootpath, filename)
-            if not os.path.normpath(fullpath).startswith(rootpath):
+            if not os.path.abspath(fullpath).startswith(rootpath):
                 # Raising forbidden here would expose private information.
                 raise webob.exc.HTTPNotFound()  # pragma: no cover
             if not os.path.exists(fullpath):
                 raise webob.exc.HTTPNotFound()
             self.filenames.append(fullpath)
 
-    # XXX see the fileapp/dataapp for returning a filewrapper/fileiter / 206
-    def update(self, force=False):
-        mtime = max([os.path.getmtime(fn) for fn in self.filenames])
-        if not force and mtime == self.last_modified:
-            return
-        self.last_modified = mtime
-
+    @webob.dec.wsgify
+    def __call__(self, req):
+        if req.method not in ('GET', 'HEAD'):
+            return webob.exc.HTTPMethodNotAllowed()
+        mtime = 0
         contents = []
         for filename in self.filenames:
+            mtime = max(mtime, os.path.getmtime(filename))
             fh = open(filename, 'rb')
             contents.append(fh.read())
             fh.close()
-        self.set_content('\n'.join(contents), mtime)
-
-    def get(self, environ, start_response):
-        if 'max-age=0' in CACHE_CONTROL(environ).lower():
-            self.update(force=True)  # RFC 2616 13.2.6
-        else:
-            self.update()
-        return DataApp.get(self, environ, start_response)
+        return webob.Response(
+            body='\n'.join(contents),
+            last_modified=mtime,
+        ).conditional_response_app
 
 
-class LibraryPublisher(DirectoryApp):
+class LibraryPublisher(webob.static.DirectoryApp):
     """Fanstatic directory publisher WSGI application.
 
     This WSGI application serves a directory of static resources to
@@ -82,50 +69,48 @@ class LibraryPublisher(DirectoryApp):
         self.library = library
         super(LibraryPublisher, self).__init__(library.path)
 
-    def __call__(self, environ, start_response):
-        path_info = environ['PATH_INFO']
-        check_ignore(self.ignores, path_info)
-
-        app = self.cached_apps.get(path_info)
-        if app is None:
-            fs_path = os.path.join(self.path, path_info.lstrip('/'))
-            if not os.path.normpath(fs_path).startswith(self.path):
-                raise webob.exc.HTTPForbidden()
-            elif fanstatic.BUNDLE_PREFIX in fs_path:
-                # We are handling a bundle request.
-                dirname, bundle = path_info.split(fanstatic.BUNDLE_PREFIX, 1)
-                dirname = dirname.lstrip('/')
-
-                dependency_nr = 0
-                filenames = []
-                # Check for duplicate filenames (`dirty bundles`) and check
-                # whether the filenames belong to a Resource definition.
-                for filename in bundle.split(';'):
-                    resource = self.library.known_resources.get(
-                        dirname + filename)
-                    if resource is None:
-                        raise webob.exc.HTTPNotFound()
-                    if resource.dependency_nr < dependency_nr:
-                        # Invalid bundle, resources in a bundle should be
-                        # sorted by dependency_nr.
-                        raise webob.exc.HTTPNotFound()
-                    dependency_nr = resource.dependency_nr
-                    if filename in filenames:
-                        # We have a `dirty bundle` request.
-                        raise webob.exc.HTTPNotFound()
-                    else:
-                        filenames.append(filename)
-                # normpath in order to correct the dirname on Windoze.
-                base = os.path.normpath(os.path.join(self.path, dirname))
-                app = BundleApp(base, bundle, filenames, self.ignores)
-                # Cache the BundleApp under the original path_info
-                self.cached_apps[path_info] = app
-            elif os.path.isfile(fs_path):
-                app = self.make_fileapp(fs_path)
-                self.cached_apps[path_info] = app
-            else:
+    @webob.dec.wsgify
+    def __call__(self, req):
+        for ignore in self.ignores:
+            if fnmatch.filter(req.path.split('/'), ignore):
                 raise webob.exc.HTTPNotFound()
-        return app(environ, start_response)
+        path = os.path.abspath(
+                os.path.join(self.path, req.path_info.lstrip('/')))
+        if not path.startswith(self.path):
+            raise webob.exc.HTTPForbidden()
+        elif fanstatic.BUNDLE_PREFIX in path:
+            # We are handling a bundle request.
+            subdir, bundle = req.path_info.split(fanstatic.BUNDLE_PREFIX, 1)
+            subdir = subdir.lstrip('/')
+            dependency_nr = 0
+            filenames = []
+            # Check for duplicate filenames (`dirty bundles`) and check
+            # whether the filenames belong to a Resource definition.
+            for filename in bundle.split(';'):
+                resource = self.library.known_resources.get(subdir + filename)
+                if resource is None:
+                    raise webob.exc.HTTPNotFound()
+                if resource.dependency_nr < dependency_nr:
+                    # Invalid bundle, resources in a bundle should be
+                    # sorted by dependency_nr.
+                    raise webob.exc.HTTPNotFound()
+                dependency_nr = resource.dependency_nr
+                if filename in filenames:
+                    # We have a `dirty bundle` request.
+                    raise webob.exc.HTTPNotFound()
+                else:
+                    filenames.append(filename)
+            # normpath in order to correct the dirname on Windoze.
+            base = os.path.abspath(os.path.join(self.path, subdir))
+            app = BundleApp(base, bundle, filenames)
+            # Cache the BundleApp under the original req.path
+            # self.cached_apps[req.path] = app
+        elif os.path.isfile(path):
+            app = self.make_fileapp(path)
+            # self.cached_apps[req.path] = app
+        else:
+            raise webob.exc.HTTPNotFound()
+        return app
 
 
 class Publisher(object):
