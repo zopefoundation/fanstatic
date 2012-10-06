@@ -2,7 +2,6 @@ import time
 import os
 import os.path
 import fnmatch
-import cStringIO
 import webob
 import webob.dec
 import webob.exc
