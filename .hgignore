@@ -8,9 +8,9 @@ parts
 *.swp
 *~
 develop-eggs
-dist
+./dist
 doc/_build
 eggs
 .coverage
 htmlcov
-
+.tox

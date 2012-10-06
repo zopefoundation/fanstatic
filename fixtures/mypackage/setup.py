@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(name='mypackage',
-      version='1.0dev',
+      version='1.0',
       include_package_data=True,
       zip_safe=False,
       package_dir={'': 'src'},
