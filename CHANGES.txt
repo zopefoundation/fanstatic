@@ -1,8 +1,8 @@
 CHANGES
 *******
 
-0.14 (unreleased)
-=================
+0.14a (2012-10-07)
+==================
 
 - Removed the dependency on Paste, replaced with webob.static.
 
