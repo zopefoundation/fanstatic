@@ -4,6 +4,29 @@ CHANGES
 0.14 (unreleased)
 =================
 
+- Nothing changed yet.
+
+
+0.14a (2012-10-07)
+==================
+
+- Removed the dependency on Paste, replaced with webob.static.
+
+- The publisher no longer sends out etags, which seems like a good
+  idea. The `Yahoo best practices for speeding up web sites <http://developer.yahoo.com/performance/rules.html>`_
+  say:
+
+    If you're not taking advantage of the flexible validation model that
+    ETags provide, it's better to just remove the ETag altogether.
+
+- Updated package setup to be compatible with running
+  ``python setup.py test``.
+
+- Added tox setup for testing across python versions.
+
+0.13.3 (2012-09-12)
+===================
+
 - No longer use WebOb's wsgify decorator in both the injector and
   delegator middlewares, as it has issues handling parent application
   WSGI response (https://github.com/Pylons/webob/issues/74).

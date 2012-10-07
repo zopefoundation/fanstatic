@@ -1,9 +1,20 @@
-from setuptools import setup
+from setuptools import setup, Command
 
 long_description = (
     open('README.txt').read()
     + '\n' +
     open('CHANGES.txt').read())
+
+class PyTest(Command):
+    user_options = []
+    def initialize_options(self):
+        pass
+    def finalize_options(self):
+        pass
+    def run(self):
+        import sys,subprocess
+        errno = subprocess.call([sys.executable, 'runtests.py'])
+        raise SystemExit(errno)
 
 setup(
     name='fanstatic',
@@ -19,10 +30,13 @@ setup(
     packages=['fanstatic'],
     include_package_data=True,
     zip_safe=False,
-    install_requires=['Paste', 'WebOb'],
+    install_requires=[
+        'WebOb >= 1.2'
+    ],
     extras_require = dict(
         test=['pytest >= 2.0'],
         ),
+    cmdclass = {'test': PyTest},
     entry_points = {
         'paste.filter_app_factory': [
             'fanstatic = fanstatic:make_fanstatic',
