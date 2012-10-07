@@ -6,8 +6,15 @@ CHANGES
 
 - Removed the dependency on Paste, replaced with webob.static.
 
+- The publisher no longer sends out etags, which seems like a good
+  idea. The `Yahoo best practices for speeding up web sites <http://developer.yahoo.com/performance/rules.html>`_
+  say:
+
+    If you're not taking advantage of the flexible validation model that
+    ETags provide, it's better to just remove the ETag altogether.
+
 - Updated package setup to be compatible with running
-  'python setup.py test'.
+  ``python setup.py test``.
 
 - Added tox setup for testing across python versions.
 
