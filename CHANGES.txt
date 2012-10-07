@@ -4,8 +4,12 @@ CHANGES
 0.14 (unreleased)
 =================
 
-- Nothing changed yet.
+- Removed the dependency on Paste, replaced with webob.static.
 
+- Updated package setup to be compatible with running
+  'python setup.py test'.
+
+- Added tox setup for testing across python versions.
 
 0.13.3 (2012-09-12)
 ===================
