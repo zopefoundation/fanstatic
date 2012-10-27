@@ -6,7 +6,7 @@ BOOL_CONFIG = set(['versioning', 'recompute_hashes', DEBUG, MINIFIED,
 
 # From paste.util.converters.
 def asbool(obj):
-    if isinstance(obj, (str, unicode)):
+    if isinstance(obj, compat.basestring):
         obj = obj.strip().lower()
         if obj in ['true', 'yes', 'on', 'y', 't', '1']:
             return True

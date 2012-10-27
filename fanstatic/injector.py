@@ -61,11 +61,7 @@ class Injector(object):
 
         # The wrapped application may have `needed` resources.
         if needed.has_resources():
-            result = needed.render_topbottom_into_html(response.body)
-            # Reset the body...
-            response.body = ''
-            # And write the result. The `write` method handles unicode results.
-            response.write(result)
+            response.text = needed.render_topbottom_into_html(response.text)
 
         # Clean up after our behinds.
         fanstatic.del_needed()

@@ -23,7 +23,7 @@ def test_library_registry():
     bar = Library('bar', '')
     library_registry.add(bar)
     assert library_registry['bar'] is bar
-    assert compat.dict_keys(library_registry) == ['foo', 'bar']
+    assert sorted(compat.dict_keys(library_registry)) == ['bar', 'foo']
 
     baz = Library('baz', '')
     library_registry[baz.name] = baz

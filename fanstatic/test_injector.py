@@ -4,7 +4,7 @@ import pytest
 import webob
 
 from fanstatic import (Library, Resource, Injector, get_needed,
-                       NEEDED, compat)
+                       NEEDED)
 
 
 def test_incorrect_configuration_options():
@@ -17,26 +17,12 @@ def test_incorrect_configuration_options():
 
     with pytest.raises(TypeError) as e:
         Injector(app, mode='qux', incorrect='configoption')
-    if compat.is_pypy:
-        assert (
-            "__init__() got 2 unexpected "
-            "keyword arguments") in str(e)
-    else:
-        assert (
-            "__init__() got an unexpected "
-            "keyword argument 'incorrect'") in str(e)
+    assert 'keyword argument' in str(e)
 
     with pytest.raises(TypeError) as e:
         Injector(
             app, mode='qux', incorrect='configoption', recompute_hashes=True)
-    if compat.is_pypy:
-        assert (
-            "__init__() got 2 unexpected "
-            "keyword arguments") in str(e)
-    else:
-        assert (
-            "__init__() got an unexpected "
-            "keyword argument 'incorrect'") in str(e)
+    assert 'keyword argument' in str(e)
 
 
 def test_inject():
@@ -50,13 +36,13 @@ def test_inject():
         needed = get_needed()
         needed.need(y1)
         needed.set_base_url('http://testapp')
-        return ['<html><head></head><body</body></html>']
+        return [b'<html><head></head><body</body></html>']
 
     wrapped_app = Injector(app)
 
     request = webob.Request.blank('/')
     response = request.get_response(wrapped_app)
-    assert response.body == '''\
+    assert response.body == b'''\
 <html><head>
     <link rel="stylesheet" type="text/css" href="http://testapp/fanstatic/foo/b.css" />
 <script type="text/javascript" src="http://testapp/fanstatic/foo/a.js"></script>
@@ -68,7 +54,7 @@ def test_needed_deleted_after_request():
     def html_app(environ, start_response):
         start_response('200 OK', [('Content-Type', 'text/html')])
         assert NEEDED in environ
-        return ['<html><head></head><body</body></html>']
+        return [b'<html><head></head><body</body></html>']
 
     wrapped_app = Injector(html_app)
     request = webob.Request.blank('/')
@@ -82,7 +68,7 @@ def test_needed_deleted_after_request():
     def textplain_app(environ, start_response):
         start_response('200 OK', [('Content-Type', 'text/plain')])
         assert NEEDED in environ
-        return ['<html><head></head><body</body></html>']
+        return [b'<html><head></head><body</body></html>']
 
     wrapped_app = Injector(textplain_app)
     request = webob.Request.blank('/')
@@ -104,20 +90,20 @@ def test_no_inject_into_non_html():
         start_response('200 OK', [('Content-Type', 'text/plain')])
         needed = get_needed()
         needed.need(y1)
-        return ['<html><head></head><body</body></html>']
+        return [b'<html><head></head><body</body></html>']
 
     wrapped_app = Injector(app)
 
     request = webob.Request.blank('/')
     response = request.get_response(wrapped_app)
-    assert response.body == '<html><head></head><body</body></html>'
+    assert response.body == b'<html><head></head><body</body></html>'
 
 
 def test_no_needed_into_non_get_post():
     def app(environ, start_response):
         assert NEEDED not in environ
         start_response('200 OK', [])
-        return ['foo']
+        return [b'foo']
     wrapped_app = Injector(app)
     request = webob.Request.blank('/', method='PUT')
     request.get_response(wrapped_app)
@@ -142,7 +128,7 @@ def test_can_handle_no_content():
         # header and won't trigger the fault from
         # https://bitbucket.org/fanstatic/fanstatic/issue/49/exception-in-injector-when-app-returns-304
         start_response('304 Not Modified', [('fake', '123')])
-        return ['']
+        return [b'']
     wrapped_app = Injector(app)
     request = webob.Request.blank('/', method='GET')
     request.get_response(wrapped_app)

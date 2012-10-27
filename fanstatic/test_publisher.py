@@ -18,7 +18,7 @@ def test_resource(tmpdir):
 
     request = webob.Request.blank('/foo/test.js')
     response = request.get_response(app)
-    assert response.body == '/* a test */'
+    assert response.body == b'/* a test */'
 
 
 def test_just_publisher():
@@ -74,7 +74,7 @@ def test_resource_version_skipped(tmpdir):
 
     request = webob.Request.blank('/foo/:version:something/test.js')
     response = request.get_response(app)
-    assert response.body == '/* a test */'
+    assert response.body == b'/* a test */'
 
 
 def test_resource_no_version_no_cache(tmpdir):
@@ -89,7 +89,7 @@ def test_resource_no_version_no_cache(tmpdir):
 
     request = webob.Request.blank('/foo/test.js')
     response = request.get_response(app)
-    assert response.body == '/* a test */'
+    assert response.body == b'/* a test */'
     assert response.cache_control.max_age is None
     assert response.expires is None
 
@@ -106,7 +106,7 @@ def test_resource_hash_cache(tmpdir):
 
     request = webob.Request.blank('/foo/:version:something/test.js')
     response = request.get_response(app)
-    assert response.body == '/* a test */'
+    assert response.body == b'/* a test */'
     assert response.cache_control.max_age == FOREVER
     # the test has just run and will take less than a full day to
     # run. we therefore expect the expires to be greater than
@@ -150,12 +150,12 @@ def test_delegator(tmpdir):
 
     request = webob.Request.blank('/fanstatic/foo/test.js')
     response = request.get_response(delegator)
-    assert response.body == '/* a test */'
+    assert response.body == b'/* a test */'
 
     # A deeper fanstatic.
     request = webob.Request.blank('/foo/bar/fanstatic/foo/test.js')
     response = request.get_response(delegator)
-    assert response.body == '/* a test */'
+    assert response.body == b'/* a test */'
 
     request = webob.Request.blank('/somethingelse')
     response = request.get_response(delegator)
@@ -170,7 +170,7 @@ def test_publisher_ignores(tmpdir):
     publisher = Publisher(LibraryRegistry([foo_library]))
     request = webob.Request.blank('/foo/.svn/entries')
     response = request.get_response(publisher)
-    assert response.body == 'secret'
+    assert response.body == b'secret'
 
     foo_library = Library('foo', foo_library_dir.strpath, ignores=['.svn'])
     publisher = Publisher(LibraryRegistry([foo_library]))
@@ -212,7 +212,7 @@ def test_bundle_resources(tmpdir):
 
     request = webob.Request.blank('/foo/:bundle:test1.js;test2.js')
     response = request.get_response(app)
-    assert response.body == '''/* a test 1 */
+    assert response.body == b'''/* a test 1 */
 /* a test 2 */'''
     assert response.cache_control.max_age is None
 
@@ -246,7 +246,7 @@ def test_bundle_resources(tmpdir):
 
     request = webob.Request.blank('/foo/sub/sub/:bundle:r1.css;r2.css')
     response = request.get_response(app)
-    assert response.body == '''r1
+    assert response.body == b'''r1
 r2'''
 
     r3 = Resource(foo, 'r3.css')
@@ -259,7 +259,7 @@ r2'''
     subdir.join('r4.css').write('r4')
     request = webob.Request.blank('/foo/sub/sub/:bundle:r1.css;r2.css;r4.css')
     response = request.get_response(app)
-    assert response.body == '''r1
+    assert response.body == b'''r1
 r2
 r4'''
 

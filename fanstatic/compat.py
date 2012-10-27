@@ -11,6 +11,7 @@ if sys.version_info[0] < 3:
     dict_keys = lambda x: x.keys()
     dict_values = lambda x: x.values()
     u = lambda x: unicode(x)
+    as_bytestring = lambda x: x
     maxsize = sys.maxint
     basestring = basestring
 else:
@@ -20,8 +21,7 @@ else:
     dict_items = lambda x: list(x.items())
     dict_keys = lambda x: list(x.keys())
     dict_values = lambda x: list(x.values())
+    as_bytestring = lambda x: x.encode('utf-8')
     u = lambda x: x
     maxsize = sys.maxsize
     basestring = str
-
-is_pypy = '__pypy__' in sys.builtin_module_names

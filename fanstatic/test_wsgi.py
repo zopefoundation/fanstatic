@@ -20,7 +20,7 @@ def test_inject():
         start_response('200 OK', [])
         needed = get_needed()
         needed.need(y1)
-        return ['<html><head></head><body</body></html>']
+        return [b'<html><head></head><body</body></html>']
 
     wrapped_app = Fanstatic(app, base_url='http://testapp')
 
@@ -28,7 +28,7 @@ def test_inject():
     request.environ['SCRIPT_NAME'] = '/root' # base_url is defined so SCRIPT_NAME
                                              # shouldn't be taken into account
     response = request.get_response(wrapped_app)
-    assert response.body == '''\
+    assert response.body == b'''\
 <html><head>
     <link rel="stylesheet" type="text/css" href="http://testapp/fanstatic/foo/b.css" />
 <script type="text/javascript" src="http://testapp/fanstatic/foo/a.js"></script>
@@ -45,14 +45,14 @@ def test_inject_script_name():
         start_response('200 OK', [])
         needed = get_needed()
         needed.need(y1)
-        return ['<html><head></head><body</body></html>']
+        return [b'<html><head></head><body</body></html>']
 
     wrapped_app = Fanstatic(app)
 
     request = webob.Request.blank('/path')
     request.environ['SCRIPT_NAME'] = '/root'
     response = request.get_response(wrapped_app)
-    assert response.body == '''\
+    assert response.body == b'''\
 <html><head>
     <link rel="stylesheet" type="text/css" href="/root/fanstatic/foo/b.css" />
 <script type="text/javascript" src="/root/fanstatic/foo/a.js"></script>
@@ -74,7 +74,7 @@ def test_inject_unicode_base_url():
     def app(environ, start_response):
         start_response('200 OK', [])
         x1.need()
-        return ['<html><head></head><body</body></html>']
+        return [b'<html><head></head><body</body></html>']
 
     request = webob.Request.blank('/')
     wrapped = Fanstatic(app, base_url=compat.u('http://localhost'))
@@ -91,7 +91,7 @@ def test_serf():
     serf = Fanstatic(serf, versioning=False)
     request = webob.Request.blank('/')
     response = request.get_response(serf)
-    assert response.body == '''\
+    assert response.body == b'''\
 <html><head>
     <link rel="stylesheet" type="text/css" href="/fanstatic/foo/style.css" />
 </head><body></body></html>'''

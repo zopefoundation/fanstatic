@@ -43,7 +43,7 @@ class BundleApp(webob.static.FileApp):
             contents.append(fh.read())
             fh.close()
         return webob.Response(
-            body='\n'.join(contents),
+            body=b'\n'.join(contents),
             last_modified=mtime,
         ).conditional_response_app
 
