@@ -23,3 +23,5 @@ else:
     u = lambda x: x
     maxsize = sys.maxsize
     basestring = str
+
+is_pypy = '__pypy__' in sys.builtin_module_names

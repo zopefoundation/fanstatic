@@ -1,12 +1,10 @@
 from __future__ import with_statement
 
 import pytest
-
 import webob
 
-from fanstatic import (Library, Resource,
-                       get_needed, NEEDED)
-from fanstatic import Injector
+from fanstatic import (Library, Resource, Injector, get_needed,
+                       NEEDED, compat)
 
 
 def test_incorrect_configuration_options():
@@ -19,16 +17,26 @@ def test_incorrect_configuration_options():
 
     with pytest.raises(TypeError) as e:
         Injector(app, mode='qux', incorrect='configoption')
-    assert (
-        "__init__() got an unexpected "
-        "keyword argument 'incorrect'") in str(e)
+    if compat.is_pypy:
+        assert (
+            "__init__() got 2 unexpected "
+            "keyword arguments") in str(e)
+    else:
+        assert (
+            "__init__() got an unexpected "
+            "keyword argument 'incorrect'") in str(e)
 
     with pytest.raises(TypeError) as e:
         Injector(
             app, mode='qux', incorrect='configoption', recompute_hashes=True)
-    assert (
-        "__init__() got an unexpected "
-        "keyword argument 'incorrect'") in str(e)
+    if compat.is_pypy:
+        assert (
+            "__init__() got 2 unexpected "
+            "keyword arguments") in str(e)
+    else:
+        assert (
+            "__init__() got an unexpected "
+            "keyword argument 'incorrect'") in str(e)
 
 
 def test_inject():
