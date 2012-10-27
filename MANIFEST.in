@@ -1,5 +1,6 @@
-include *.txt *.cfg *.py
+include *.txt *.cfg *.py *.ini
 exclude .installed.cfg
 recursive-include fanstatic *.py
 recursive-include tests *.py *.in *.css
-recursive-include doc *.txt Makefile *.py *.bat
+recursive-include fixtures *.py *.in *.html *.css *.gz
+recursive-include doc *.rst Makefile *.py *.bat
