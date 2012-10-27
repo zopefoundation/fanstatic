@@ -19,8 +19,19 @@ class PyTest(Command):
 setup(
     name='fanstatic',
     version='0.14dev',
-    description="Flexible static resources for web applications.",
-    classifiers=[],
+    description="Flexible static resources for web applications",
+    classifiers=[
+        'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
+        'Topic :: Internet :: WWW/HTTP :: WSGI :: Middleware',
+        'Intended Audience :: Developers',
+        'License :: OSI Approved :: BSD License',
+        'Programming Language :: Python :: 2.6',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.2',
+        'Programming Language :: Python :: 3.3',
+        'Development Status :: 5 - Production/Stable'
+    ],
     keywords='',
     author='Fanstatic Developers',
     author_email='fanstatic@googlegroups.com',
