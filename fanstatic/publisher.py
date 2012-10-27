@@ -1,11 +1,11 @@
 import time
-import os
 import os.path
 import fnmatch
-import webob
+
 import webob.dec
 import webob.exc
 import webob.static
+
 import fanstatic
 
 MINUTE_IN_SECONDS = 60
@@ -75,7 +75,7 @@ class LibraryPublisher(webob.static.DirectoryApp):
         app = self.cached_apps.get(req.path)
         if app is None:
             path = os.path.abspath(
-                    os.path.join(self.path, req.path_info.lstrip('/')))
+                os.path.join(self.path, req.path_info.lstrip('/')))
             if not path.startswith(self.path):
                 raise webob.exc.HTTPForbidden()
             elif fanstatic.BUNDLE_PREFIX in path:
@@ -151,7 +151,7 @@ class Publisher(object):
         # pop version if it's there
         potential_version = request.path_info_peek()
         if potential_version is not None and \
-            potential_version.startswith(fanstatic.VERSION_PREFIX):
+                potential_version.startswith(fanstatic.VERSION_PREFIX):
             request.path_info_pop()
             need_caching = True
         else:

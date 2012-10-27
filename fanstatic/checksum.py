@@ -1,6 +1,6 @@
+from datetime import datetime
 import os
 import hashlib
-from datetime import datetime
 
 from fanstatic import compat
 
@@ -32,6 +32,7 @@ def mtime(path):
         mtime = os.path.getmtime(path)
         latest = max(mtime, latest)
     return datetime.fromtimestamp(latest).isoformat()[:22]
+
 
 def md5(path):
     chcksm = hashlib.md5()

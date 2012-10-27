@@ -29,4 +29,4 @@ def test_library_registry():
     assert sorted(compat.iterkeys(library_registry)) == ['bar', 'baz', 'foo']
 
     # MyPackage has been installed in development mode:
-    assert library_registry['foo'].version == None
+    assert library_registry['foo'].version is None

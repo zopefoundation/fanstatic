@@ -21,6 +21,7 @@ _head_regex = re.compile('(<head[^>]*>)')
 
 _resource_file_existence_checking = True
 
+
 def set_resource_file_existence_checking(v):
     """Set resource file existence checking to True or False.
 
@@ -39,9 +40,11 @@ def set_resource_file_existence_checking(v):
     global _resource_file_existence_checking
     _resource_file_existence_checking = v
 
+
 class UnknownResourceExtensionError(Exception):
     """A resource has an unrecognized extension.
     """
+
 
 class ModeResourceDependencyError(Exception):
     """A Mode Resource does not have the same dependencies as the
@@ -51,13 +54,16 @@ class ModeResourceDependencyError(Exception):
 # BBB backwards compatibility
 UnknownResourceExtension = UnknownResourceExtensionError
 
+
 class UnknownResourceError(Exception):
     """Resource refers to non-existent resource file.
     """
 
+
 class ConfigurationError(Exception):
     """Impossible or illegal configuration.
     """
+
 
 class LibraryDependencyCycleError(Exception):
     """Dependency cycles between libraries aren't allowed.
@@ -66,6 +72,7 @@ class LibraryDependencyCycleError(Exception):
     library depends on a file in another library, while that library
     depends on a file in the first library.
     """
+
 
 class SlotError(Exception):
     """A slot was filled in incorrectly.
@@ -79,6 +86,7 @@ class SlotError(Exception):
     of the slot. It should also have the same extension as the slot.
     If this is not the case, it is an error.
     """
+
 
 class Library(object):
     """The resource library.
@@ -434,7 +442,6 @@ class Resource(Renderable, Dependable):
                 mode.supersedes.append(superseded_mode)
                 superseded_mode.rollups.append(mode)
 
-
         # Register ourself with the Library.
         self.library.register(self)
 
@@ -486,6 +493,7 @@ class Resource(Renderable, Dependable):
         """
         needed = get_needed()
         needed.need(self, slots)
+
 
 # XXX have to lie here: a slot itself is not directly renderable,
 # that's a FilledSlot.
@@ -548,6 +556,7 @@ class Slot(Renderable, Dependable):
                                 dependency_nr)
         self.dependency_nr = dependency_nr
 
+
 class FilledSlot(Renderable, Dependable):
     def __init__(self, slot, resource):
         self.library = resource.library
@@ -593,6 +602,7 @@ class FilledSlot(Renderable, Dependable):
         except KeyError:
             # fall back on the default mode if mode not found
             return self
+
 
 class Group(Dependable):
     """A resource used to group resources together.
@@ -977,10 +987,11 @@ class DummyNeededResources(object):
         return False
 
     def _not_implented_here(self, *args, **kwargs):
-        raise NotImplementedError('''
+        raise NotImplementedError(
+            '''
             This functionality is not implemented by objects of the %s class.
-            You probably want a NeededResources object.'''\
-            % self.__class__.__name__)
+            You probably want a NeededResources object.''' %
+            self.__class__.__name__)
 
     clear = _not_implented_here
     library_url = render = render_inclusions = _not_implented_here
@@ -1055,6 +1066,7 @@ def consolidate(resources):
             # nothing to supersede resource so use it directly
             result.append(resource)
     return result
+
 
 def sort_resources(resources):
     """Sort resources for inclusion on web page.

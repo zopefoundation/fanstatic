@@ -1,6 +1,6 @@
-import webob
-
 from datetime import datetime, timedelta
+
+import webob
 
 from fanstatic import LibraryRegistry, Library, Publisher, Delegator, Resource
 from fanstatic.publisher import FOREVER
@@ -59,7 +59,6 @@ def test_unknown_library(tmpdir):
     request = webob.Request.blank('/bar/')
     response = request.get_response(app)
     assert response.status == '404 Not Found'
-
 
 
 def test_resource_version_skipped(tmpdir):
@@ -192,6 +191,7 @@ def test_publisher_ignores(tmpdir):
     request = webob.Request.blank('/foo/:bundle:logo.psd')
     response = request.get_response(publisher)
     assert response.status_int == 404
+
 
 def test_bundle_resources(tmpdir):
     foo_library_dir = tmpdir.mkdir('foo')

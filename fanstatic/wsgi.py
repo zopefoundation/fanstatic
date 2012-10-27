@@ -1,8 +1,10 @@
 import webob
+
 from fanstatic.config import convert_config
-import fanstatic
 from fanstatic import (Injector, Delegator, Publisher, get_library_registry,
                        ConfigurationError)
+import fanstatic
+
 
 def Fanstatic(app,
               publisher_signature=fanstatic.DEFAULT_SIGNATURE,
@@ -36,13 +38,14 @@ def make_fanstatic(app, global_config, **local_config):
     local_config = convert_config(local_config)
     return Fanstatic(app, **local_config)
 
+
 class Serf(object):
     """Serf WSGI application.
 
     Serve a very simple HTML page while needing a resource. Can be
     configured behind the :py:func:`Fanstatic` WSGI framework
     component to let the resource be included.
-    
+
     :param resource: The :py:class:`Resource` to include.
     """
 
@@ -55,7 +58,8 @@ class Serf(object):
         """
         self.resource.need()
         return webob.Response('<html><head></head><body></body></html>')
-    
+
+
 def make_serf(global_config, **local_config):
     resource_identifier = local_config['resource']
     # only accept 'py:' library identifiers at this point
@@ -65,6 +69,7 @@ def make_serf(global_config, **local_config):
     else:
         raise ConfigurationError("Unknown library identifier")
     return Serf(resource)
+
 
 # taken from zope.dottedname.resolve
 def resolve(name, module=None):

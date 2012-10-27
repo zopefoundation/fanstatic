@@ -1,7 +1,8 @@
 import os
 import re
-import pytest
 import time
+
+import pytest
 
 from fanstatic import (Library,
                        Resource,
@@ -19,11 +20,11 @@ from fanstatic import (Library,
                        UnknownResourceExtensionError,
                        UnknownResourceError,
                        set_resource_file_existence_checking, compat)
-
 from fanstatic.core import inclusion_renderers
 from fanstatic.core import thread_local_needed_data
 from fanstatic.core import ModeResourceDependencyError
 from fanstatic.codegen import sort_resources_topological
+
 
 def test_resource():
     foo = Library('foo', '')
@@ -35,6 +36,7 @@ def test_resource():
     needed.need(y1)
 
     assert needed.resources() == [x2, x1, y1]
+
 
 def test_resource_file_exists(tmpdir):
     tmpdir.join('a.js').write('/* hello world */')
@@ -52,6 +54,7 @@ def test_resource_file_exists(tmpdir):
 
     sub_c = tmpdir.mkdir('sub').join('c.css').write('c')
     c = Resource(foo, 'sub/c.css')
+
 
 def test_resource_register_with_library():
     foo = Library('foo', '')
@@ -133,6 +136,7 @@ def test_convenience_clear_not_initialized():
     with pytest.raises(NotImplementedError):
         clear_needed()
 
+
 def test_convenience_need():
     foo = Library('foo', '')
     x1 = Resource(foo, 'a.js')
@@ -163,6 +167,7 @@ def test_convenience_group_resource_need():
 
     assert get_needed().resources() == [x2, x1, y1]
 
+
 def test_depend_on_group():
     foo = Library('foo', '')
     a = Resource(foo, 'a.js')
@@ -179,6 +184,7 @@ def test_depend_on_group():
     needed = NeededResources()
     needed.need(c)
     assert needed.resources() == [a, b, c]
+
 
 def test_redundant_resource():
     foo = Library('foo', '')
@@ -319,9 +325,10 @@ def test_mode_shortcut():
 
 
 def test_mode_shortcut_inherit_parameters():
-    foo = Library('foo', '')
     def special_renderer(url):
         return '<special href="%s"/>' % url
+
+    foo = Library('foo', '')
     a = Resource(foo, 'a.js')
     k = Resource(
         foo, 'k.js', debug='k-debug.js',
@@ -331,7 +338,7 @@ def test_mode_shortcut_inherit_parameters():
     debug_resource = k.modes['debug']
     assert debug_resource.depends == k.depends
     assert debug_resource.renderer == special_renderer
-    assert debug_resource.dont_bundle == True
+    assert debug_resource.dont_bundle
 
 
 def test_mode_inherit_dependency_nr():
@@ -529,10 +536,12 @@ def test_library_url_base_url():
     assert (needed.library_url(foo) ==
             'http://example.com/something/fanstatic/foo')
 
+
 def test_library_url_script_name():
     foo = Library('foo', '')
     needed = NeededResources(script_name='/root')
     assert needed.library_url(foo) == '/root/fanstatic/foo'
+
 
 def test_library_url_script_name_base_url():
     foo = Library('foo', '')
@@ -542,6 +551,7 @@ def test_library_url_script_name_base_url():
     # base_url is set so script_name should be ignored
     assert (needed.library_url(foo) ==
             'http://example.com/something/fanstatic/foo')
+
 
 def test_library_url_version_hashing(tmpdir):
     foo = Library('foo', tmpdir.strpath)
@@ -629,6 +639,7 @@ def test_html_insert_head_with_attributes():
 <html><head profile="http://example.org">
     <script type="text/javascript" src="/fanstatic/foo/a.js"></script>
 something</head></html>'''
+
 
 def test_html_top_bottom():
     foo = Library('foo', '')
@@ -721,6 +732,7 @@ def test_html_bottom_safe():
 <script type="text/javascript" src="/fanstatic/foo/y2.js"></script>
 <script type="text/javascript" src="/fanstatic/foo/c.js"></script>'''
 
+
 # XXX add sanity checks: cannot declare something bottom safe while
 # what it depends on isn't bottom safe
 
@@ -735,6 +747,7 @@ def test_html_bottom_safe_used_with_minified():
     assert top == ''
     assert bottom == ('<script type="text/javascript" '
                       'src="/fanstatic/foo/a-minified.js"></script>')
+
 
 def test_top_bottom_insert():
     foo = Library('foo', '')
@@ -755,11 +768,11 @@ rest of head</head><body>rest of body<script type="text/javascript" src="/fansta
 
 def test_inclusion_renderers():
     assert sorted(
-        [(order, key) for key, (order, _) in compat.dict_items(inclusion_renderers)]) == [
-        (10, '.css'), (20, '.js'), (30, '.ico')]
+        [(order, key) for key, (order, _) in compat.dict_items(inclusion_renderers)]) == \
+        [(10, '.css'), (20, '.js'), (30, '.ico')]
     _, renderer = inclusion_renderers['.js']
     assert renderer('http://localhost/script.js') == (
-         '<script type="text/javascript" src="http://localhost/script.js"></script>')
+        '<script type="text/javascript" src="http://localhost/script.js"></script>')
 
 
 def test_register_inclusion_renderer():
@@ -962,6 +975,7 @@ def test_sort_group_per_renderer():
 
     assert needed.resources() == [b_css, a_js, c_js, a1_js]
 
+
 def test_sort_group_per_library():
     foo = Library('foo', '')
     bar = Library('bar', '')
@@ -981,6 +995,7 @@ def test_sort_group_per_library():
 
     assert needed.resources() == [e, d, b, c, a]
 
+
 def test_sort_library_by_name():
     b_lib = Library('b_lib', '')
     a_lib = Library('a_lib', '')
@@ -993,6 +1008,7 @@ def test_sort_library_by_name():
     needed.need(a_a)
 
     assert needed.resources() == [a_a, a_b]
+
 
 def test_sort_resources_libraries_together():
     K = Library('K', '')
@@ -1019,6 +1035,7 @@ def test_sort_resources_libraries_together():
     # the order is unaffected by the ordering of inclusions
     assert needed.resources() == [k1, l1, m1, m2, n1]
 
+
 def test_sort_resources_library_sorting():
     # a complicated example that makes sure libraries are sorted
     # correctly to obey ordering constraints but still groups them
@@ -1043,6 +1060,7 @@ def test_sort_resources_library_sorting():
 
     assert needed.resources() == [a, c, c1, c2, e, b, d]
 
+
 def test_sort_resources_library_sorting_by_name():
     # these libraries are all at the same level so should be sorted by name
     X = Library('X', '')
@@ -1060,6 +1078,7 @@ def test_sort_resources_library_sorting_by_name():
 
     assert needed.resources() == [a, b, c]
 
+
 def test_sort_resources_library_sorting_by_name_deeper():
     X = Library('X', '')
     Y = Library('Y', '')
@@ -1073,6 +1092,7 @@ def test_sort_resources_library_sorting_by_name_deeper():
     needed = NeededResources()
     needed.need(b)
     assert needed.resources() == [a, c, b]
+
 
 def test_library_nr():
     X = Library('X', '')
@@ -1091,6 +1111,7 @@ def test_library_nr():
     assert a.library.library_nr == 0
     assert c.library.library_nr == 0
     assert b.library.library_nr == 1
+
 
 def test_library_dependency_cycles():
     A = Library('A', '')
@@ -1135,6 +1156,7 @@ def test_sort_resources_topological():
 
     assert sort_resources_topological([a5, a3, a1, a2]) == [a1, a2, a3, a5]
 
+
 def test_bundle():
     foo = Library('foo', '')
     a = Resource(foo, 'a.css')
@@ -1148,6 +1170,7 @@ def test_bundle():
     assert len(resources) == 1
     bundle = resources[0]
     assert bundle.resources() == [a, b]
+
 
 def test_bundle_dont_bundle_at_the_end():
     foo = Library('foo', '')
@@ -1165,6 +1188,7 @@ def test_bundle_dont_bundle_at_the_end():
     assert resources[0].resources() == [a, b]
     assert resources[-1] is c
 
+
 def test_bundle_dont_bundle_at_the_start():
     foo = Library('foo', '')
     a = Resource(foo, 'a.css', dont_bundle=True)
@@ -1180,6 +1204,7 @@ def test_bundle_dont_bundle_at_the_start():
     assert len(resources) == 2
     assert resources[0] is a
     assert resources[1].resources() == [b, c]
+
 
 def test_bundle_dont_bundle_in_the_middle():
     # now construct a scenario where a dont_bundle resource is in the way
@@ -1200,16 +1225,17 @@ def test_bundle_dont_bundle_in_the_middle():
     assert resources[1] is b
     assert resources[2] is c
 
+
 def test_bundle_resources_bottomsafe():
     foo = Library('foo', '')
     a = Resource(foo, 'a.css')
     b = Resource(foo, 'b.css', bottom=True)
 
-    needed = NeededResources(resources=[a,b], bundle=True)
+    needed = NeededResources(resources=[a, b], bundle=True)
     assert needed.render_topbottom() == ('''\
 <link rel="stylesheet" type="text/css" href="/fanstatic/foo/:bundle:a.css;b.css" />''', '')
 
-    needed = NeededResources(resources=[a,b], bundle=True, bottom=True)
+    needed = NeededResources(resources=[a, b], bundle=True, bottom=True)
     assert needed.render_topbottom() == ('''\
 <link rel="stylesheet" type="text/css" href="/fanstatic/foo/a.css" />''', '''\
 <link rel="stylesheet" type="text/css" href="/fanstatic/foo/b.css" />''')
@@ -1231,6 +1257,7 @@ def test_bundle_different_renderer():
     assert resources[0] is a
     assert resources[1] is b
 
+
 def test_bundle_different_library():
     # resources with different libraries aren't bundled
     l1 = Library('l1', '')
@@ -1248,6 +1275,7 @@ def test_bundle_different_library():
     assert resources[0] is a
     assert resources[1] is b
 
+
 def test_bundle_different_directory():
     # resources with different directories aren't bundled
     foo = Library('foo', '')
@@ -1264,12 +1292,14 @@ def test_bundle_different_directory():
     assert resources[0] is a
     assert resources[1] is b
 
+
 def test_bundle_empty_list():
     # we can successfully bundle an empty list of resources
     needed = NeededResources(bundle=True)
 
     resources = needed.resources()
     assert resources == []
+
 
 def test_bundle_single_entry():
     # we can successfully bundle a single resource (it's not bundled though)
@@ -1282,6 +1312,7 @@ def test_bundle_single_entry():
 
     assert resources == [a]
 
+
 def test_bundle_single_dont_bundle_entry():
     foo = Library('foo', '')
     a = Resource(foo, 'a.js', dont_bundle=True)
@@ -1291,6 +1322,7 @@ def test_bundle_single_dont_bundle_entry():
     resources = needed.resources()
 
     assert resources == [a]
+
 
 def test_inter_library_dependencies_ordering():
     lib1 = Library('lib1', '')
@@ -1311,6 +1343,7 @@ def test_inter_library_dependencies_ordering():
     needed.need(style2)
     resources = needed.resources()
     assert resources == [style1, style2, js1, js2, js3]
+
 
 def test_library_ordering_bug():
     jquery_lib = Library('jquery', '')

@@ -78,6 +78,7 @@ def test_needed_deleted_after_request():
     with pytest.raises(NotImplementedError):
         dummy.clear()
 
+
 def test_no_inject_into_non_html():
     foo = Library('foo', '')
     x1 = Resource(foo, 'a.js')
@@ -116,6 +117,7 @@ def test_needed_from_environ():
     wrapped_app = Injector(app)
     request = webob.Request.blank('/')
     request.get_response(wrapped_app)
+
 
 def test_can_handle_no_content():
     foo = Library('foo', '')

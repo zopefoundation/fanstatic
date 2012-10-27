@@ -5,14 +5,19 @@ long_description = (
     + '\n' +
     open('CHANGES.txt').read())
 
+
 class PyTest(Command):
     user_options = []
+
     def initialize_options(self):
         pass
+
     def finalize_options(self):
         pass
+
     def run(self):
-        import sys,subprocess
+        import sys
+        import subprocess
         errno = subprocess.call([sys.executable, 'runtests.py'])
         raise SystemExit(errno)
 
@@ -46,14 +51,14 @@ setup(
     tests_require=[
         'pytest >= 2.0'
     ],
-    cmdclass = {'test': PyTest},
-    entry_points = {
+    cmdclass={'test': PyTest},
+    entry_points={
         'paste.filter_app_factory': [
             'fanstatic = fanstatic:make_fanstatic',
             'publisher = fanstatic:make_publisher',
             'injector = fanstatic:make_injector',
-            ],
+        ],
         'paste.app_factory': [
             'serf = fanstatic:make_serf',
-            ],
+        ],
     })

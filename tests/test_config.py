@@ -10,7 +10,7 @@ def test_convert_config():
         'force_bottom': 'False',
         'rollup': 0,
         'somethingelse': 'True',
-        }
+    }
     assert convert_config(d) == {
         'versioning': True,
         'recompute_hashes': False,
@@ -18,7 +18,7 @@ def test_convert_config():
         'force_bottom': False,
         'rollup': False,
         'somethingelse': 'True',
-        }
+    }
 
 
 def test_injector_config():
@@ -28,7 +28,7 @@ def test_injector_config():
         'bottom': 'True',
         'force_bottom': 'False',
         'rollup': 0,
-        }
+    }
     injector = make_injector(None, {}, **d)
     assert injector.app is None
     assert injector.config == {
@@ -37,11 +37,11 @@ def test_injector_config():
         'bottom': True,
         'force_bottom': False,
         'rollup': False,
-        }
+    }
 
 
 def test_publisher_config():
-    publisher = make_publisher(None,  {}, publisher_signature='foo')
+    publisher = make_publisher(None, {}, publisher_signature='foo')
     assert publisher.trigger == '/foo/'
     assert publisher.app is None
 
@@ -54,7 +54,7 @@ def test_fanstatic_config():
         'force_bottom': 'False',
         'rollup': 0,
         'publisher_signature': 'foo',
-        }
+    }
     fanstatic = make_fanstatic(None, {}, **d)
     assert fanstatic.trigger == '/foo/'
     assert fanstatic.app.config == {
@@ -64,4 +64,4 @@ def test_fanstatic_config():
         'force_bottom': False,
         'rollup': False,
         'publisher_signature': 'foo',
-        }
+    }

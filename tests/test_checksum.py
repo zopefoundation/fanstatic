@@ -1,6 +1,7 @@
 import time
 import shutil
 import os
+
 from pkg_resources import resource_filename
 
 from fanstatic.checksum import list_directory, md5, mtime
@@ -21,7 +22,7 @@ def test_list_directory(tmpdir):
         tmpdir.join('MyPackage/MANIFEST.in').strpath,
         tmpdir.join('MyPackage/src/mypackage/__init__.py').strpath,
         tmpdir.join('MyPackage/src/mypackage/resources/style.css').strpath,
-        ]
+    ]
     found = list(list_directory(testdata_path, include_directories=False))
     assert sorted(found) == sorted(expected)
 
@@ -50,7 +51,7 @@ def test_list_directory_no_vcs_name(tmpdir):
         tmpdir.join('MyPackage/src/mypackage/__init__.py').strpath,
         tmpdir.join('MyPackage/src/mypackage/resources').strpath,
         tmpdir.join('MyPackage/src/mypackage/resources/style.css').strpath,
-        ]
+    ]
     found = list(list_directory(testdata_path))
     assert sorted(found) == sorted(expected)
 
@@ -69,7 +70,7 @@ def test_list_directory_vcs_name(tmpdir):
             tmpdir.join('MyPackage/src/mypackage/__init__.py').strpath,
             tmpdir.join('MyPackage/src/mypackage/resources').strpath,
             tmpdir.join('MyPackage/src/mypackage/resources/style.css').strpath,
-            ]
+        ]
         found = list(list_directory(testdata_path))
         assert sorted(found) == sorted(expected)
         tmpdir.join('/MyPackage/%s' % name).remove(rec=True)
@@ -88,7 +89,7 @@ def test_list_directory_dot_file(tmpdir):
         tmpdir.join('MyPackage/src/mypackage/__init__.py').strpath,
         tmpdir.join('MyPackage/src/mypackage/resources').strpath,
         tmpdir.join('MyPackage/src/mypackage/resources/style.css').strpath,
-        ]
+    ]
     found = list(list_directory(testdata_path))
     assert sorted(found) == sorted(expected)
 
@@ -106,7 +107,7 @@ def test_list_directory_ignored_extensions(tmpdir):
             tmpdir.join('MyPackage/src/mypackage/__init__.py').strpath,
             tmpdir.join('MyPackage/src/mypackage/resources').strpath,
             tmpdir.join('MyPackage/src/mypackage/resources/style.css').strpath,
-            ]
+        ]
         found = list(list_directory(testdata_path))
         assert sorted(found) == sorted(expected)
 
@@ -127,7 +128,7 @@ def test_mtime(tmpdir):
     assert mtime_after_add != mtime_start
 
     # Remove the file again, the mtime changed:
-    time.sleep(sleep) 
+    time.sleep(sleep)
     tmpdir.join('/MyPackage/A').remove()
     mtime_after_remove = mtime(testdata_path)
     assert mtime_after_remove != mtime_after_add
@@ -156,7 +157,7 @@ def test_mtime(tmpdir):
         tmpdir.join('MyPackage/src/mypackage/__init__.py').strpath,
         tmpdir.join('MyPackage/src/mypackage/resources').strpath,
         tmpdir.join('MyPackage/src/mypackage/resources/style.css').strpath,
-        ]
+    ]
     found = list(list_directory(testdata_path))
     assert sorted(found) == sorted(expected)
     assert mtime(testdata_path) != mtime_start
@@ -200,8 +201,7 @@ def test_md5(tmpdir):
         tmpdir.join('MyPackage/src/mypackage/__init__.py').strpath,
         tmpdir.join('MyPackage/src/mypackage/resources').strpath,
         tmpdir.join('MyPackage/src/mypackage/resources/style.css').strpath,
-        ]
+    ]
     found = list(list_directory(testdata_path))
     assert sorted(found) == sorted(expected)
     assert md5(testdata_path) != md5_start
-

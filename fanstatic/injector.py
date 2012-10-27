@@ -5,6 +5,7 @@ import fanstatic
 
 CONTENT_TYPES = ['text/html', 'text/xml', 'application/xhtml+xml']
 
+
 class Injector(object):
     """Fanstatic injector WSGI framework component.
 

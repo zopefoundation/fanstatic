@@ -1,10 +1,8 @@
 import pytest
-
 import webob
 
 from fanstatic import (Library, Resource,
                        get_needed, make_serf, compat)
-
 from fanstatic import Fanstatic, ConfigurationError
 
 
@@ -23,8 +21,8 @@ def test_inject():
     wrapped_app = Fanstatic(app, base_url='http://testapp')
 
     request = webob.Request.blank('/')
-    request.environ['SCRIPT_NAME'] = '/root' # base_url is defined so SCRIPT_NAME
-                                             # shouldn't be taken into account
+    request.environ['SCRIPT_NAME'] = '/root'  # base_url is defined so SCRIPT_NAME
+                                              # shouldn't be taken into account
     response = request.get_response(wrapped_app)
     assert response.body == b'''\
 <html><head>
@@ -32,6 +30,7 @@ def test_inject():
 <script type="text/javascript" src="http://testapp/fanstatic/foo/a.js"></script>
 <script type="text/javascript" src="http://testapp/fanstatic/foo/c.js"></script>
 </head><body</body></html>'''
+
 
 def test_inject_script_name():
     foo = Library('foo', '')
@@ -57,6 +56,7 @@ def test_inject_script_name():
 <script type="text/javascript" src="/root/fanstatic/foo/c.js"></script>
 </head><body</body></html>'''
 
+
 def test_incorrect_configuration_options():
     app = None
     with pytest.raises(TypeError) as e:
@@ -64,6 +64,7 @@ def test_incorrect_configuration_options():
     assert (
         "__init__() got an unexpected "
         "keyword argument 'incorrect'") in str(e)
+
 
 def test_inject_unicode_base_url():
     foo = Library('foo', '')
@@ -77,14 +78,15 @@ def test_inject_unicode_base_url():
     request = webob.Request.blank('/')
     wrapped = Fanstatic(app, base_url=compat.u('http://localhost'))
     # Fanstatic used to choke on unicode content.
-    response = request.get_response(wrapped)
+    request.get_response(wrapped)
+
 
 def test_serf():
     pytest.importorskip('mypackage')
     # also test serf config
     d = {
         'resource': 'py:mypackage.style'
-        }
+    }
     serf = make_serf({}, **d)
     serf = Fanstatic(serf, versioning=False)
     request = webob.Request.blank('/')
@@ -94,10 +96,10 @@ def test_serf():
     <link rel="stylesheet" type="text/css" href="/fanstatic/foo/style.css" />
 </head><body></body></html>'''
 
+
 def test_serf_unknown_library():
     d = {
         'resource': 'unknown_library:unknown_resource'
-        }
+    }
     with pytest.raises(ConfigurationError):
-        serf = make_serf({}, **d)
-
+        make_serf({}, **d)
