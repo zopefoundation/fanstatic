@@ -43,9 +43,9 @@ setup(
     install_requires=[
         'WebOb >= 1.2'
     ],
-    extras_require = dict(
-        test=['pytest >= 2.0'],
-        ),
+    tests_require=[
+        'pytest >= 2.0'
+    ],
     cmdclass = {'test': PyTest},
     entry_points = {
         'paste.filter_app_factory': [
