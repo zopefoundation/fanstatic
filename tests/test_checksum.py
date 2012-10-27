@@ -8,7 +8,7 @@ from fanstatic.checksum import VCS_NAMES, IGNORED_EXTENSIONS
 
 
 def _copy_testdata(tmpdir):
-    src = resource_filename('fanstatic', 'testdata/MyPackage')
+    src = resource_filename('tests', 'testdata/MyPackage')
     dst = tmpdir / 'MyPackage'
     shutil.copytree(src, str(dst))
     return dst

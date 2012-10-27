@@ -28,7 +28,6 @@ setup(
     license='BSD',
     url='http://fanstatic.org',
     packages=['fanstatic'],
-    include_package_data=True,
     zip_safe=False,
     install_requires=[
         'WebOb >= 1.2'
