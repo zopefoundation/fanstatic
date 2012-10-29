@@ -1,7 +1,7 @@
 CHANGES
 *******
 
-0.14 (unreleased)
+0.14 (2012-10-30)
 =================
 
 - Alex Grönholm added python3 and pypy support.
