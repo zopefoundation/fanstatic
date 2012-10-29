@@ -4,8 +4,9 @@ CHANGES
 0.14 (unreleased)
 =================
 
-- Nothing changed yet.
+- Alex Grönholm added python3 and pypy support.
 
+- Using tox to test on python2.6/2.7/3.2/3.3/pypy.
 
 0.14a (2012-10-07)
 ==================
