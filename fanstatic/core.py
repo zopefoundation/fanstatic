@@ -495,6 +495,9 @@ class Resource(Renderable, Dependable):
         needed.need(self, slots)
 
 
+REQUIRED_DEFAULT_MARKER = object()
+
+
 # XXX have to lie here: a slot itself is not directly renderable,
 # that's a FilledSlot.
 class Slot(Renderable, Dependable):
@@ -523,7 +526,16 @@ class Slot(Renderable, Dependable):
       the same dependencies as that of the slot, or a strict subset.
     """
 
-    def __init__(self, library, extension, depends=None, required=True):
+    def __init__(self, library, extension, depends=None,
+                 required=REQUIRED_DEFAULT_MARKER,
+                 default=None):
+        #We need to detect if required was set to true explicitly.
+        if required is True and default is not None:
+            raise ValueError('A slot with a default is not required and can '
+                             'not be made required.')
+        if required is REQUIRED_DEFAULT_MARKER:
+            required = True
+        self.default = default
         self.library = library
         assert extension.startswith('.')
         self.ext = extension
@@ -843,9 +855,12 @@ class NeededResources(object):
                 continue
             fill_resource = self._slots.get(resource)
             if fill_resource is None:
-                if not resource.required:
+                if resource.default is not None:
+                    fill_resource = resource.default
+                elif not resource.required:
                     continue
-                raise SlotError("slot %r was required but not filled in" %
+                else:
+                    raise SlotError("slot %r was required but not filled in" %
                                 resource)
             result.add(FilledSlot(resource, fill_resource))
         return result
