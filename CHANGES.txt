@@ -4,7 +4,8 @@ CHANGES
 0.15 (unreleased)
 =================
 
-- Nothing changed yet.
+- Add "default" argument to Slot to specify a resource which will be filled
+  in if there is no other resource specified in need().
 
 
 0.14 (2012-10-30)
