@@ -45,6 +45,7 @@ class BundleApp(webob.static.FileApp):
         return webob.Response(
             body=b'\n'.join(contents),
             last_modified=mtime,
+            **self.kw
         ).conditional_response_app
 
 

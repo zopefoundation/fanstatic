@@ -4,7 +4,8 @@ CHANGES
 0.15 (unreleased)
 =================
 
-- Nothing changed yet.
+- Ensure published bundles carry the correct Content-Type header. Previously,
+  all bundles were delivered with `text/html`.
 
 
 0.14 (2012-10-30)
