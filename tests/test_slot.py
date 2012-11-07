@@ -3,17 +3,11 @@ import pytest
 from fanstatic import NeededResources, Library, Resource, Slot, SlotError
 
 
-@pytest.fixture(scope='function')
-def needed():
-    return NeededResources()
+def test_fill_slot():
+    needed = NeededResources()
 
+    lib = Library('lib', '')
 
-@pytest.fixture(scope='function')
-def lib():
-    return Library('lib', '')
-
-
-def test_fill_slot(needed, lib):
     slot = Slot(lib, '.js')
     a = Resource(lib, 'a.js', depends=[slot])
 
@@ -29,7 +23,11 @@ def test_fill_slot(needed, lib):
     assert resources[0].relpath is b.relpath
 
 
-def test_dont_fill_required_slot(needed, lib):
+def test_dont_fill_required_slot():
+    needed = NeededResources()
+
+    lib = Library('lib', '')
+
     slot = Slot(lib, '.js')
     a = Resource(lib, 'a.js', depends=[slot])
 
@@ -41,7 +39,10 @@ def test_dont_fill_required_slot(needed, lib):
         needed.resources()
 
 
-def test_no_need_to_fill_in_not_required(needed, lib):
+def test_no_need_to_fill_in_not_required():
+    needed = NeededResources()
+
+    lib = Library('lib', '')
 
     slot = Slot(lib, '.js', required=False)
     a = Resource(lib, 'a.js', depends=[slot])
@@ -52,7 +53,9 @@ def test_no_need_to_fill_in_not_required(needed, lib):
     assert needed.resources() == [a]
 
 
-def test_slot_with_default_uses_default_if_nothing_given_in_need(needed, lib):
+def test_slot_with_default_uses_default_if_nothing_given_in_need():
+    needed = NeededResources()
+    lib = Library('lib', '')
     default_resource_for_slot = Resource(lib, 'b.js')
     slot = Slot(lib, '.js', default=default_resource_for_slot)
     a = Resource(lib, 'a.js', depends=[slot])
@@ -61,7 +64,9 @@ def test_slot_with_default_uses_default_if_nothing_given_in_need(needed, lib):
     assert relpaths == ['b.js', 'a.js']
 
 
-def test_default_can_be_overridden(needed, lib):
+def test_default_can_be_overridden():
+    needed = NeededResources()
+    lib = Library('lib', '')
     default_resource_for_slot = Resource(lib, 'b.js')
     slot = Slot(lib, '.js', default=default_resource_for_slot)
     a = Resource(lib, 'a.js', depends=[slot])
@@ -71,13 +76,18 @@ def test_default_can_be_overridden(needed, lib):
     assert relpaths == ['c.js', 'a.js']
 
 
-def test_slot_with_default_can_not_set_required_explicitly(lib):
+def test_slot_with_default_can_not_set_required_explicitly():
+    lib = Library('lib', '')
+
     a = Resource(lib, 'a.js')
     with pytest.raises(ValueError):
         slot = Slot(lib, '.js', default=a, required=True)
 
 
-def test_fill_slot_wrong_extension(needed, lib):
+def test_fill_slot_wrong_extension():
+    needed = NeededResources()
+
+    lib = Library('lib', '')
 
     slot = Slot(lib, '.js')
     a = Resource(lib, 'a.js', depends=[slot])
@@ -90,7 +100,10 @@ def test_fill_slot_wrong_extension(needed, lib):
         needed.resources()
 
 
-def test_fill_slot_wrong_dependencies(needed, lib):
+def test_fill_slot_wrong_dependencies():
+    needed = NeededResources()
+
+    lib = Library('lib', '')
 
     slot = Slot(lib, '.js')
     a = Resource(lib, 'a.js', depends=[slot])
@@ -105,7 +118,11 @@ def test_fill_slot_wrong_dependencies(needed, lib):
         needed.resources()
 
 
-def test_render_filled_slots(needed, lib):
+def test_render_filled_slots():
+    needed = NeededResources()
+
+    lib = Library('lib', '')
+
     slot = Slot(lib, '.js')
     a = Resource(lib, 'a.js', depends=[slot])
 
@@ -118,7 +135,12 @@ def test_render_filled_slots(needed, lib):
 <script type="text/javascript" src="/fanstatic/lib/a.js"></script>'''
 
 
-def test_slot_depends(needed, lib):
+def test_slot_depends():
+
+    needed = NeededResources()
+
+    lib = Library('lib', '')
+
     c = Resource(lib, 'c.js')
     slot = Slot(lib, '.js', depends=[c])
     a = Resource(lib, 'a.js', depends=[slot])
@@ -132,7 +154,10 @@ def test_slot_depends(needed, lib):
 <script type="text/javascript" src="/fanstatic/lib/a.js"></script>'''
 
 
-def test_slot_depends_subset(needed, lib):
+def test_slot_depends_subset():
+    needed = NeededResources()
+
+    lib = Library('lib', '')
 
     c = Resource(lib, 'c.js')
     slot = Slot(lib, '.js', depends=[c])
@@ -147,7 +172,11 @@ def test_slot_depends_subset(needed, lib):
 <script type="text/javascript" src="/fanstatic/lib/a.js"></script>'''
 
 
-def test_slot_depends_incorrect(needed, lib):
+def test_slot_depends_incorrect():
+    needed = NeededResources()
+
+    lib = Library('lib', '')
+
     c = Resource(lib, 'c.js')
     slot = Slot(lib, '.js', depends=[c])
     a = Resource(lib, 'a.js', depends=[slot])
@@ -160,8 +189,11 @@ def test_slot_depends_incorrect(needed, lib):
         needed.render()
 
 
-def test_slot_minified(lib):
+def test_slot_minified():
     needed = NeededResources(minified=True)
+
+    lib = Library('lib', '')
+
     slot = Slot(lib, '.js')
     a = Resource(lib, 'a.js', depends=[slot])
 
@@ -173,8 +205,9 @@ def test_slot_minified(lib):
 <script type="text/javascript" src="/fanstatic/lib/a.js"></script>'''
 
 
-def test_resource_need_should_pass_slots_to_needed(lib):
+def test_resource_need_should_pass_slots_to_needed():
     import fanstatic
+    lib = Library('lib', '')
     c = Resource(lib, 'c.js')
     slot = Slot(lib, '.js', depends=[c])
     a = Resource(lib, 'a.js', depends=[slot])
@@ -187,8 +220,9 @@ def test_resource_need_should_pass_slots_to_needed(lib):
     assert slot in needed._slots
 
 
-def test_group_need_should_pass_slots_to_needed(lib):
+def test_group_need_should_pass_slots_to_needed():
     import fanstatic
+    lib = Library('lib', '')
     c = Resource(lib, 'c.js')
     slot = Slot(lib, '.js', depends=[c])
     a = Resource(lib, 'a.js', depends=[slot])
