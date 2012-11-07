@@ -150,15 +150,19 @@ def test_delegator(tmpdir):
     request = webob.Request.blank('/fanstatic/foo/test.js')
     response = request.get_response(delegator)
     assert response.body == b'/* a test */'
+    assert response.content_type == 'text/javascript'
 
     # A deeper fanstatic.
     request = webob.Request.blank('/foo/bar/fanstatic/foo/test.js')
     response = request.get_response(delegator)
     assert response.body == b'/* a test */'
+    assert response.content_type == 'text/javascript'
 
     request = webob.Request.blank('/somethingelse')
     response = request.get_response(delegator)
     assert response.body == 'Hello world!'
+    #Default content type from WebOb
+    assert response.content_type == 'text/html'
 
 
 def test_publisher_ignores(tmpdir):
@@ -215,11 +219,13 @@ def test_bundle_resources(tmpdir):
     assert response.body == b'''/* a test 1 */
 /* a test 2 */'''
     assert response.cache_control.max_age is None
+    assert response.content_type == 'text/javascript'
 
     request = webob.Request.blank('/foo/:version:123/:bundle:test1.js;test2.js')
     response = request.get_response(app)
     assert response
     assert response.cache_control.max_age is not None
+    assert response.content_type == 'text/javascript'
 
     # Dirty bundles yield a 404:
     request = webob.Request.blank('/foo/:bundle:test1.js;test2.js;test1.js')
@@ -262,6 +268,7 @@ r2'''
     assert response.body == b'''r1
 r2
 r4'''
+    assert response.content_type == 'text/css'
 
     # An incorrect bundle, as the order of the paths does not correspond to
     # the dependency order of the Resources.

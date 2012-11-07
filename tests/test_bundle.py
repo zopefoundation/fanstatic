@@ -69,3 +69,4 @@ def test_render_bundle():
     needed = NeededResources(resources=[x1, x2, x4, x5], bundle=True)
     assert needed.render() == '''<link rel="stylesheet" type="text/css" href="/fanstatic/foo/:bundle:a.css;b.css" />
 <link rel="stylesheet" type="text/css" href="/fanstatic/foo/subdir/subdir/:bundle:x4.css;x5.css" />'''
+
