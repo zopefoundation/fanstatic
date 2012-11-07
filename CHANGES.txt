@@ -1,7 +1,7 @@
 CHANGES
 *******
 
-0.15 (unreleased)
+0.15 (2012-11-08)
 =================
 
 - Add "default" argument to Slot to specify a resource which will be filled
