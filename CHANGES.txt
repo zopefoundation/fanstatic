@@ -5,10 +5,10 @@ CHANGES
 =================
 
 - Add "default" argument to Slot to specify a resource which will be filled
-  in if there is no other resource specified in need().
+  in if there is no other resource specified in need(). Thanks to nilo.
 
 - Ensure published bundles carry the correct Content-Type header. Previously,
-  all bundles were delivered with `text/html`.
+  all bundles were delivered with `text/html`. Thanks to David Beitey.
 
 
 0.14 (2012-10-30)

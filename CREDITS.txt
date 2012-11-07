@@ -11,8 +11,12 @@ Credits
 
 * Dan Korostolev
 
-* Alberto Valverde González 
+* Alberto Valverde González
 
 * Guido Wesdorp
 
 * Alex Grönholm
+
+* David Beitey
+
+* nilo
