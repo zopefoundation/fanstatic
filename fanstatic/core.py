@@ -1131,17 +1131,24 @@ class Bundle(Renderable):
     def renderer(self):
         return self._resources[0].renderer
 
+    @property
+    def ext(self):
+        return self._resources[0].ext
+
+    @property
+    def relpath(self):
+        paths = [resource.filename for resource in self._resources]
+        return ''.join([self.dirname, BUNDLE_PREFIX, ';'.join(paths)])
+
     def resources(self):
         """This is used to test resources, not because this is a dependable.
         """
         return self._resources
 
     def render(self, library_url):
-        paths = [resource.filename for resource in self._resources]
         # URL may become too long:
         # http://www.boutell.com/newfaq/misc/urllength.html
-        relpath = ''.join([self.dirname, BUNDLE_PREFIX, ';'.join(paths)])
-        return self.renderer('%s/%s' % (library_url, relpath))
+        return self.renderer('%s/%s' % (library_url, self.relpath))
 
     def fits(self, resource):
         if resource.dont_bundle:
