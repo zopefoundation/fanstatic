@@ -4,7 +4,7 @@ CHANGES
 0.16 (unreleased)
 =================
 
-- Update Bundle objet to share an API for the Resource one.
+- Update Bundle object to share an API for the Resource one.
 
 
 0.15 (2012-11-08)
