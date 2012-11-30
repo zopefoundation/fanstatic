@@ -6,6 +6,8 @@ CHANGES
 
 - Update Bundle object to share an API for the Resource one.
 
+- Update injector to handle HTML pages that doesn't explicit set a
+  charset in their headers.
 
 0.15 (2012-11-08)
 =================
