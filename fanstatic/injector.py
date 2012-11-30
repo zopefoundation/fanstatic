@@ -62,7 +62,14 @@ class Injector(object):
 
         # The wrapped application may have `needed` resources.
         if needed.has_resources():
-            response.text = needed.render_topbottom_into_html(response.text)
+            # Can't use response.text because there might not be any
+            # charset. body is not unicode.
+            result = needed.render_topbottom_into_html(response.body)
+            # Reset the body...
+            response.body = b''
+            # Write will propely unfolder the previous application and
+            # call close. Setting response.text or response.body won't do it.
+            response.write(result)
 
         # Clean up after our behinds.
         fanstatic.del_needed()
