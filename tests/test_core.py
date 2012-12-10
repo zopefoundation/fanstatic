@@ -596,7 +596,7 @@ def test_library_url_hashing_recompute(tmpdir):
     # now create a file
     resource = tmpdir.join('test.js')
 
-    time.sleep(0.02)
+    time.sleep(0.5)
     # Sleep extra long on filesystems that report in seconds
     # instead of milliseconds.
     if os.path.getmtime(os.curdir).is_integer():

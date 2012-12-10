@@ -114,7 +114,7 @@ def test_list_directory_ignored_extensions(tmpdir):
 
 def test_mtime(tmpdir):
     testdata_path = str(_copy_testdata(tmpdir))
-    sleep = 0.02
+    sleep = 0.5
     # Sleep extra long on filesystems that report in seconds
     # instead of milliseconds.
     if os.path.getmtime(os.curdir).is_integer():
