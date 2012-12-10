@@ -17,6 +17,10 @@ Here's a list of currently available libraries:
       - **library**
       - **source**
 
+    * - :pypi:`js.backbone`
+      - `Backbone <http://backbonejs.org/>`_
+      - `Github <https://github.com/podhmo/js.backbone>`__
+
     * - :pypi:`css.css3githubbuttons`
       - `CSS3 GitHub Buttons <https://github.com/necolas/css3-github-buttons>`_
       - `GitHub <https://github.com/davidjb/css.css3githubbuttons>`__
@@ -132,6 +136,14 @@ Here's a list of currently available libraries:
     * - :pypi:`js.jqueryui`
       - `jQuery UI <http://jqueryui.com>`_
       - `Bitbucket <http://bitbucket.org/fanstatic/js.jqueryui>`__
+
+    * - :pypi:`js.knockback`
+      - `Knockback.js <http://kmalakoff.github.com/knockback/>`_
+      - `Bitbucket <https://bitbucket.org/gocept/js.knockback>`__
+
+    * - :pypi:`js.knockout`
+      - `Knockout <http://knockoutjs.com/>`_
+      - `Bitbucket <https://bitbucket.org/gocept/js.knockout>`__
 
     * - :pypi:`js.lesscss`
       - `less.js <http://lesscss.org/>`_
