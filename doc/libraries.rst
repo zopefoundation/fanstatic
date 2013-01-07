@@ -4,10 +4,12 @@ Pre-packaged libraries
 ======================
 
 A lot of pre-packaged CSS and Javascript libraries are available on the PyPI
-and are maintained by the Fanstatic community. This can be installed
-into your project right away using ``easy_install``, ``pip`` or ``buildout``.
-No more complicated installation instructions, just reuse a CSS or Javascript
-library like you reuse Python libraries.
+and are maintained by the Fanstatic community. These can be installed into your
+project right away using ``easy_install``, ``pip``, ``buildout`` or by
+specifying them in ``setup_requires`` in ``setup.py`` within your
+``setuptools``-compatible project.  No more complicated installation
+instructions, just reuse a CSS or Javascript library like you reuse Python
+libraries.
 
 Here's a list of currently available libraries:
 
@@ -16,10 +18,6 @@ Here's a list of currently available libraries:
     * - **package**
       - **library**
       - **source**
-
-    * - :pypi:`js.backbone`
-      - `Backbone <http://backbonejs.org/>`_
-      - `Github <https://github.com/podhmo/js.backbone>`__
 
     * - :pypi:`css.css3githubbuttons`
       - `CSS3 GitHub Buttons <https://github.com/necolas/css3-github-buttons>`_
@@ -32,6 +30,10 @@ Here's a list of currently available libraries:
     * - :pypi:`js.amcharts`
       - `amCharts <http://www.amcharts.com>`_
       - `GitHub <https://github.com/securactive/js.amcharts>`__
+
+    * - :pypi:`js.backbone`
+      - `Backbone <http://backbonejs.org/>`_
+      - `GitHub <https://github.com/podhmo/js.backbone>`__
 
     * - :pypi:`js.bootstrap`
       - `Bootstrap, from Twitter <http://twitter.github.com/bootstrap/index.html>`_
@@ -49,6 +51,15 @@ Here's a list of currently available libraries:
       - `Classy - Classes for JavaScript <http://classy.pocoo.org/>`_
       - `Bitbucket <https://bitbucket.org/fanstatic/js.classy>`__
 
+    * - :pypi:`js.d3`
+      - `D3.js (Data Driven Documents) <http://d3js.org/>`_
+      - `GitHub <http://github.com/mgood/js.d3/>`__
+        
+    * - :pypi:`js.d3_cloud`
+      - `D3-Cloud <http://www.jasondavies.com/wordcloud/>`_ (`Wordle
+        <http://wordle.net>`_-style layout for D3) 
+      - `GitHub <http://github.com/davidjb/js.d3_cloud/>`__
+
     * - :pypi:`js.extjs`
       - _`ExtJS`: http://www.sencha.com/products/js/
       - `Bitbucket <http://bitbucket.org/fanstatic/js.extjs>`__
@@ -56,6 +67,10 @@ Here's a list of currently available libraries:
     * - :pypi:`js.galleriffic`
       - `Galleriffic <http://www.twospy.com/galleriffic>`_
       - `Bitbucket <http://bitbucket.org/fanstatic/js.yui>`__
+        
+    * - :pypi:`js.leaflet`
+      - `Leaflet <http://leafletjs.com/>`_
+      - `GitHub <https://github.com/davidjb/js.leaflet>`__
 
     * - :pypi:`js.jquery_datalink`
       - the jQuery plugin `Datalink <https://github.com/nje/jquery-datalink>`_
@@ -72,6 +87,11 @@ Here's a list of currently available libraries:
     * - :pypi:`js.jquery_form`
       - the jQuery plugin `Form <http://jquery.malsup.com/form>`_
       - `Bitbucket <http://bitbucket.org/fanstatic/js.jquery_form>`__
+        
+    * - :pypi:`js.jquery_jcrop`
+      - `JCrop - Image Cropping Plugin for JQuery
+        <http://deepliquid.com/content/Jcrop.html>`_
+      - `GitHub <https://github.com/davidjb/js.jquery_jcrop>`__
 
     * - :pypi:`js.jquery_jgrowl`
       - `jGrowl <http://stanlemon.net/projects/jgrowl.html>`_
