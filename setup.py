@@ -50,7 +50,7 @@ setup(
         'which',
     ],
     tests_require=[
-        'pytest >= 2.0'
+        'pytest >= 2.3'
     ],
     cmdclass={'test': PyTest},
     entry_points={
