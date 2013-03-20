@@ -334,3 +334,43 @@ def test_sass_compiler(tmpdir):
     compiler.process(source, target)
 
     assert 'padding: 2 px;' in open(target).read()
+
+
+def test_package_compiler_is_not_available_if_package_not_importable():
+    class Nonexistent(fanstatic.compiler.PythonPackageBase):
+        package = 'does-not-exist'
+    assert not Nonexistent().available
+
+
+def test_package_compiler_is_available_if_package_is_importable():
+    class Example(fanstatic.compiler.PythonPackageBase):
+        package = 'fanstatic'
+    assert Example().available
+
+
+def test_cssmin_minifier(tmpdir):
+    compiler = fanstatic.compiler.CSSMin()
+    if not compiler.available:
+        pytest.skip('`%s` not found' % compiler.package)
+
+    source = str(tmpdir / 'a.scss')
+    target = str(tmpdir / 'a.css')
+    with open(source, 'w') as f:
+        f.write('body { padding: 2px; }')
+    compiler.process(source, target)
+
+    assert 'body{padding:2px}' == open(target).read()
+
+
+def test_jsmin_minifier(tmpdir):
+    compiler = fanstatic.compiler.JSMin()
+    if not compiler.available:
+        pytest.skip('`%s` not found' % compiler.package)
+
+    source = str(tmpdir / 'a.js')
+    target = str(tmpdir / 'a.min.js')
+    with open(source, 'w') as f:
+        f.write('function foo() { var bar = "baz"; };')
+    compiler.process(source, target)
+
+    assert 'function foo(){var bar="baz";};' == open(target).read()

@@ -50,7 +50,9 @@ setup(
         'which',
     ],
     tests_require=[
-        'pytest >= 2.3'
+        'pytest >= 2.3',
+        'cssmin',
+        'jsmin',
     ],
     cmdclass={'test': PyTest},
     entry_points={
@@ -67,4 +69,8 @@ setup(
             'less = fanstatic.compiler:LESS',
             'sass = fanstatic.compiler:SASS',
         ],
+        'fanstatic.minifiers': [
+            'cssmin = fanstatic.compiler:CSSMin',
+            'jsmin = fanstatic.compiler:JSMin',
+        ]
     })

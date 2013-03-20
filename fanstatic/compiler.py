@@ -134,3 +134,47 @@ class SASS(CommandlineBase, Compiler):
     name = 'sass'
     command = 'sass'
     arguments = [SOURCE, TARGET]
+
+
+class PythonPackageBase(object):
+
+    package = ''
+
+    @property
+    def available(self):
+        try:
+            self._import()
+        except CompilerError:
+            return False
+        else:
+            return True
+
+    def _import(self):
+        try:
+            return __import__(self.package, globals=globals(), fromlist=[''])
+        except ImportError:
+            raise CompilerError('Package `cssmin` not available.')
+
+
+class CSSMin(PythonPackageBase, Minifier):
+
+    name = 'cssmin'
+    package = 'cssmin'
+
+    def process(self, source, target):
+        cssmin = self._import()
+        with open(target, 'wb') as output:
+            css = open(source, 'r').read()
+            output.write(cssmin.cssmin(css))
+
+
+class JSMin(PythonPackageBase, Minifier):
+
+    name = 'jsmin'
+    package = 'jsmin'
+
+    def process(self, source, target):
+        jsmin = self._import()
+        with open(target, 'wb') as output:
+            js = open(source, 'r').read()
+            output.write(jsmin.jsmin(js))
