@@ -189,3 +189,10 @@ set the ``bundle`` argument to True.
 
 .. [#well] Well, for 10 years into the future at least.
 
+compile
+-------
+
+To automatically run compilers and minifiers when needed, set the ``compile``
+argument to True. (This argument is only about running compilers automatically;
+you can always compile your resources manually via the
+``fanstatic-compile`` command-line program.)

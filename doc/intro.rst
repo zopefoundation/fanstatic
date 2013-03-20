@@ -58,6 +58,11 @@ Optimization
   resources can be generated automatically, or can automatically
   served when available.
 
+* **Run compilers and minifiers**: Fanstatic knows how to run compilers like
+  CoffeeScript, SASS or LESS, as well as minifiers like uglifyjs or cssmin on
+  your resources. Just write your code in the language you prefer and let
+  Fanstatic take care of the rest.
+
 * **Optimize load times**: Fanstatic knows about tricks to optimize
   the load time of your Javascript, for instance by including
   ``script`` tags at the bottom of your web page instead of in the
