@@ -130,7 +130,7 @@ def test_compiler_target_is_full_resource_path():
     assert compiler.target_path(a) == '/foo/a.js'
 
 
-def test_compiler_is_source_if_given_on_resource():
+def test_compiler_uses_source_if_given_on_resource():
     lib = Library('lib', '/foo')
     a = Resource(lib, 'a.js', source='a.source')
     compiler = Compiler()
@@ -152,7 +152,7 @@ def test_minifier_source_is_full_resource_path():
     assert minifier.source_path(a) == '/foo/a.js'
 
 
-def test_minifier_target_is_minified_if_given_on_resource():
+def test_minifier_uses_minified_if_given_on_resource():
     lib = Library('lib', '/foo')
     a = Resource(lib, 'a.js', minified='a.min.js')
     minifier = Minifier()
