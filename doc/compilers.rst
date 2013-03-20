@@ -97,9 +97,15 @@ Writing compilers
 
 A compiler is a class that conforms to the following interface:
 
-XXX describe compiler/minifier API
+.. autoclass:: fanstatic.compiler.Compiler
+  :special-members:
+  :members:
 
-As seen above, compilers and minifiers are configured using a string name.
+Fanstatic provides generic base classes for both compilers and minifiers, as
+well as helper classes for compilers that run external commands or depend on
+other Python packages (:py:class:`fanstatic.compiler.CommandlineBase`,
+:py:class:`fanstatic.compiler.PythonPackageBase`).
+
 To make a compiler or minifier known to Fanstatic, it needs to be declared as
 an `entry point` in its packages' ``setup.py``::
 

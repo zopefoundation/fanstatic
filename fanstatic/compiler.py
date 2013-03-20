@@ -11,19 +11,23 @@ class CompilerError(Exception):
 
 
 class Compiler(object):
+    """Generates a target file from a source file.
+    """
 
-    name = NotImplemented
+    name = NotImplemented  #: name used to reference this from a Resource
     source_extension = NotImplemented
 
     def __call__(self, resource, force=False):
+        """Perform compilation of ``resource``.
+
+        :param force: If True, always perform compilation. If False (default),\
+        only perform compilation if ``should_process`` returns True.
+        """
+
         source = self.source_path(resource)
         target = self.target_path(resource)
         if force or self.should_process(source, target):
             self.process(source, target)
-
-    @property
-    def available(self):
-        return False  # Override in subclass
 
     def process(self, source, target):
         pass  # Override in subclass
@@ -35,12 +39,25 @@ class Compiler(object):
         """
         return not os.path.isfile(target) or mtime(source) > mtime(target)
 
+    @property
+    def available(self):
+        """Whether this compiler is available, i.e. necessary dependencies
+        like external commands or third-party packages are installed.
+        """
+        return False  # Override in subclass
+
     def source_path(self, resource):
+        """Return an absolute path to the source file (to use as input for
+        compilation)
+        """
         if resource.source:
             return resource.fullpath(resource.source)
         return os.path.splitext(resource.fullpath())[0] + self.source_extension
 
     def target_path(self, resource):
+        """Return an absolute path to the target file (to use as ouput for
+        compilation)
+        """
         return resource.fullpath()
 
 
