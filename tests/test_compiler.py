@@ -123,6 +123,31 @@ def test_minified_mode_should_call_compiler_and_minifier_of_parent_resource(
     assert mock_minifier.calls[0] == a
 
 
+def test_nothing_given_on_resource_uses_settings_from_library(compilers):
+    mock_compiler = MockCompiler()
+    compilers.add_compiler(mock_compiler)
+    mock_minifier = MockMinifier()
+    compilers.add_minifier(mock_minifier)
+    lib = Library(
+        'lib', '', compilers={'.js': 'mock'}, minifiers={'.js': 'mock'})
+    a = Resource(lib, 'a.js')
+    assert a.compiler is mock_compiler
+    assert a.minifier is mock_minifier
+
+
+def test_settings_on_resource_override_settings_from_library(compilers):
+    compilers.add_compiler(MockCompiler())
+    other_compiler = MockCompiler()
+    other_compiler.name = 'other'
+    compilers.add_compiler(other_compiler)
+    compilers.add_minifier(MockMinifier())
+    lib = Library(
+        'lib', '', compilers={'.js': 'mock'}, minifiers={'.js': 'mock'})
+    a = Resource(lib, 'a.js', compiler='other', minifier=None)
+    assert a.compiler is other_compiler
+    assert isinstance(a.minifier, fanstatic.compiler.NullCompiler)
+
+
 def test_compiler_target_is_full_resource_path():
     lib = Library('lib', '/foo')
     a = Resource(lib, 'a.js')

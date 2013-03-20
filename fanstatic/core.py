@@ -116,7 +116,8 @@ class Library(object):
     _signature = None
     _library_deps = None
 
-    def __init__(self, name, rootpath, ignores=None, version=None):
+    def __init__(self, name, rootpath, ignores=None, version=None,
+                 compilers=None, minifiers=None):
         self.name = name
         self.rootpath = rootpath
         self.ignores = ignores or []
@@ -125,6 +126,13 @@ class Library(object):
         self._library_deps = set()
         self.known_resources = {}
         self.library_nr = None
+
+        self.compilers = compilers
+        if self.compilers is None:
+            self.compilers = {}
+        self.minifiers = minifiers
+        if self.minifiers is None:
+            self.minifiers = {}
 
     def __repr__(self):
         return "<Library '%s' at '%s'>" % (self.name, self.path)
@@ -296,6 +304,9 @@ class Dependable(object):
     """
 
 
+NONE = object()
+
+
 class Resource(Renderable, Dependable):
     """A resource.
 
@@ -356,8 +367,8 @@ class Resource(Renderable, Dependable):
                  debug=None,
                  dont_bundle=False,
                  minified=None,
-                 minifier=None,
-                 compiler=None,
+                 minifier=NONE,
+                 compiler=NONE,
                  source=None,
                  mode_parent=None):
         self.library = library
@@ -365,11 +376,20 @@ class Resource(Renderable, Dependable):
         self.dirname, self.filename = os.path.split(relpath)
         if self.dirname and not self.dirname.endswith('/'):
             self.dirname += '/'
+        self.ext = os.path.splitext(self.relpath)[1]
 
         self.mode_parent = mode_parent
+        if compiler is NONE:
+            compiler = self.library.compilers.get(self.ext)
         self.compiler = fanstatic.registry.CompilerRegistry.instance()[
             compiler]
         self.source = source
+
+        if minifier is NONE:
+            if mode_parent is None:
+                minifier = self.library.minifiers.get(self.ext)
+            else:
+                minifier = None
         self.minifier = fanstatic.registry.MinifierRegistry.instance()[
             minifier]
         self.minified = minified
@@ -401,8 +421,6 @@ class Resource(Renderable, Dependable):
 
         self.bottom = bottom
         self.dont_bundle = dont_bundle
-
-        self.ext = os.path.splitext(self.relpath)[1]
 
         if renderer is None:
             # No custom, ad-hoc renderer for this Resource, so lookup
