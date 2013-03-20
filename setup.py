@@ -65,12 +65,12 @@ setup(
             'serf = fanstatic:make_serf',
         ],
         'fanstatic.compilers': [
-            'coffee = fanstatic.compiler:CoffeeScript',
-            'less = fanstatic.compiler:LESS',
-            'sass = fanstatic.compiler:SASS',
+            'coffee = fanstatic.compiler:COFFEE_COMPILER',
+            'less = fanstatic.compiler:LESS_COMPILER',
+            'sass = fanstatic.compiler:SASS_COMPILER',
         ],
         'fanstatic.minifiers': [
-            'cssmin = fanstatic.compiler:CSSMin',
-            'jsmin = fanstatic.compiler:JSMin',
+            'cssmin = fanstatic.compiler:CSSMIN_MINIFIER',
+            'jsmin = fanstatic.compiler:JSMIN_MINIFIER',
         ]
     })

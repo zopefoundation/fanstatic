@@ -121,6 +121,8 @@ class CoffeeScript(CommandlineBase, Compiler):
         with open(target, 'wb') as output:
             output.write(p.stdout.read())
 
+COFFEE_COMPILER = CoffeeScript()
+
 
 class LESS(CommandlineBase, Compiler):
 
@@ -128,12 +130,16 @@ class LESS(CommandlineBase, Compiler):
     command = 'lessc'
     arguments = [SOURCE, TARGET]
 
+LESS_COMPILER = LESS()
+
 
 class SASS(CommandlineBase, Compiler):
 
     name = 'sass'
     command = 'sass'
     arguments = [SOURCE, TARGET]
+
+SASS_COMPILER = SASS()
 
 
 class PythonPackageBase(object):
@@ -167,6 +173,8 @@ class CSSMin(PythonPackageBase, Minifier):
             css = open(source, 'r').read()
             output.write(cssmin.cssmin(css))
 
+CSSMIN_MINIFIER = CSSMin()
+
 
 class JSMin(PythonPackageBase, Minifier):
 
@@ -178,3 +186,5 @@ class JSMin(PythonPackageBase, Minifier):
         with open(target, 'wb') as output:
             js = open(source, 'r').read()
             output.write(jsmin.jsmin(js))
+
+JSMIN_MINIFIER = JSMin()

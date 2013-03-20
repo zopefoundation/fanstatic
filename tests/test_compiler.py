@@ -294,7 +294,7 @@ def test_converts_placeholders_to_arguments(tmpdir):
 
 
 def test_coffeescript_compiler(tmpdir):
-    compiler = fanstatic.compiler.CoffeeScript()
+    compiler = fanstatic.CompilerRegistry.instance()['coffee']
     if not compiler.available:
         pytest.skip('`%s` not found on PATH' % compiler.command)
 
@@ -308,7 +308,7 @@ def test_coffeescript_compiler(tmpdir):
 
 
 def test_less_compiler(tmpdir):
-    compiler = fanstatic.compiler.LESS()
+    compiler = fanstatic.CompilerRegistry.instance()['less']
     if not compiler.available:
         pytest.skip('`%s` not found on PATH' % compiler.command)
 
@@ -322,7 +322,7 @@ def test_less_compiler(tmpdir):
 
 
 def test_sass_compiler(tmpdir):
-    compiler = fanstatic.compiler.SASS()
+    compiler = fanstatic.CompilerRegistry.instance()['sass']
     if not compiler.available:
         pytest.skip('`%s` not found on PATH' % compiler.command)
     compiler.arguments = ['--no-cache'] + compiler.arguments
@@ -349,7 +349,7 @@ def test_package_compiler_is_available_if_package_is_importable():
 
 
 def test_cssmin_minifier(tmpdir):
-    compiler = fanstatic.compiler.CSSMin()
+    compiler = fanstatic.MinifierRegistry.instance()['cssmin']
     if not compiler.available:
         pytest.skip('`%s` not found' % compiler.package)
 
@@ -363,7 +363,7 @@ def test_cssmin_minifier(tmpdir):
 
 
 def test_jsmin_minifier(tmpdir):
-    compiler = fanstatic.compiler.JSMin()
+    compiler = fanstatic.MinifierRegistry.instance()['jsmin']
     if not compiler.available:
         pytest.skip('`%s` not found' % compiler.package)
 
