@@ -46,7 +46,8 @@ setup(
     packages=['fanstatic'],
     zip_safe=False,
     install_requires=[
-        'WebOb >= 1.2'
+        'WebOb >= 1.2',
+        'which',
     ],
     tests_require=[
         'pytest >= 2.0'
@@ -60,5 +61,10 @@ setup(
         ],
         'paste.app_factory': [
             'serf = fanstatic:make_serf',
+        ],
+        'fanstatic.compilers': [
+            'coffee = fanstatic.compiler:CoffeeScript',
+            'less = fanstatic.compiler:LESS',
+            'sass = fanstatic.compiler:SASS',
         ],
     })

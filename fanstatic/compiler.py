@@ -1,6 +1,13 @@
+from which import which, WhichError as NotFound
 import os.path
+import subprocess
 
 mtime = os.path.getmtime
+
+
+class CompilerError(Exception):
+    """A compiler or minifier returned an error.
+    """
 
 
 class Compiler(object):
@@ -63,3 +70,67 @@ class NullCompiler(Compiler):
 
     def target_path(self, resource):
         return None
+
+
+SOURCE = object()
+TARGET = object()
+
+
+class CommandlineBase(object):
+
+    command = NotImplemented
+    arguments = []
+
+    @property
+    def available(self):
+        if os.path.exists(self.command):
+            return True
+        try:
+            return bool(which(self.command))
+        except NotFound:
+            return False
+
+    def process(self, source, target):
+        cmd = [self.command] + self._expand(self.arguments, source, target)
+        p = subprocess.Popen(' '.join(cmd), shell=True,
+                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        p.wait()
+        if p.returncode != 0:
+            raise CompilerError(p.stderr.read())
+        return p
+
+    def _expand(self, arguments, source, target):
+        result = []
+        for arg in arguments:
+            if arg is SOURCE:
+                arg = source
+            elif arg is TARGET:
+                arg = target
+            result.append(arg)
+        return result
+
+
+class CoffeeScript(CommandlineBase, Compiler):
+
+    name = 'coffee'
+    command = 'coffee'
+    arguments = ['--compile', '--bare', '--print', SOURCE]
+
+    def process(self, source, target):
+        p = super(CoffeeScript, self).process(source, target)
+        with open(target, 'wb') as output:
+            output.write(p.stdout.read())
+
+
+class LESS(CommandlineBase, Compiler):
+
+    name = 'less'
+    command = 'lessc'
+    arguments = [SOURCE, TARGET]
+
+
+class SASS(CommandlineBase, Compiler):
+
+    name = 'sass'
+    command = 'sass'
+    arguments = [SOURCE, TARGET]

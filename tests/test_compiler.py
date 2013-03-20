@@ -252,3 +252,85 @@ def test_minifier_available_and_minified_not_a_string_should_raise(compilers):
     minified = Resource(lib, 'a.min.js')
     with pytest.raises(fanstatic.ConfigurationError) as exc:
         a = Resource(lib, 'a.js', minifier='mock', minified=minified)
+
+
+def test_cli_compiler_is_not_available_if_command_not_found_on_path():
+    class Nonexistent(fanstatic.compiler.CommandlineBase):
+        command = 'does-not-exist'
+    assert not Nonexistent().available
+
+
+def test_cli_compiler_is_available_if_command_found_on_path():
+    class Cat(fanstatic.compiler.CommandlineBase):
+        command = 'cat'
+    assert Cat().available
+
+
+def test_cli_compiler_is_available_if_command_is_absolute_path():
+    class Cat(fanstatic.compiler.CommandlineBase):
+        command = '/bin/cat'
+    assert Cat().available
+
+
+def test_converts_placeholders_to_arguments(tmpdir):
+    from fanstatic.compiler import SOURCE, TARGET
+
+    source = str(tmpdir / 'source')
+    with open(source, 'w') as f:
+        f.write('source')
+    target = str(tmpdir / 'target')
+    with open(target, 'w') as f:
+        f.write('target')
+
+    class Echo(fanstatic.compiler.CommandlineBase):
+        command = 'echo'
+        arguments = ['-n', SOURCE, TARGET]
+
+        def process(self, source, target):
+            p = super(Echo, self).process(source, target)
+            return p.stdout.read()
+
+    assert Echo().process(source, target) == '%s %s' % (source, target)
+
+
+def test_coffeescript_compiler(tmpdir):
+    compiler = fanstatic.compiler.CoffeeScript()
+    if not compiler.available:
+        pytest.skip('`%s` not found on PATH' % compiler.command)
+
+    source = str(tmpdir / 'a.coffee')
+    target = str(tmpdir / 'a.js')
+    with open(source, 'w') as f:
+        f.write('square = (x) -> x * x')
+    compiler.process(source, target)
+
+    assert 'square = function(x) {' in open(target).read()
+
+
+def test_less_compiler(tmpdir):
+    compiler = fanstatic.compiler.LESS()
+    if not compiler.available:
+        pytest.skip('`%s` not found on PATH' % compiler.command)
+
+    source = str(tmpdir / 'a.less')
+    target = str(tmpdir / 'a.css')
+    with open(source, 'w') as f:
+        f.write('body { padding: (1 + 1)px; }')
+    compiler.process(source, target)
+
+    assert 'padding: 2 px;' in open(target).read()
+
+
+def test_sass_compiler(tmpdir):
+    compiler = fanstatic.compiler.SASS()
+    if not compiler.available:
+        pytest.skip('`%s` not found on PATH' % compiler.command)
+    compiler.arguments = ['--no-cache'] + compiler.arguments
+
+    source = str(tmpdir / 'a.scss')
+    target = str(tmpdir / 'a.css')
+    with open(source, 'w') as f:
+        f.write('body { padding: (1 + 1)px; }')
+    compiler.process(source, target)
+
+    assert 'padding: 2 px;' in open(target).read()
