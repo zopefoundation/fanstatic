@@ -5,6 +5,7 @@ import threading
 
 from fanstatic import compat
 import fanstatic.checksum
+import fanstatic.registry
 
 DEFAULT_SIGNATURE = 'fanstatic'
 
@@ -354,7 +355,10 @@ class Resource(Renderable, Dependable):
                  renderer=None,
                  debug=None,
                  dont_bundle=False,
-                 minified=None):
+                 minified=None,
+                 minifier=None,
+                 compiler=None,
+                 source=None):
         self.library = library
         fullpath = os.path.normpath(os.path.join(library.path, relpath))
         if _resource_file_existence_checking and not os.path.exists(fullpath):
@@ -442,6 +446,13 @@ class Resource(Renderable, Dependable):
                 mode.supersedes.append(superseded_mode)
                 superseded_mode.rollups.append(mode)
 
+        self.compiler = fanstatic.registry.CompilerRegistry.instance()[
+            compiler]
+        self.source = source
+        self.minifier = fanstatic.registry.MinifierRegistry.instance()[
+            minifier]
+        self.minified = minified
+
         # Register ourself with the Library.
         self.library.register(self)
 
@@ -452,6 +463,10 @@ class Resource(Renderable, Dependable):
             dependency_nr = max(depend.dependency_nr + 1,
                                 dependency_nr)
         self.dependency_nr = dependency_nr
+
+    def compile(self):
+        self.compiler(self)
+        self.minifier(self)
 
     def render(self, library_url):
         return self.renderer('%s/%s' % (library_url, self.relpath))
@@ -765,6 +780,7 @@ class NeededResources(object):
                  publisher_signature=DEFAULT_SIGNATURE,
                  bundle=False,
                  resources=None,
+                 compile=False,
                  ):
         self._versioning = versioning
         if versioning_use_md5:
@@ -781,6 +797,7 @@ class NeededResources(object):
         self._rollup = rollup
         self._bundle = bundle
         self._resources = set(resources or [])
+        self._compile = compile
         self._slots = {}
         self._url_cache = {}  # prevent multiple computations per request
         if (debug and minified):
@@ -911,6 +928,10 @@ class NeededResources(object):
 
         :param inclusions: A list of :py:class:`Resource` instances.
         """
+        if self._compile:
+            for resource in resources:
+                resource.compile()
+
         if self._bundle:
             resources = bundle_resources(resources)
         result = []

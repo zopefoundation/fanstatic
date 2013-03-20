@@ -24,7 +24,10 @@ from fanstatic.core import (Library,
                             SlotError,
                             set_resource_file_existence_checking,
                             UnknownResourceError)
-from fanstatic.registry import get_library_registry, LibraryRegistry
+from fanstatic.registry import (get_library_registry,
+                                LibraryRegistry,
+                                CompilerRegistry,
+                                MinifierRegistry)
 from fanstatic.codegen import generate_code
 from fanstatic.injector import Injector, make_injector
 from fanstatic.publisher import (Publisher, Delegator, make_publisher,

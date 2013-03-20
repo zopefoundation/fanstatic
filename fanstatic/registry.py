@@ -1,3 +1,4 @@
+from fanstatic.compiler import NullCompiler
 import pkg_resources
 
 
@@ -64,3 +65,21 @@ entry point.
 You can also add libraries to it later.
 """
 get_library_registry = LibraryRegistry.instance
+
+
+class CompilerRegistry(Registry):
+
+    ENTRY_POINT = 'fanstatic.compilers'
+
+    def __init__(self, items=()):
+        super(CompilerRegistry, self).__init__(items)
+        self[None] = NullCompiler()
+
+
+class MinifierRegistry(Registry):
+
+    ENTRY_POINT = 'fanstatic.minifiers'
+
+    def __init__(self, items=()):
+        super(MinifierRegistry, self).__init__(items)
+        self[None] = NullCompiler()

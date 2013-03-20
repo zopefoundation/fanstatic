@@ -2,7 +2,7 @@ from fanstatic import DEBUG, MINIFIED, compat
 
 BOOL_CONFIG = set(['versioning', 'recompute_hashes', DEBUG, MINIFIED,
                    'bottom', 'force_bottom', 'bundle', 'rollup',
-                   'versioning_use_md5'])
+                   'versioning_use_md5', 'compile'])
 
 
 # From paste.util.converters.
