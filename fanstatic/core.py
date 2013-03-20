@@ -360,14 +360,15 @@ class Resource(Renderable, Dependable):
                  compiler=None,
                  source=None):
         self.library = library
-        fullpath = os.path.normpath(os.path.join(library.path, relpath))
-        if _resource_file_existence_checking and not os.path.exists(fullpath):
-            raise UnknownResourceError("Resource file does not exist: %s" %
-                                       fullpath)
         self.relpath = relpath
         self.dirname, self.filename = os.path.split(relpath)
         if self.dirname and not self.dirname.endswith('/'):
             self.dirname += '/'
+        fullpath = self.fullpath()
+        if _resource_file_existence_checking and not os.path.exists(fullpath):
+            raise UnknownResourceError("Resource file does not exist: %s" %
+                                       fullpath)
+
         self.bottom = bottom
         self.dont_bundle = dont_bundle
 
@@ -455,6 +456,11 @@ class Resource(Renderable, Dependable):
 
         # Register ourself with the Library.
         self.library.register(self)
+
+    def fullpath(self, path=None):
+        if path is None:
+            path = self.relpath
+        return os.path.normpath(os.path.join(self.library.path, path))
 
     def init_dependency_nr(self):
         # on dependency within the library

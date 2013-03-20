@@ -1,6 +1,9 @@
 from fanstatic import Library, Resource, NeededResources
+from fanstatic.compiler import Compiler, Minifier
 import fanstatic
+import os
 import pytest
+import time
 
 
 class MockCompiler(object):
@@ -78,3 +81,71 @@ def test_setting_compile_True_should_call_compiler_and_minifier(
     assert mock_compiler.calls[0] == a
     assert len(mock_minifier.calls) == 1
     assert mock_minifier.calls[0] == a
+
+
+def test_compiler_target_is_full_resource_path():
+    lib = Library('lib', '/foo')
+    a = Resource(lib, 'a.js')
+    compiler = Compiler()
+    assert compiler.target_path(a) == '/foo/a.js'
+
+
+def test_compiler_is_source_if_given_on_resource():
+    lib = Library('lib', '/foo')
+    a = Resource(lib, 'a.js', source='a.source')
+    compiler = Compiler()
+    assert compiler.source_path(a) == '/foo/a.source'
+
+
+def test_compiler_source_transforms_extension_if_no_source_given():
+    lib = Library('lib', '/foo')
+    a = Resource(lib, 'a.js')
+    compiler = Compiler()
+    compiler.source_extension = '.source'
+    assert compiler.source_path(a) == '/foo/a.source'
+
+
+def test_minifier_source_is_full_resource_path():
+    lib = Library('lib', '/foo')
+    a = Resource(lib, 'a.js')
+    minifier = Minifier()
+    assert minifier.source_path(a) == '/foo/a.js'
+
+
+def test_minifier_target_is_minified_if_given_on_resource():
+    lib = Library('lib', '/foo')
+    a = Resource(lib, 'a.js', minified='a.min.js')
+    minifier = Minifier()
+    assert minifier.target_path(a) == '/foo/a.min.js'
+
+
+def test_minifier_target_transforms_extension_if_no_name_given():
+    lib = Library('lib', '/foo')
+    a = Resource(lib, 'a.js')
+    minifier = Minifier()
+    minifier.target_extension = '.min.js'
+    assert minifier.target_path(a) == '/foo/a.min.js'
+
+
+def test_should_process_if_target_does_not_exist(tmpdir):
+    assert Compiler().should_process(None, str(tmpdir / 'target'))
+
+
+def test_should_process_if_target_is_older_than_source(tmpdir):
+    source = str(tmpdir / 'source')
+    open(source, 'w').close()
+    target = str(tmpdir / 'target')
+    open(target, 'w').close()
+    old = time.time() - 1
+    os.utime(target, (old, old))
+    assert Compiler().should_process(source, target)
+
+
+def test_should_not_process_if_target_is_newer_than_source(tmpdir):
+    source = str(tmpdir / 'source')
+    open(source, 'w').close()
+    target = str(tmpdir / 'target')
+    open(target, 'w').close()
+    old = time.time() - 1
+    os.utime(source, (old, old))
+    assert not Compiler().should_process(source, target)
