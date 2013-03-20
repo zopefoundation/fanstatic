@@ -22,18 +22,17 @@ class TestingRegistry(object):
     def __init__(self, request):
         self.request = request
 
-    def add_compiler(self, compiler_class):
+    def add_compiler(self, compiler):
         return self._register_compiler(
-            fanstatic.CompilerRegistry, compiler_class)
+            fanstatic.CompilerRegistry, compiler)
 
-    def add_minifier(self, compiler_class):
+    def add_minifier(self, compiler):
         return self._register_compiler(
-            fanstatic.MinifierRegistry, compiler_class)
+            fanstatic.MinifierRegistry, compiler)
 
-    def _register_compiler(self, registry, compiler_class):
+    def _register_compiler(self, registry, compiler):
         self.request.addfinalizer(
-            lambda: registry.instance().pop(compiler_class.name))
-        compiler = compiler_class()
+            lambda: registry.instance().pop(compiler.name))
         registry.instance().add(compiler)
         return compiler
 
@@ -51,8 +50,8 @@ def compilers(request):
 
 def test_setting_compile_False_should_not_call_compiler_and_minifier(
     compilers):
-    compilers.add_compiler(MockCompiler)
-    compilers.add_minifier(MockCompiler)
+    compilers.add_compiler(MockCompiler())
+    compilers.add_minifier(MockCompiler())
 
     lib = Library('lib', '')
     a = Resource(lib, 'a.js', compiler='mock', minifier='mock')
@@ -66,8 +65,8 @@ def test_setting_compile_False_should_not_call_compiler_and_minifier(
 
 def test_setting_compile_True_should_call_compiler_and_minifier(
     compilers):
-    compilers.add_compiler(MockCompiler)
-    compilers.add_minifier(MockCompiler)
+    compilers.add_compiler(MockCompiler())
+    compilers.add_minifier(MockCompiler())
     lib = Library('lib', '')
     a = Resource(lib, 'a.js', compiler='mock', minifier='mock')
 
