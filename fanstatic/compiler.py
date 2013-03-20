@@ -5,6 +5,7 @@ mtime = os.path.getmtime
 
 class Compiler(object):
 
+    name = NotImplemented
     source_extension = NotImplemented
 
     def __call__(self, resource, force=False):
@@ -51,4 +52,5 @@ class NullCompiler(Compiler):
     on a Resource is set to None.
     """
 
+    name = None
     source_extension = ''

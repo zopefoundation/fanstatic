@@ -73,7 +73,7 @@ class CompilerRegistry(Registry):
 
     def __init__(self, items=()):
         super(CompilerRegistry, self).__init__(items)
-        self[None] = NullCompiler()
+        self.add(NullCompiler())
 
 
 class MinifierRegistry(Registry):
@@ -82,4 +82,4 @@ class MinifierRegistry(Registry):
 
     def __init__(self, items=()):
         super(MinifierRegistry, self).__init__(items)
-        self[None] = NullCompiler()
+        self.add(NullCompiler())
