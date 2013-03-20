@@ -1,12 +1,14 @@
 from fanstatic import Library, Resource, NeededResources
+from fanstatic import set_resource_file_existence_checking as check_files
 from fanstatic.compiler import Compiler, Minifier
 import fanstatic
+import fanstatic.compiler
 import os
 import pytest
 import time
 
 
-class MockCompiler(object):
+class MockCompiler(fanstatic.compiler.NullCompiler):
 
     name = 'mock'
 
@@ -148,3 +150,55 @@ def test_should_not_process_if_target_is_newer_than_source(tmpdir):
     old = time.time() - 1
     os.utime(source, (old, old))
     assert not Compiler().should_process(source, target)
+
+
+class ExampleCompiler(Compiler):
+
+    name = 'example'
+    source_extension = '.source'
+    available = True
+
+
+def test_compiler_available_and_source_not_present_should_raise(
+    tmpdir, compilers):
+    compilers.add_compiler(ExampleCompiler())
+    check_files(True)
+    lib = Library('lib', str(tmpdir))
+    with pytest.raises(fanstatic.UnknownResourceError) as exc:
+        a = Resource(lib, 'a.js', compiler='example')
+    assert 'a.source' in str(exc.value)
+
+
+def test_compiler_not_available_and_source_not_present_should_raise(
+    tmpdir, compilers):
+    open(str(tmpdir / 'a.js'), 'w').close()
+    compiler = ExampleCompiler()
+    compiler.available = False
+    compilers.add_compiler(compiler)
+    check_files(True)
+    lib = Library('lib', str(tmpdir))
+    # assert_nothing_raised
+    a = Resource(lib, 'a.js', compiler='example')
+
+
+def test_compiler_available_and_resource_file_not_present_should_not_raise(
+    tmpdir, compilers):
+    open(str(tmpdir / 'a.source'), 'w').close()
+    # since the compiler can be used to generate the resource file
+    compilers.add_compiler(ExampleCompiler())
+    check_files(True)
+    lib = Library('lib', str(tmpdir))
+    # assert_nothing_raised
+    a = Resource(lib, 'a.js', compiler='example')
+
+
+def test_compiler_not_available_and_resource_file_not_present_should_raise(
+    tmpdir, compilers):
+    compiler = ExampleCompiler()
+    compiler.available = False
+    compilers.add_compiler(compiler)
+    check_files(True)
+    lib = Library('lib', str(tmpdir))
+    with pytest.raises(fanstatic.UnknownResourceError) as exc:
+        a = Resource(lib, 'a.js', compiler='example')
+    assert 'a.js' in str(exc.value)

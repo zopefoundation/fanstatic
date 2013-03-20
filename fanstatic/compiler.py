@@ -14,6 +14,10 @@ class Compiler(object):
         if force or self.should_process(source, target):
             self.process(source, target)
 
+    @property
+    def available(self):
+        return False  # Override in subclass
+
     def process(self, source, target):
         pass  # Override in subclass
 
@@ -53,4 +57,9 @@ class NullCompiler(Compiler):
     """
 
     name = None
-    source_extension = ''
+
+    def source_path(self, resource):
+        return None
+
+    def target_path(self, resource):
+        return None

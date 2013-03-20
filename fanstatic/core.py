@@ -364,10 +364,24 @@ class Resource(Renderable, Dependable):
         self.dirname, self.filename = os.path.split(relpath)
         if self.dirname and not self.dirname.endswith('/'):
             self.dirname += '/'
-        fullpath = self.fullpath()
-        if _resource_file_existence_checking and not os.path.exists(fullpath):
-            raise UnknownResourceError("Resource file does not exist: %s" %
-                                       fullpath)
+
+        self.compiler = fanstatic.registry.CompilerRegistry.instance()[
+            compiler]
+        self.source = source
+        self.minifier = fanstatic.registry.MinifierRegistry.instance()[
+            minifier]
+        self.minified = minified
+
+        if _resource_file_existence_checking:
+            path = self.fullpath()
+            if not (self.compiler.available or os.path.exists(path)):
+                raise UnknownResourceError(
+                    "Resource file does not exist: %s" % path)
+            path = self.compiler.source_path(self)
+            if self.compiler.available and not os.path.exists(path):
+                raise UnknownResourceError(
+                    "Source file %s for %s does not exist" % (
+                        path, self.fullpath()))
 
         self.bottom = bottom
         self.dont_bundle = dont_bundle
@@ -446,13 +460,6 @@ class Resource(Renderable, Dependable):
                     continue
                 mode.supersedes.append(superseded_mode)
                 superseded_mode.rollups.append(mode)
-
-        self.compiler = fanstatic.registry.CompilerRegistry.instance()[
-            compiler]
-        self.source = source
-        self.minifier = fanstatic.registry.MinifierRegistry.instance()[
-            minifier]
-        self.minified = minified
 
         # Register ourself with the Library.
         self.library.register(self)
