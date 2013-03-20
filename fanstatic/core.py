@@ -126,6 +126,7 @@ class Library(object):
         self._library_deps = set()
         self.known_resources = {}
         self.library_nr = None
+        self.module = sys._getframe(1).f_globals['__name__']
 
         self.compilers = compilers
         if self.compilers is None:
@@ -517,12 +518,12 @@ class Resource(Renderable, Dependable):
                                 dependency_nr)
         self.dependency_nr = dependency_nr
 
-    def compile(self):
+    def compile(self, force=False):
         if self.mode_parent:
-            self.mode_parent.compile()
+            self.mode_parent.compile(force)
         else:
-            self.compiler(self)
-            self.minifier(self)
+            self.compiler(self, force)
+            self.minifier(self, force)
 
     def render(self, library_url):
         return self.renderer('%s/%s' % (library_url, self.relpath))

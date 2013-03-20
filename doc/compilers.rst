@@ -22,7 +22,11 @@ request: When the `compile` option is set to True (see :doc:`configuration`),
 Fanstatic will check on each request whether the source file is older than the
 compiled file, and invoke the compiler if needed.
 
-XXX explain usage of fanstatic-compile
+::
+
+  Usage: fanstatic-compile my.package.name
+  Compiles and minifies all Resources declared in the given package.
+
 
 XXX setuptools or zest.releaser-plugin?
 

@@ -56,6 +56,9 @@ setup(
     ],
     cmdclass={'test': PyTest},
     entry_points={
+        'console_scripts': [
+            'fanstatic-compile = fanstatic.compiler:compile_resources',
+        ],
         'paste.filter_app_factory': [
             'fanstatic = fanstatic:make_fanstatic',
             'publisher = fanstatic:make_publisher',

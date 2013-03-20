@@ -17,7 +17,7 @@ class MockCompiler(fanstatic.compiler.Compiler):
     def __init__(self):
         self.calls = []
 
-    def __call__(self, resource):
+    def __call__(self, resource, force=False):
         self.calls.append(resource)
 
 
@@ -30,7 +30,7 @@ class MockMinifier(fanstatic.compiler.Minifier):
     def __init__(self):
         self.calls = []
 
-    def __call__(self, resource):
+    def __call__(self, resource, force=False):
         self.calls.append(resource)
 
 
@@ -399,3 +399,27 @@ def test_jsmin_minifier(tmpdir):
     compiler.process(source, target)
 
     assert 'function foo(){var bar="baz";};' == open(target).read()
+
+
+@pytest.fixture
+def libraries(request):
+    def cleanup():
+        fanstatic.LibraryRegistry._instance = None
+    request.addfinalizer(cleanup)
+
+
+def test_console_script_collects_resources_from_package(
+    monkeypatch, libraries):
+    mypackage = pytest.importorskip('mypackage')
+
+    lib = Library('other', '')
+    a = Resource(lib, 'a.js')
+    fanstatic.LibraryRegistry.instance().add(lib)
+
+    def log_compile(self, force=False):
+        calls.append((self, force))
+    calls = []
+    monkeypatch.setattr(Resource, 'compile', log_compile)
+    fanstatic.compiler._compile_resources('mypackage')
+    assert len(calls) == 1
+    assert calls[0] == (mypackage.style, True)

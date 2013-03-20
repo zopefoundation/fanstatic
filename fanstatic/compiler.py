@@ -1,6 +1,9 @@
 from which import which, WhichError as NotFound
+import argparse
+import fanstatic
 import os.path
 import subprocess
+import sys
 
 mtime = os.path.getmtime
 
@@ -73,6 +76,24 @@ class Minifier(Compiler):
             return resource.fullpath(resource.minified)
         return resource.fullpath(
             os.path.splitext(resource.relpath)[0] + self.target_extension)
+
+
+def _compile_resources(package):
+    for library in fanstatic.LibraryRegistry.instance().values():
+        if not library.module.startswith(package):
+            continue
+        for resource in library.known_resources.values():
+            resource.compile(force=True)
+
+
+def compile_resources(argv=sys.argv):
+    parser = argparse.ArgumentParser(
+        description='Compiles and minifies all Resources'
+        ' declared in the given package.')
+    parser.add_argument(
+        'package', help='Dotted name of the package to compile')
+    options = parser.parse_args()
+    _compile_libraries(options.package)
 
 
 class NullCompiler(Compiler):
