@@ -8,9 +8,24 @@ import pytest
 import time
 
 
-class MockCompiler(fanstatic.compiler.NullCompiler):
+class MockCompiler(fanstatic.compiler.Compiler):
 
     name = 'mock'
+    source_extension = '.source'
+    available = True
+
+    def __init__(self):
+        self.calls = []
+
+    def __call__(self, resource):
+        self.calls.append(resource)
+
+
+class MockMinifier(fanstatic.compiler.Minifier):
+
+    name = 'mock'
+    target_extension = '.min.js'
+    available = True
 
     def __init__(self):
         self.calls = []
@@ -53,7 +68,7 @@ def compilers(request):
 def test_setting_compile_False_should_not_call_compiler_and_minifier(
     compilers):
     compilers.add_compiler(MockCompiler())
-    compilers.add_minifier(MockCompiler())
+    compilers.add_minifier(MockMinifier())
 
     lib = Library('lib', '')
     a = Resource(lib, 'a.js', compiler='mock', minifier='mock')
@@ -68,7 +83,7 @@ def test_setting_compile_False_should_not_call_compiler_and_minifier(
 def test_setting_compile_True_should_call_compiler_and_minifier(
     compilers):
     compilers.add_compiler(MockCompiler())
-    compilers.add_minifier(MockCompiler())
+    compilers.add_minifier(MockMinifier())
     lib = Library('lib', '')
     a = Resource(lib, 'a.js', compiler='mock', minifier='mock')
 
@@ -76,6 +91,30 @@ def test_setting_compile_True_should_call_compiler_and_minifier(
     needed.need(a)
     needed.render()
 
+    mock_compiler = compilers.compiler('mock')
+    mock_minifier = compilers.minifier('mock')
+    assert len(mock_compiler.calls) == 1
+    assert mock_compiler.calls[0] == a
+    assert len(mock_minifier.calls) == 1
+    assert mock_minifier.calls[0] == a
+
+
+def test_minified_mode_should_call_compiler_and_minifier_of_parent_resource(
+    compilers):
+    compilers.add_compiler(MockCompiler())
+    compilers.add_minifier(MockMinifier())
+    lib = Library('lib', '')
+    a = Resource(lib, 'a.js', compiler='mock', minifier='mock')
+
+    needed = NeededResources(compile=True, minified=True)
+    needed.need(a)
+
+    resources = needed.resources()
+    assert len(resources) == 1
+    assert resources[0].relpath == 'a.min.js'
+    assert resources[0] != a
+
+    needed.render()
     mock_compiler = compilers.compiler('mock')
     mock_minifier = compilers.minifier('mock')
     assert len(mock_compiler.calls) == 1
@@ -152,53 +191,64 @@ def test_should_not_process_if_target_is_newer_than_source(tmpdir):
     assert not Compiler().should_process(source, target)
 
 
-class ExampleCompiler(Compiler):
-
-    name = 'example'
-    source_extension = '.source'
-    available = True
-
-
 def test_compiler_available_and_source_not_present_should_raise(
     tmpdir, compilers):
-    compilers.add_compiler(ExampleCompiler())
+    compilers.add_compiler(MockCompiler())
     check_files(True)
     lib = Library('lib', str(tmpdir))
     with pytest.raises(fanstatic.UnknownResourceError) as exc:
-        a = Resource(lib, 'a.js', compiler='example')
+        a = Resource(lib, 'a.js', compiler='mock')
     assert 'a.source' in str(exc.value)
 
 
 def test_compiler_not_available_and_source_not_present_should_raise(
     tmpdir, compilers):
     open(str(tmpdir / 'a.js'), 'w').close()
-    compiler = ExampleCompiler()
+    compiler = MockCompiler()
     compiler.available = False
     compilers.add_compiler(compiler)
     check_files(True)
     lib = Library('lib', str(tmpdir))
     # assert_nothing_raised
-    a = Resource(lib, 'a.js', compiler='example')
+    a = Resource(lib, 'a.js', compiler='mock')
 
 
 def test_compiler_available_and_resource_file_not_present_should_not_raise(
     tmpdir, compilers):
     open(str(tmpdir / 'a.source'), 'w').close()
     # since the compiler can be used to generate the resource file
-    compilers.add_compiler(ExampleCompiler())
+    compilers.add_compiler(MockCompiler())
     check_files(True)
     lib = Library('lib', str(tmpdir))
     # assert_nothing_raised
-    a = Resource(lib, 'a.js', compiler='example')
+    a = Resource(lib, 'a.js', compiler='mock')
 
 
 def test_compiler_not_available_and_resource_file_not_present_should_raise(
     tmpdir, compilers):
-    compiler = ExampleCompiler()
+    compiler = MockCompiler()
     compiler.available = False
     compilers.add_compiler(compiler)
     check_files(True)
     lib = Library('lib', str(tmpdir))
     with pytest.raises(fanstatic.UnknownResourceError) as exc:
-        a = Resource(lib, 'a.js', compiler='example')
+        a = Resource(lib, 'a.js', compiler='mock')
     assert 'a.js' in str(exc.value)
+
+
+def test_minifier_available_and_minified_file_not_present_should_not_raise(
+    tmpdir, compilers):
+    open(str(tmpdir / 'a.js'), 'w').close()
+    compilers.add_minifier(MockMinifier())
+    check_files(True)
+    lib = Library('lib', str(tmpdir))
+    # assert_nothing_raised
+    a = Resource(lib, 'a.js', minifier='mock')
+
+
+def test_minifier_available_and_minified_not_a_string_should_raise(compilers):
+    compilers.add_minifier(MockMinifier())
+    lib = Library('lib', '')
+    minified = Resource(lib, 'a.min.js')
+    with pytest.raises(fanstatic.ConfigurationError) as exc:
+        a = Resource(lib, 'a.js', minifier='mock', minified=minified)

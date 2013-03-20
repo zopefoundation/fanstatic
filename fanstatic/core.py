@@ -358,23 +358,39 @@ class Resource(Renderable, Dependable):
                  minified=None,
                  minifier=None,
                  compiler=None,
-                 source=None):
+                 source=None,
+                 mode_parent=None):
         self.library = library
         self.relpath = relpath
         self.dirname, self.filename = os.path.split(relpath)
         if self.dirname and not self.dirname.endswith('/'):
             self.dirname += '/'
 
+        self.mode_parent = mode_parent
         self.compiler = fanstatic.registry.CompilerRegistry.instance()[
             compiler]
         self.source = source
         self.minifier = fanstatic.registry.MinifierRegistry.instance()[
             minifier]
         self.minified = minified
+        if (self.minified and not isinstance(self.minified, compat.basestring)
+            and self.minifier.available):
+            raise ConfigurationError(
+                "Since %s specifies minifier %s, passing another "
+                "Resource object as its minified version does not make sense"
+                % (self.relpath, minifier))
+        if not self.minified and self.minifier.available:
+            self.minified = self.minifier.target_path(self)
+            if self.minified:
+                self.minified = os.path.basename(self.minified)
 
         if _resource_file_existence_checking:
             path = self.fullpath()
-            if not (self.compiler.available or os.path.exists(path)):
+            minified = (self.mode_parent
+                        and self.mode_parent.minifier.available)
+            if not (minified
+                    or self.compiler.available
+                    or os.path.exists(path)):
                 raise UnknownResourceError(
                     "Resource file does not exist: %s" % path)
             path = self.compiler.source_path(self)
@@ -424,13 +440,19 @@ class Resource(Renderable, Dependable):
         self.init_dependency_nr()
 
         self.modes = {}
-        for mode_name, argument in [(DEBUG, debug), (MINIFIED, minified)]:
+        for mode_name, argument in [(DEBUG, debug), (MINIFIED, self.minified)]:
             if argument is None:
                 continue
             elif isinstance(argument, compat.basestring):
+                # this if is kludgy, but better than unrolling the loop
+                if mode_name == MINIFIED:
+                    mode_parent = self.minifier.available and self
+                else:
+                    mode_parent = None
                 mode_resource = Resource(
                     library, argument, bottom=bottom, renderer=renderer,
-                    depends=depends, dont_bundle=dont_bundle)
+                    depends=depends, dont_bundle=dont_bundle,
+                    mode_parent=mode_parent)
             else:
                 # The dependencies of a mode resource should be the same
                 # or a subset of the dependencies this mode replaces.
@@ -478,8 +500,11 @@ class Resource(Renderable, Dependable):
         self.dependency_nr = dependency_nr
 
     def compile(self):
-        self.compiler(self)
-        self.minifier(self)
+        if self.mode_parent:
+            self.mode_parent.compile()
+        else:
+            self.compiler(self)
+            self.minifier(self)
 
     def render(self, library_url):
         return self.renderer('%s/%s' % (library_url, self.relpath))
