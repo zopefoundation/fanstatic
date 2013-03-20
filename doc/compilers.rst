@@ -91,6 +91,31 @@ all Resources with a given extension::
 
 Note that individual Resources can override the minifier set on the Library.
 
+Pre-packaged compilers
+----------------------
+
+Fanstatic includes the following compilers:
+
+:coffee: `CoffeeScript`_, a little language that compiles to JavaScript,
+         requires the ``coffee`` binary (``npm install -g coffeescript``)
+:less: `LESS`_, the dynamic stylesheet language,
+       requires the ``lessc`` binary (``npm install -g less``)
+:sass: `SASS`_, Syntactically Awesome Stylesheets,
+       requires the ``sass`` binary (``gem install sass``)
+
+.. _`CoffeeScript`: http://coffeescript.org/
+.. _`LESS`: http://lesscss.org/
+.. _`SASS`: http://sass-lang.com/
+
+
+Fanstatic includes the following minifiers:
+
+:cssmin: :pypi:`cssmin`, A Python port of the YUI CSS compression algorithm,
+         requires the ``cssmin`` package.
+:jsmin: :pypi:`jsmin`, A Python port of Douglas Crockford's ``jsmin``,
+        requires the ``jsmin`` package.
+
+
 
 Writing compilers
 -----------------
