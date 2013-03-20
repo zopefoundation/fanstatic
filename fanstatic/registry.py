@@ -1,9 +1,36 @@
 import pkg_resources
 
-ENTRY_POINT = 'fanstatic.libraries'
+
+class Registry(dict):
+
+    ENTRY_POINT = NotImplemented
+
+    def __init__(self, items=()):
+        for item in items:
+            self.add(item)
+
+    def add(self, item):
+        self[item.name] = item
+
+    def load_items_from_entry_points(self):
+        for entry_point in pkg_resources.iter_entry_points(self.ENTRY_POINT):
+            self.add(self.make_item_from_entry_point(entry_point))
+
+    def make_item_from_entry_point(self, entry_point):
+        return entry_point.load()
+
+    _instance = None
+
+    @classmethod
+    def instance(cls):
+        if cls._instance is not None:
+            return cls._instance
+        cls._instance = cls()
+        cls._instance.load_items_from_entry_points()
+        return cls._instance
 
 
-class LibraryRegistry(dict):
+class LibraryRegistry(Registry):
     """A dictionary-like registry of libraries.
 
     This is a dictionary that mains libraries. A value is
@@ -15,42 +42,25 @@ class LibraryRegistry(dict):
 
     :param libraries: a sequence of libraries
     """
-    def __init__(self, libraries):
-        for library in libraries:
-            self[library.name] = library
 
-    def add(self, library):
-        """Add a Library instance to the registry.
+    ENTRY_POINT = 'fanstatic.libraries'
 
-        :param add: add a library to the registry.
-        """
-        self[library.name] = library
-
-
-def get_libraries_from_entry_points():
-    libraries = []
-    for entry_point in pkg_resources.iter_entry_points(ENTRY_POINT):
-        library = entry_point.load()
+    def make_item_from_entry_point(self, entry_point):
+        item = super(LibraryRegistry, self).make_item_from_entry_point(
+            entry_point)
         # If the distribution is in development mode we don't use its version.
         # See http://peak.telecommunity.com/DevCenter/setuptools#develop
         if entry_point.dist.precedence > pkg_resources.DEVELOP_DIST:
-            library.version = entry_point.dist.version  # pragma: no cover
-        libraries.append(library)
-    return libraries
-
-_library_registry = None
+            item.version = entry_point.dist.version  # pragma: no cover
+        return item
 
 
-def get_library_registry():
-    '''Get the global :py:class:`LibraryRegistry`.
+# BBB
+"""Get the global :py:class:`LibraryRegistry`.
 
-    It gets filled with the libraries registered using the fanstatic
-    entry point.
+It gets filled with the libraries registered using the fanstatic
+entry point.
 
-    You can also add libraries to it later.
-    '''
-    global _library_registry
-    if _library_registry is not None:
-        return _library_registry
-    _library_registry = LibraryRegistry(get_libraries_from_entry_points())
-    return _library_registry
+You can also add libraries to it later.
+"""
+get_library_registry = LibraryRegistry.instance

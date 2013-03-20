@@ -1,7 +1,7 @@
 import webob
 
 from fanstatic.config import convert_config
-from fanstatic import (Injector, Delegator, Publisher, get_library_registry,
+from fanstatic import (Injector, Delegator, Publisher, LibraryRegistry,
                        ConfigurationError)
 import fanstatic
 
@@ -26,7 +26,7 @@ def Fanstatic(app,
         publisher_signature=publisher_signature,
         **config)
 
-    publisher = Publisher(get_library_registry())
+    publisher = Publisher(LibraryRegistry.instance())
 
     return Delegator(
         injector,
