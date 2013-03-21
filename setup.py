@@ -1,9 +1,19 @@
 from setuptools import setup, Command
+import sys
 
 long_description = (
     open('README.txt').read()
     + '\n' +
     open('CHANGES.txt').read())
+
+
+install_requires = [
+    'WebOb >= 1.2',
+    'which',
+]
+
+if sys.version_info < (2, 7):
+    install_requires.append('argparse')
 
 
 class PyTest(Command):
@@ -45,10 +55,7 @@ setup(
     url='http://fanstatic.org',
     packages=['fanstatic'],
     zip_safe=False,
-    install_requires=[
-        'WebOb >= 1.2',
-        'which',
-    ],
+    install_requires=install_requires,
     tests_require=[
         'pytest >= 2.3',
         'cssmin',
