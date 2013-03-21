@@ -9,11 +9,15 @@ long_description = (
 
 install_requires = [
     'WebOb >= 1.2',
-    'which',
 ]
 
 if sys.version_info < (2, 7):
     install_requires.append('argparse')
+
+if sys.version_info < (3,):
+    install_requires.append('which')
+else:
+    install_requires.append('which==1.1.3.py3')
 
 
 class PyTest(Command):
