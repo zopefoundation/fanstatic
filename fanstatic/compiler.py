@@ -3,6 +3,8 @@ from which import which, WhichError as NotFound
 import argparse
 import fanstatic
 import os.path
+import pkg_resources
+import setuptools.command.sdist
 import subprocess
 import sys
 
@@ -94,7 +96,32 @@ def compile_resources(argv=sys.argv):
     parser.add_argument(
         'package', help='Dotted name of the package to compile')
     options = parser.parse_args()
-    _compile_libraries(options.package)
+    _compile_resources(options.package)
+
+
+class sdist_compile(setuptools.command.sdist.sdist):
+
+    def run(self):
+        self._activate_distribution()
+        _compile_resources(self.distribution.packages[0])
+        # this is kludgy. egg_info does two things, writing egg-info *and*
+        # finding all files. But since we generate more files, we need to
+        # trigger the finding step again to have them picked up.
+        self.get_finalized_command('egg_info').find_sources()
+        setuptools.command.sdist.sdist.run(self)  # old-style super()
+
+    def _activate_distribution(self):
+        """Make our distribution available in this Python interpreter,
+        so that we can access its entry points and import it.
+        """
+        # find_distributions() needs the egg-info to be able to find anything.
+        # Since our superclass runs egg_info as its first action anyway (and
+        # commands are run only once), there's no harm in doing it even
+        # earlier here.
+        self.run_command('egg_info')
+        for directory in self.distribution.package_dir.values():
+            for dist in pkg_resources.find_distributions(directory):
+                pkg_resources.working_set.add(dist)
 
 
 class NullCompiler(Compiler):

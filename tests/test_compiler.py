@@ -2,10 +2,14 @@ from fanstatic import Library, Resource, NeededResources
 from fanstatic import compat
 from fanstatic import set_resource_file_existence_checking as check_files
 from fanstatic.compiler import Compiler, Minifier
+from test_checksum import _copy_testdata
+from zipfile import ZipFile
 import fanstatic
 import fanstatic.compiler
 import os
 import pytest
+import subprocess
+import sys
 import time
 
 
@@ -425,3 +429,17 @@ def test_console_script_collects_resources_from_package(
     fanstatic.compiler._compile_resources('mypackage')
     assert len(calls) == 1
     assert calls[0] == (mypackage.style, True)
+
+
+def test_custom_sdist_command_runs_compiler_beforehand(tmpdir, monkeypatch):
+    pkgdir = _copy_testdata(tmpdir)
+    monkeypatch.chdir(pkgdir)
+    output = subprocess.check_output(
+        [sys.executable, 'setup.py', 'sdist', '--formats', 'zip'])
+    # for debugging use this instead:
+    # os.system('%s setup.py sdist' % sys.executable)
+    assert 'hard linking src/somepackage/resources/style.min.css' in output
+    dist = ZipFile(str(pkgdir / 'dist' / 'somepackage-1.0dev.zip'))
+    assert (
+        'somepackage-1.0dev/src/somepackage/resources/style.min.css'
+        in dist.namelist())

@@ -28,7 +28,25 @@ compiled file, and invoke the compiler if needed.
   Compiles and minifies all Resources declared in the given package.
 
 
-XXX setuptools or zest.releaser-plugin?
+Fanstatic also provides a hook into :pypi:`setuptools` to run compilers during
+sdist creation, so you can package and deploy the compiled resources and don't
+need any of the compilers in the production environment. To use this, add the
+following to the ``setup()`` call in your package's ``setup.py``::
+
+  setup(
+    ...
+    cmdclass={'sdist': fanstatic.sdist_compile},
+    ...
+  )
+
+Then, run ``python setup.py sdist`` as usual to create your sdist.
+
+Note: If you are using version control plugins (e.g. :pypi:`setuptools_hg`) to
+collect the files to include in your sdist, and do not check in the
+compiled/minified files, they will not be included in the sdist. In that case,
+you will need to create a ``MANIFEST.in`` file to pick them up, for example::
+
+  recursive-include src *.css *.js
 
 
 Configuring compilers
