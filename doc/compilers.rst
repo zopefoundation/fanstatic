@@ -89,14 +89,14 @@ Configuring minifiers
 ---------------------
 
 Minifiers work by creating a minified version of the resource file. For
-example, uglifyjs creates ``foo.min.js`` from ``foo.js``. This is configured
+example, jsmin creates ``foo.min.js`` from ``foo.js``. This is configured
 like so::
 
   from fanstatic import Library, Resource
 
   js_library = Library('js', 'js_resources')
 
-  a = Resource(js_library, 'a.js', minified='a.min.js', minifier='uglifys')
+  a = Resource(js_library, 'a.js', minified='a.min.js', minifier='jsmin')
 
 Minifiers can have a built-in rule what the target filename looks like, so
 usually you don't have to explicitly specify ``minified=``.
@@ -106,7 +106,7 @@ all Resources with a given extension::
 
   from fanstatic import Library, Resource
 
-  js_library = Library('js', 'js_resources', minifiers={'js': 'uglifys'})
+  js_library = Library('js', 'js_resources', minifiers={'js': 'jsmin'})
 
   a = Resource(js_library, 'a.js')
   b = Resource(js_library, 'tricky.js', minifier=None, minified='tricky.min.js')
@@ -158,9 +158,9 @@ an `entry point` in its packages' ``setup.py``::
 
   entry_points={
       'fanstatic.compilers': [
-          'coffee = js.coffeescript:compiler',
+          'coffee = fanstatic.compiler:COFFE_COMPILER',
           ],
       'fanstatic.minifiers': [
-          'uglifyjs = js.uglifys:minifier',
+          'jsmin = fanstatic.compiler:JSMIN_MINIFIER',
           ],
       },
