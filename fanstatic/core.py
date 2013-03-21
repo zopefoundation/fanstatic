@@ -18,7 +18,7 @@ NEEDED = 'fanstatic.needed'
 DEBUG = 'debug'
 MINIFIED = 'minified'
 
-_head_regex = re.compile('(<head[^>]*>)')
+_head_regex = re.compile(compat.as_bytestring('(<head[^>]*>)'))
 
 _resource_file_existence_checking = True
 
@@ -1008,7 +1008,9 @@ class NeededResources(object):
           inclusions into. This string must have a ``<head>`` section.
         """
         to_insert = self.render()
-        return _head_regex.sub('\\1\n    %s\n' % (to_insert,), html, count=1)
+        return _head_regex.sub(
+            compat.as_bytestring('\\1\n    %s\n' % (to_insert,)),
+            html, count=1)
 
     def render_topbottom(self):
         """Render resource inclusions separately into top and bottom fragments.
@@ -1059,9 +1061,12 @@ class NeededResources(object):
         """
         top, bottom = self.render_topbottom()
         if top:
-            html = _head_regex.sub('\\1\n    %s\n' % (top,), html, count=1)
+            html = _head_regex.sub(
+                compat.as_bytestring('\\1\n    %s\n' % (top,)), html, count=1)
         if bottom:
-            html = html.replace('</body>', '%s</body>' % bottom, 1)
+            html = html.replace(
+                compat.as_bytestring('</body>'),
+                compat.as_bytestring('%s</body>' % bottom), 1)
         return html
 
 

@@ -616,11 +616,11 @@ def test_html_insert():
     needed = NeededResources()
     needed.need(y1)
 
-    html = "<html><head>something more</head></html>"
+    html = b"<html><head>something more</head></html>"
 
     # XXX where is extraneous space coming from? misguided attempt at
     # indentation?
-    assert needed.render_into_html(html) == '''\
+    assert needed.render_into_html(html) == b'''\
 <html><head>
     <link rel="stylesheet" type="text/css" href="/fanstatic/foo/b.css" />
 <script type="text/javascript" src="/fanstatic/foo/a.js"></script>
@@ -634,8 +634,8 @@ def test_html_insert_head_with_attributes():
     x1 = Resource(foo, 'a.js')
     needed = NeededResources(resources=[x1])
 
-    html = '<html><head profile="http://example.org">something</head></html>'
-    assert needed.render_into_html(html) == '''\
+    html = b'<html><head profile="http://example.org">something</head></html>'
+    assert needed.render_into_html(html) == b'''\
 <html><head profile="http://example.org">
     <script type="text/javascript" src="/fanstatic/foo/a.js"></script>
 something</head></html>'''
@@ -755,11 +755,11 @@ def test_top_bottom_insert():
     x2 = Resource(foo, 'b.css')
     y1 = Resource(foo, 'c.js', depends=[x1, x2])
 
-    html = "<html><head>rest of head</head><body>rest of body</body></html>"
+    html = b"<html><head>rest of head</head><body>rest of body</body></html>"
 
     needed = NeededResources(bottom=True, force_bottom=True)
     needed.need(y1)
-    assert needed.render_topbottom_into_html(html) == '''\
+    assert needed.render_topbottom_into_html(html) == b'''\
 <html><head>
     <link rel="stylesheet" type="text/css" href="/fanstatic/foo/b.css" />
 rest of head</head><body>rest of body<script type="text/javascript" src="/fanstatic/foo/a.js"></script>
