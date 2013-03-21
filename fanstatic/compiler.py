@@ -1,3 +1,4 @@
+from fanstatic import compat
 from which import which, WhichError as NotFound
 import argparse
 import fanstatic
@@ -223,6 +224,6 @@ class JSMin(PythonPackageBase, Minifier):
         jsmin = self._import()
         with open(target, 'wb') as output:
             js = open(source, 'r').read()
-            output.write(jsmin.jsmin(js))
+            output.write(compat.as_bytestring(jsmin.jsmin(js)))
 
 JSMIN_MINIFIER = JSMin()

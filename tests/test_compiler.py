@@ -1,4 +1,5 @@
 from fanstatic import Library, Resource, NeededResources
+from fanstatic import compat
 from fanstatic import set_resource_file_existence_checking as check_files
 from fanstatic.compiler import Compiler, Minifier
 import fanstatic
@@ -315,7 +316,8 @@ def test_converts_placeholders_to_arguments(tmpdir):
             p = super(Echo, self).process(source, target)
             return p.stdout.read()
 
-    assert Echo().process(source, target) == '%s %s' % (source, target)
+    assert Echo().process(source, target) == compat.as_bytestring(
+        '%s %s' % (source, target))
 
 
 def test_coffeescript_compiler(tmpdir):
