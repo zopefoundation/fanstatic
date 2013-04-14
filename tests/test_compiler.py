@@ -396,6 +396,27 @@ def test_sass_compiler(tmpdir):
     assert '#navbar li a' in open(target).read()
 
 
+def test_sass_resource(tmpdir):
+    compiler = fanstatic.CompilerRegistry.instance()['sass']
+    if not compiler.available:
+        pytest.skip('`%s` not found on PATH' % compiler.command)
+    lib = Library('lib', str(tmpdir), compilers={'.css': 'sass'})
+    a = Resource(lib, 'a.css')
+    tmpdir.join('a.scss').write('''\
+#navbar {
+  li {
+    a { font-weight: bold; }
+  }
+}''')
+    # Before compilation, the resource is not present.
+    assert not tmpdir.join('a.css').check()
+    needed = NeededResources(resources=[a], compile=True)
+    needed.render()
+    # After compilation, the resource is present, and compiled using the sass
+    # compiler.
+    assert '#navbar li a' in tmpdir.join('a.css').read()
+
+
 def test_package_compiler_is_not_available_if_package_not_importable():
     class Nonexistent(fanstatic.compiler.PythonPackageBase):
         package = 'does-not-exist'
@@ -434,6 +455,20 @@ def test_jsmin_minifier(tmpdir):
     compiler.process(source, target)
 
     assert 'function foo(){var bar="baz";};' == open(target).read()
+
+
+def test_closure_minifier(tmpdir):
+    compiler = fanstatic.MinifierRegistry.instance()['closure']
+    if not compiler.available:
+        pytest.skip('`%s` not found' % compiler.package)
+
+    source = str(tmpdir / 'a.js')
+    target = str(tmpdir / 'a.min.js')
+    with open(source, 'w') as f:
+        f.write('function foo() { var bar = "baz"; };')
+    compiler.process(source, target)
+
+    assert 'function foo(){var bar="baz"};\n' == open(target).read()
 
 
 @pytest.fixture

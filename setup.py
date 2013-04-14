@@ -65,6 +65,7 @@ setup(
         'pytest >= 2.3',
         'cssmin',
         'jsmin',
+        'closure',
     ],
     cmdclass={'test': PyTest},
     entry_points={
@@ -87,5 +88,6 @@ setup(
         'fanstatic.minifiers': [
             'cssmin = fanstatic.compiler:CSSMIN_MINIFIER',
             'jsmin = fanstatic.compiler:JSMIN_MINIFIER',
+            'closure = fanstatic.compiler:CLOSURE_MINIFIER',
         ]
     })

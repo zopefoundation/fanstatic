@@ -210,6 +210,7 @@ class SASS(CommandlineBase, Compiler):
 
     name = 'sass'
     command = 'sass'
+    source_extension = '.scss'
     arguments = [SOURCE, TARGET]
 
 SASS_COMPILER = SASS()
@@ -263,3 +264,32 @@ class JSMin(PythonPackageBase, Minifier):
             output.write(compat.as_bytestring(jsmin.jsmin(js)))
 
 JSMIN_MINIFIER = JSMin()
+
+
+class Closure(PythonPackageBase, Minifier):
+    # Hey, a PythonPackageBase with CommandlineBase behavior.
+    # We use the 'closure' python package in order to have a reference to th
+    # jar file that is easy to find from python and to be able to control the
+    # version of the dependency through python package management in stead of
+    # leaving this to the OS.
+    name = 'closure'
+    package = 'closure'
+    target_extension = '.min.js'
+    arguments = [
+        '--charset', 'UTF-8',
+        '--compilation_level', 'WHITESPACE_ONLY',
+    ]
+
+    def process(self, source, target):
+        python_closure = self._import()
+        cmd = ['java', '-jar', python_closure.get_jar_filename()]
+        cmd.extend(self.arguments)
+        cmd.extend(['--js', source, '--js_output_file', target])
+        p = subprocess.Popen(' '.join(cmd), shell=True,
+                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        p.wait()
+        if p.returncode != 0:
+            raise CompilerError(p.stderr.read())
+        return p
+
+CLOSURE_MINIFIER = Closure()
