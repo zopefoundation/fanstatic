@@ -137,6 +137,9 @@ class NullCompiler(Compiler):
     def target_path(self, resource):
         return None
 
+    def should_process(self, source, target):
+        return False
+
 
 SOURCE = object()
 TARGET = object()
