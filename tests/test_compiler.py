@@ -299,6 +299,15 @@ def test_minifier_available_and_minified_not_a_string_should_raise(compilers):
         a = Resource(lib, 'a.js', minifier='mock', minified=minified)
 
 
+def test_resource_name_conflict_raises_error(compilers):
+    compilers.add_minifier(MockMinifier())
+    lib = Library('lib', '', minifiers={'.js': 'mock'})
+    a = Resource(lib, 'a.js')
+    with pytest.raises(fanstatic.ConfigurationError) as exc:
+        Resource(lib, 'a.min.js')
+    assert str(exc.value) == 'Resource path a.min.js is already defined.'
+
+
 def test_cli_compiler_is_not_available_if_command_not_found_on_path():
     class Nonexistent(fanstatic.compiler.CommandlineBase):
         command = 'does-not-exist'
