@@ -225,7 +225,7 @@ class PythonPackageBase(object):
         try:
             return __import__(self.package, globals=globals(), fromlist=[''])
         except ImportError:
-            raise CompilerError('Package `cssmin` not available.')
+            raise CompilerError('Package `%s` not available.' % self.package)
 
 
 class CSSMin(PythonPackageBase, Minifier):
