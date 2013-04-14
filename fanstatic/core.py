@@ -401,9 +401,7 @@ class Resource(Renderable, Dependable):
                 "Resource object as its minified version does not make sense"
                 % (self.relpath, minifier))
         if not self.minified and self.minifier.available:
-            self.minified = self.minifier.target_path(self)
-            if self.minified:
-                self.minified = os.path.basename(self.minified)
+            self.minified = self.minifier.source_to_target(self)
 
         if _resource_file_existence_checking:
             path = self.fullpath()

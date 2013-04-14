@@ -74,11 +74,15 @@ class Minifier(Compiler):
     def source_path(self, resource):
         return resource.fullpath()
 
+    def source_to_target(self, resource):
+        return '%s%s' % (
+            os.path.splitext(resource.relpath)[0], self.target_extension)
+
     def target_path(self, resource):
+        # Full path.
         if resource.minified:
             return resource.fullpath(resource.minified)
-        return resource.fullpath(
-            os.path.splitext(resource.relpath)[0] + self.target_extension)
+        return resource.fullpath(self.source_to_target(resource))
 
 
 def _compile_resources(package):
