@@ -61,7 +61,7 @@ class Compiler(object):
         return os.path.splitext(resource.fullpath())[0] + self.source_extension
 
     def target_path(self, resource):
-        """Return an absolute path to the target file (to use as ouput for
+        """Return an absolute path to the target file (to use as output for
         compilation)
         """
         return resource.fullpath()
