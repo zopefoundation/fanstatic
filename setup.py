@@ -20,6 +20,13 @@ if sys.version_info < (3,):
 else:
     install_requires.append('which==1.1.3.py3')
 
+tests_require = [
+    'pytest >= 2.3',
+    'cssmin',
+    'jsmin',
+    'closure',
+    'pytest-capturelog',
+]
 
 class PyTest(Command):
     user_options = []
@@ -61,12 +68,8 @@ setup(
     packages=['fanstatic'],
     zip_safe=False,
     install_requires=install_requires,
-    tests_require=[
-        'pytest >= 2.3',
-        'cssmin',
-        'jsmin',
-        'closure',
-    ],
+    tests_require=tests_require,
+    extras_require={'test': tests_require},
     cmdclass={'test': PyTest},
     entry_points={
         'console_scripts': [
