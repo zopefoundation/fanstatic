@@ -235,6 +235,7 @@ class CSSMin(PythonPackageBase, Minifier):
 
     name = 'cssmin'
     package = 'cssmin'
+    target_extension = '.min.css'
 
     def process(self, source, target):
         cssmin = self._import()
@@ -249,6 +250,7 @@ class JSMin(PythonPackageBase, Minifier):
 
     name = 'jsmin'
     package = 'jsmin'
+    target_extension = '.min.js'
 
     def process(self, source, target):
         jsmin = self._import()
