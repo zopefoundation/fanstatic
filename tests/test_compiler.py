@@ -70,6 +70,30 @@ def compilers(request):
     return TestingRegistry(request)
 
 
+
+def test_logging_when_compiling(tmpdir, compilers, caplog):
+    class WhiteSpaceRemover(fanstatic.compiler.Compiler):
+        """A silly minifier, to showcase logging."""
+        name = 'whitespace'
+        source_extension = '.frop'
+
+        def process(self, source, target):
+            with open(target, 'wb') as output:
+                output.write(open(source, 'r').read().replace(' ', ''))
+
+    compilers.add_compiler(WhiteSpaceRemover())
+
+    lib = Library('lib', str(tmpdir))
+    tmpdir.join('a.frop').write(' foo bar baz ')
+    a = Resource(lib, 'a.js', compiler='whitespace')
+    assert len(caplog.records()) == 0
+    a.compile()
+    assert len(caplog.records()) == 1
+    assert "Compiling <Resource 'a.js' in library 'lib'> in" in caplog.text()
+    # The 'compiler' really worked!
+    assert tmpdir.join('a.js').read() == 'foobarbaz'
+
+
 def test_setting_compile_False_should_not_call_compiler_and_minifier(
     compilers):
     compilers.add_compiler(MockCompiler())

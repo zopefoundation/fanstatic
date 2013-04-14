@@ -3,12 +3,16 @@ from which import which, WhichError as NotFound
 import argparse
 import fanstatic
 import os.path
+import time
+import logging
 import pkg_resources
 import setuptools.command.sdist
 import subprocess
 import sys
 
 mtime = os.path.getmtime
+
+logger = logging.getLogger('fanstatic')
 
 
 class CompilerError(Exception):
@@ -29,11 +33,13 @@ class Compiler(object):
         :param force: If True, always perform compilation. If False (default),\
         only perform compilation if ``should_process`` returns True.
         """
-
         source = self.source_path(resource)
         target = self.target_path(resource)
         if force or self.should_process(source, target):
+            start = time.time()
             self.process(source, target)
+            logger.info(
+                'Compiling %s in %0.3f seconds', resource, time.time() - start)
 
     def process(self, source, target):
         pass  # Override in subclass
@@ -99,7 +105,13 @@ def compile_resources(argv=sys.argv):
         ' declared in the given package.')
     parser.add_argument(
         'package', help='Dotted name of the package to compile')
+    parser.add_argument(
+        '-v', '--verbose', dest='verbose',
+        action='store_true', help='Verbose output')
     options = parser.parse_args()
+    if options.verbose:
+        # setup logger to output to console
+        logging.basicConfig(level=logging.INFO)
     _compile_resources(options.package)
 
 

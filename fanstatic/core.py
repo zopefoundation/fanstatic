@@ -518,10 +518,10 @@ class Resource(Renderable, Dependable):
 
     def compile(self, force=False):
         if self.mode_parent:
-            self.mode_parent.compile(force)
+            self.mode_parent.compile(force=force)
         else:
-            self.compiler(self, force)
-            self.minifier(self, force)
+            self.compiler(self, force=force)
+            self.minifier(self, force=force)
 
     def render(self, library_url):
         return self.renderer('%s/%s' % (library_url, self.relpath))
