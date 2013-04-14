@@ -136,8 +136,17 @@ Fanstatic includes the following minifiers:
          requires the ``cssmin`` package.
 :jsmin: :pypi:`jsmin`, A Python port of Douglas Crockford's ``jsmin``,
         requires the ``jsmin`` package.
+:closure: :pypi:`closure`, A Python wrapper around the `Google Closure
+Compiler`_.
+
+.. _`Google Closure Compiler`: https://developers.google.com/closure/compiler/
 
 
+Hiding source files
+-------------------
+
+You can prevent the Fanstatic publisher from serving the source files
+in by using the :doc:`ignores <configuration>` configuration option.
 
 Writing compilers
 -----------------
@@ -158,7 +167,7 @@ an `entry point` in its packages' ``setup.py``::
 
   entry_points={
       'fanstatic.compilers': [
-          'coffee = fanstatic.compiler:COFFE_COMPILER',
+          'coffee = fanstatic.compiler:COFFEE_COMPILER',
           ],
       'fanstatic.minifiers': [
           'jsmin = fanstatic.compiler:JSMIN_MINIFIER',

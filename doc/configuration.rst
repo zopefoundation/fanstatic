@@ -142,6 +142,15 @@ will preferentially serve minified alternatives for resources, if
 available. If no minified version is available, the default resource
 will be served.
 
+ignores
+-------
+
+You can prevent the Fanstatic publisher from publishing certain files and
+directories by using the ``ignores`` option.  You can leave the source files
+of your graphics and client side logic near the result files without worrying
+about Fanstatic 'leaking' this information.  The ``ignores`` option accepts a
+list of glob patterns.
+
 rollup
 ------
 
@@ -185,7 +194,7 @@ bundle
 
 Bundling of resources minimizes HTTP requests from the client by finding
 efficient bundles of resources. In order to configure bundling of resources,
-set the ``bundle`` argument to True. 
+set the ``bundle`` argument to True.
 
 .. [#well] Well, for 10 years into the future at least.
 
