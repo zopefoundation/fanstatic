@@ -358,13 +358,18 @@ def test_sass_compiler(tmpdir):
         pytest.skip('`%s` not found on PATH' % compiler.command)
     compiler.arguments = ['--no-cache'] + compiler.arguments
 
+    # from http://sass-lang.com/tutorial.html :
     source = str(tmpdir / 'a.scss')
     target = str(tmpdir / 'a.css')
     with open(source, 'w') as f:
-        f.write('body { padding: (1 + 1)px; }')
+        f.write('''\
+#navbar {
+  li {
+    a { font-weight: bold; }
+  }
+}''')
     compiler.process(source, target)
-
-    assert 'padding: 2 px;' in open(target).read()
+    assert '#navbar li a' in open(target).read()
 
 
 def test_package_compiler_is_not_available_if_package_not_importable():
