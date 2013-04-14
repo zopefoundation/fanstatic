@@ -495,6 +495,20 @@ def test_closure_minifier(tmpdir):
     assert 'function foo(){var bar="baz"};\n' == open(target).read()
 
 
+def test_closure_minifier_communicate_exit_status(tmpdir):
+    compiler = fanstatic.MinifierRegistry.instance()['closure']
+    if not compiler.available:
+        pytest.skip('`%s` not found' % compiler.package)
+    from fanstatic.compiler import CompilerError
+
+    source = str(tmpdir / 'a.js')
+    target = str(tmpdir / 'a.min.js')
+
+    with pytest.raises(CompilerError) as exc:
+        compiler.process(source, target)
+    assert 'Cannot read:' in str(exc)
+
+
 @pytest.fixture
 def libraries(request):
     def cleanup():
