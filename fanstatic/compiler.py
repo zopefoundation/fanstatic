@@ -258,7 +258,7 @@ class CSSMin(PythonPackageBase, Minifier):
         cssmin = self._import()
         with open(target, 'wb') as output:
             css = open(source, 'r').read()
-            output.write(cssmin.cssmin(css))
+            output.write(compat.as_bytestring(cssmin.cssmin(css)))
 
 CSSMIN_MINIFIER = CSSMin()
 

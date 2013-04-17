@@ -79,7 +79,8 @@ def test_logging_when_compiling(tmpdir, compilers, caplog):
 
         def process(self, source, target):
             with open(target, 'wb') as output:
-                output.write(open(source, 'r').read().replace(' ', ''))
+                output.write(compat.as_bytestring(
+                    open(source, 'r').read().replace(' ', '')))
 
     compilers.add_compiler(WhiteSpaceRemover())
 
@@ -561,7 +562,8 @@ def test_custom_sdist_command_runs_compiler_beforehand(tmpdir, monkeypatch):
         stderr=subprocess.PIPE)
     stdout, _ = p.communicate()
     p.wait()
-    assert 'hard linking src/somepackage/resources/style.min.css' in stdout
+    assert compat.as_bytestring(
+        'hard linking src/somepackage/resources/style.min.css') in stdout
     dist = ZipFile(str(pkgdir / 'dist' / 'somepackage-1.0dev.zip'))
     assert (
         'somepackage-1.0dev/src/somepackage/resources/style.min.css'
