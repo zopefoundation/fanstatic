@@ -94,6 +94,25 @@ def test_logging_when_compiling(tmpdir, compilers, caplog):
     assert tmpdir.join('a.js').read() == 'foobarbaz'
 
 
+def test_compile_only_for_libraries_under_development(
+    compilers):
+    compilers.add_compiler(MockCompiler())
+
+    lib = Library('lib', '')
+    a = Resource(lib, 'a.js', compiler='mock')
+
+    needed = NeededResources(compile=True, resources=[a])
+    needed.render()
+    assert len(compilers.compiler('mock').calls) == 1
+    # Calling render again will add a call.
+    needed.render()
+    assert len(compilers.compiler('mock').calls) == 2
+
+    lib.version = 1
+
+    needed.render()
+    assert len(compilers.compiler('mock').calls) == 2
+
 def test_setting_compile_False_should_not_call_compiler_and_minifier(
     compilers):
     compilers.add_compiler(MockCompiler())

@@ -517,6 +517,11 @@ class Resource(Renderable, Dependable):
         self.dependency_nr = dependency_nr
 
     def compile(self, force=False):
+        # Skip compilation if this library has a version.
+        # If a package has been installed in development mode, the Library
+        # doesn't have a version. See registry.py.
+        if self.library.version is not None:
+            return
         if self.mode_parent:
             self.mode_parent.compile(force=force)
         else:
