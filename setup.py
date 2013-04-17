@@ -21,10 +21,10 @@ else:
     install_requires.append('which==1.1.3.py3')
 
 tests_require = [
-    'pytest >= 2.3',
+    'closure',
     'cssmin',
     'jsmin',
-    'closure',
+    'pytest >= 2.3',
     'pytest-capturelog',
 ]
 
@@ -69,7 +69,12 @@ setup(
     zip_safe=False,
     install_requires=install_requires,
     tests_require=tests_require,
-    extras_require={'test': tests_require},
+    extras_require={
+        'closure': ['closure'],
+        'cssmin': ['cssmin'],
+        'jsmin': ['jsmin'],
+        'test': tests_require,
+    },
     cmdclass={'test': PyTest},
     entry_points={
         'console_scripts': [
