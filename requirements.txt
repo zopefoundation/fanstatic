@@ -1,0 +1,4 @@
+jsmin
+cssmin
+closure
+pytest-capturelog
