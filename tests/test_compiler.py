@@ -2,7 +2,7 @@ from fanstatic import Library, Resource, NeededResources
 from fanstatic import compat
 from fanstatic import set_resource_file_existence_checking as check_files
 from fanstatic.compiler import Compiler, Minifier
-from test_checksum import _copy_testdata
+from .test_checksum import _copy_testdata
 from zipfile import ZipFile
 import fanstatic
 import fanstatic.compiler
