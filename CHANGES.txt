@@ -4,8 +4,10 @@ CHANGES
 0.17 (unreleased)
 =================
 
-- Nothing changed yet.
+- Add support for compilers and minifiers.
 
+  By default fanstatic ships with the sass/less and coffeescript compilers
+  and mincss/minjs/google closure minifiers.
 
 0.16 (2012-12-10)
 =================
