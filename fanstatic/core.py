@@ -5,6 +5,7 @@ import threading
 
 from fanstatic import compat
 import fanstatic.checksum
+import fanstatic.registry
 
 DEFAULT_SIGNATURE = 'fanstatic'
 
@@ -115,7 +116,8 @@ class Library(object):
     _signature = None
     _library_deps = None
 
-    def __init__(self, name, rootpath, ignores=None, version=None):
+    def __init__(self, name, rootpath, ignores=None, version=None,
+                 compilers=None, minifiers=None):
         self.name = name
         self.rootpath = rootpath
         self.ignores = ignores or []
@@ -124,6 +126,14 @@ class Library(object):
         self._library_deps = set()
         self.known_resources = {}
         self.library_nr = None
+        self.module = sys._getframe(1).f_globals['__name__']
+
+        self.compilers = compilers
+        if self.compilers is None:
+            self.compilers = {}
+        self.minifiers = minifiers
+        if self.minifiers is None:
+            self.minifiers = {}
 
     def __repr__(self):
         return "<Library '%s' at '%s'>" % (self.name, self.path)
@@ -295,6 +305,9 @@ class Dependable(object):
     """
 
 
+NONE = object()
+
+
 class Resource(Renderable, Dependable):
     """A resource.
 
@@ -354,20 +367,59 @@ class Resource(Renderable, Dependable):
                  renderer=None,
                  debug=None,
                  dont_bundle=False,
-                 minified=None):
+                 minified=None,
+                 minifier=NONE,
+                 compiler=NONE,
+                 source=None,
+                 mode_parent=None):
         self.library = library
-        fullpath = os.path.normpath(os.path.join(library.path, relpath))
-        if _resource_file_existence_checking and not os.path.exists(fullpath):
-            raise UnknownResourceError("Resource file does not exist: %s" %
-                                       fullpath)
         self.relpath = relpath
         self.dirname, self.filename = os.path.split(relpath)
         if self.dirname and not self.dirname.endswith('/'):
             self.dirname += '/'
+        self.ext = os.path.splitext(self.relpath)[1]
+
+        self.mode_parent = mode_parent
+        if compiler is NONE:
+            compiler = self.library.compilers.get(self.ext)
+        self.compiler = fanstatic.registry.CompilerRegistry.instance()[
+            compiler]
+        self.source = source
+
+        if minifier is NONE:
+            if mode_parent is None:
+                minifier = self.library.minifiers.get(self.ext)
+            else:
+                minifier = None
+        self.minifier = fanstatic.registry.MinifierRegistry.instance()[
+            minifier]
+        self.minified = minified
+        if (self.minified and not isinstance(self.minified, compat.basestring)
+            and self.minifier.available):
+            raise ConfigurationError(
+                "Since %s specifies minifier %s, passing another "
+                "Resource object as its minified version does not make sense"
+                % (self.relpath, minifier))
+        if not self.minified and self.minifier.available:
+            self.minified = self.minifier.source_to_target(self)
+
+        if _resource_file_existence_checking:
+            path = self.fullpath()
+            minified = (self.mode_parent
+                        and self.mode_parent.minifier.available)
+            if not (minified
+                    or self.compiler.available
+                    or os.path.exists(path)):
+                raise UnknownResourceError(
+                    "Resource file does not exist: %s" % path)
+            path = self.compiler.source_path(self)
+            if self.compiler.available and not os.path.exists(path):
+                raise UnknownResourceError(
+                    "Source file %s for %s does not exist" % (
+                        path, self.fullpath()))
+
         self.bottom = bottom
         self.dont_bundle = dont_bundle
-
-        self.ext = os.path.splitext(self.relpath)[1]
 
         if renderer is None:
             # No custom, ad-hoc renderer for this Resource, so lookup
@@ -405,13 +457,19 @@ class Resource(Renderable, Dependable):
         self.init_dependency_nr()
 
         self.modes = {}
-        for mode_name, argument in [(DEBUG, debug), (MINIFIED, minified)]:
+        for mode_name, argument in [(DEBUG, debug), (MINIFIED, self.minified)]:
             if argument is None:
                 continue
             elif isinstance(argument, compat.basestring):
+                # this if is kludgy, but better than unrolling the loop
+                if mode_name == MINIFIED:
+                    mode_parent = self.minifier.available and self
+                else:
+                    mode_parent = None
                 mode_resource = Resource(
                     library, argument, bottom=bottom, renderer=renderer,
-                    depends=depends, dont_bundle=dont_bundle)
+                    depends=depends, dont_bundle=dont_bundle,
+                    mode_parent=mode_parent)
             else:
                 # The dependencies of a mode resource should be the same
                 # or a subset of the dependencies this mode replaces.
@@ -445,6 +503,11 @@ class Resource(Renderable, Dependable):
         # Register ourself with the Library.
         self.library.register(self)
 
+    def fullpath(self, path=None):
+        if path is None:
+            path = self.relpath
+        return os.path.normpath(os.path.join(self.library.path, path))
+
     def init_dependency_nr(self):
         # on dependency within the library
         dependency_nr = 0
@@ -452,6 +515,18 @@ class Resource(Renderable, Dependable):
             dependency_nr = max(depend.dependency_nr + 1,
                                 dependency_nr)
         self.dependency_nr = dependency_nr
+
+    def compile(self, force=False):
+        # Skip compilation if this library has a version.
+        # If a package has been installed in development mode, the Library
+        # doesn't have a version. See registry.py.
+        if self.library.version is not None:
+            return
+        if self.mode_parent:
+            self.mode_parent.compile(force=force)
+        else:
+            self.compiler(self, force=force)
+            self.minifier(self, force=force)
 
     def render(self, library_url):
         return self.renderer('%s/%s' % (library_url, self.relpath))
@@ -765,6 +840,7 @@ class NeededResources(object):
                  publisher_signature=DEFAULT_SIGNATURE,
                  bundle=False,
                  resources=None,
+                 compile=False,
                  ):
         self._versioning = versioning
         if versioning_use_md5:
@@ -781,6 +857,7 @@ class NeededResources(object):
         self._rollup = rollup
         self._bundle = bundle
         self._resources = set(resources or [])
+        self._compile = compile
         self._slots = {}
         self._url_cache = {}  # prevent multiple computations per request
         if (debug and minified):
@@ -911,6 +988,10 @@ class NeededResources(object):
 
         :param inclusions: A list of :py:class:`Resource` instances.
         """
+        if self._compile:
+            for resource in resources:
+                resource.compile()
+
         if self._bundle:
             resources = bundle_resources(resources)
         result = []

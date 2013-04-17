@@ -11,6 +11,7 @@ Contents:
    concepts
    library
    optimization
+   compilers
    configuration
    paste_deploy
    serf

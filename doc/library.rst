@@ -192,6 +192,26 @@ If you now configure Fanstatic to use the ``minified`` mode, it will
 automatically pull in ``b.min.js`` instead of ``b.js`` whenever you do
 ``b.need()``.
 
+The minified files can also be created automatically, see :doc:`compilers` for
+details on that.
+
+Bonus: preprocessing resources
+------------------------------
+
+If you prefer, say, `CoffeeScript`_ to JavaScript, you can have Fanstatic run
+the coffeescript compiler automatically::
+
+  from fanstatic import Library, Resource
+
+  baz_library = Library('baz', 'baz_resources')
+
+  a = Resource(baz_library, 'a.js', compilers={'js': 'coffee'})
+
+See :doc:`compilers` for detailed information on that.
+
+.. _`CoffeeScript`: http://coffeescript.org
+
+
 Bonus: bundling of resources
 ----------------------------
 
