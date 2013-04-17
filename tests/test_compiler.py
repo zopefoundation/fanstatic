@@ -555,11 +555,13 @@ def test_console_script_collects_resources_from_package(
 def test_custom_sdist_command_runs_compiler_beforehand(tmpdir, monkeypatch):
     pkgdir = _copy_testdata(tmpdir)
     monkeypatch.chdir(pkgdir)
-    output = subprocess.check_output(
-        [sys.executable, 'setup.py', 'sdist', '--formats', 'zip'])
-    # for debugging use this instead:
-    # os.system('%s setup.py sdist' % sys.executable)
-    assert 'hard linking src/somepackage/resources/style.min.css' in output
+    p = subprocess.Popen(
+        [sys.executable, 'setup.py', 'sdist', '--formats', 'zip'],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE)
+    stdout, _ = p.communicate()
+    p.wait()
+    assert 'hard linking src/somepackage/resources/style.min.css' in stdout
     dist = ZipFile(str(pkgdir / 'dist' / 'somepackage-1.0dev.zip'))
     assert (
         'somepackage-1.0dev/src/somepackage/resources/style.min.css'
