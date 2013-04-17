@@ -133,11 +133,14 @@ Fanstatic includes the following compilers:
 Fanstatic includes the following minifiers:
 
 :cssmin: :pypi:`cssmin`, A Python port of the YUI CSS compression algorithm,
-         requires the ``cssmin`` package.
-:jsmin: :pypi:`jsmin`, A Python port of Douglas Crockford's ``jsmin``,
-        requires the ``jsmin`` package.
-:closure: :pypi:`closure`, A Python wrapper around the `Google Closure
-Compiler`_.
+  requires the ``cssmin`` package.  Use the extras requirement
+  ``fanstatic[cssmin]`` to install this dependency.
+:jsmin: :pypi:`jsmin`, A Python port of Douglas Crockford's ``jsmin``, requires
+  the ``jsmin`` package. Use the extras requirement
+  ``fanstatic[jsmin]`` to install this dependency.
+:closure: :pypi:`closure`, A Python wrapper around the
+  `Google Closure Compiler`_. Use the extras requirement
+  ``fanstatic[closure]`` to install this dependency.
 
 .. _`Google Closure Compiler`: https://developers.google.com/closure/compiler/
 
