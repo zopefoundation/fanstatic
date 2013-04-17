@@ -1,7 +1,7 @@
 CHANGES
 *******
 
-0.17 (unreleased)
+1.0a (2013-04-18)
 =================
 
 - Add support for compilers and minifiers.
