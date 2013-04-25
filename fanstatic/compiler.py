@@ -119,7 +119,8 @@ class sdist_compile(setuptools.command.sdist.sdist):
 
     def run(self):
         self._activate_distribution()
-        _compile_resources(self.distribution.packages[0])
+        for package in self.distribution.packages:
+            _compile_resources(package)
         # this is kludgy. egg_info does two things, writing egg-info *and*
         # finding all files. But since we generate more files, we need to
         # trigger the finding step again to have them picked up.

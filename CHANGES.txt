@@ -4,7 +4,8 @@ CHANGES
 1.0 (unreleased)
 ================
 
-- Nothing changed yet.
+- Bugfix in sdist_compile: compile resources in *all* packages contained in a
+  distribution.
 
 
 1.0a (2013-04-18)
