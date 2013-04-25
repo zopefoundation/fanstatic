@@ -305,7 +305,7 @@ class Dependable(object):
     """
 
 
-NONE = object()
+NOTHING = object()
 
 
 class Resource(Renderable, Dependable):
@@ -368,8 +368,8 @@ class Resource(Renderable, Dependable):
                  debug=None,
                  dont_bundle=False,
                  minified=None,
-                 minifier=NONE,
-                 compiler=NONE,
+                 minifier=NOTHING,
+                 compiler=NOTHING,
                  source=None,
                  mode_parent=None):
         self.library = library
@@ -380,13 +380,13 @@ class Resource(Renderable, Dependable):
         self.ext = os.path.splitext(self.relpath)[1]
 
         self.mode_parent = mode_parent
-        if compiler is NONE:
+        if compiler is NOTHING:
             compiler = self.library.compilers.get(self.ext)
         self.compiler = fanstatic.registry.CompilerRegistry.instance()[
             compiler]
         self.source = source
 
-        if minifier is NONE:
+        if minifier is NOTHING:
             if mode_parent is None:
                 minifier = self.library.minifiers.get(self.ext)
             else:

@@ -77,7 +77,7 @@ all Resources with a given extension::
   from fanstatic import Library, Resource
 
   coffee_library = Library('coffee', 'coffee_resources',
-                           compilers={'js': 'coffee'})
+                           compilers={'.js': 'coffee'})
 
   a = Resource(coffee_library, 'b.js')
   b = Resource(coffee_library, 'plain.js', compiler=None)
@@ -106,7 +106,7 @@ all Resources with a given extension::
 
   from fanstatic import Library, Resource
 
-  js_library = Library('js', 'js_resources', minifiers={'js': 'jsmin'})
+  js_library = Library('js', 'js_resources', minifiers={'.js': 'jsmin'})
 
   a = Resource(js_library, 'a.js')
   b = Resource(js_library, 'tricky.js', minifier=None, minified='tricky.min.js')
