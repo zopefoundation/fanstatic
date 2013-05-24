@@ -4,9 +4,15 @@ CHANGES
 1.0 (unreleased)
 ================
 
+- Move injection of the inclusions from the beginning of the <head> element to
+  the end. See also:
+
+  https://groups.google.com/forum/?fromgroups#!topic/fanstatic/VT_WasfDtL4
+
+  This may break your code, but this is probably a good idea.
+
 - Bugfix in sdist_compile: compile resources in *all* packages contained in a
   distribution.
-
 
 1.0a (2013-04-18)
 =================

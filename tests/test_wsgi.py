@@ -25,11 +25,9 @@ def test_inject():
                                               # shouldn't be taken into account
     response = request.get_response(wrapped_app)
     assert response.body == b'''\
-<html><head>
-    <link rel="stylesheet" type="text/css" href="http://testapp/fanstatic/foo/b.css" />
+<html><head><link rel="stylesheet" type="text/css" href="http://testapp/fanstatic/foo/b.css" />
 <script type="text/javascript" src="http://testapp/fanstatic/foo/a.js"></script>
-<script type="text/javascript" src="http://testapp/fanstatic/foo/c.js"></script>
-</head><body</body></html>'''
+<script type="text/javascript" src="http://testapp/fanstatic/foo/c.js"></script></head><body</body></html>'''
 
 
 def test_inject_script_name():
@@ -50,11 +48,9 @@ def test_inject_script_name():
     request.environ['SCRIPT_NAME'] = '/root'
     response = request.get_response(wrapped_app)
     assert response.body == b'''\
-<html><head>
-    <link rel="stylesheet" type="text/css" href="/root/fanstatic/foo/b.css" />
+<html><head><link rel="stylesheet" type="text/css" href="/root/fanstatic/foo/b.css" />
 <script type="text/javascript" src="/root/fanstatic/foo/a.js"></script>
-<script type="text/javascript" src="/root/fanstatic/foo/c.js"></script>
-</head><body</body></html>'''
+<script type="text/javascript" src="/root/fanstatic/foo/c.js"></script></head><body</body></html>'''
 
 
 def test_incorrect_configuration_options():
@@ -92,9 +88,7 @@ def test_serf():
     request = webob.Request.blank('/')
     response = request.get_response(serf)
     assert response.body == b'''\
-<html><head>
-    <link rel="stylesheet" type="text/css" href="/fanstatic/foo/style.css" />
-</head><body></body></html>'''
+<html><head><link rel="stylesheet" type="text/css" href="/fanstatic/foo/style.css" /></head><body></body></html>'''
 
 
 def test_serf_unknown_library():

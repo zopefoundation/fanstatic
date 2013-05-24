@@ -1,12 +1,16 @@
 from setuptools import setup, find_packages
-import fanstatic
 
+try:
+    import fanstatic
+    cmdclass = {'sdist': fanstatic.sdist_compile}
+except ImportError:
+    cmdclass = {}
 
 setup(name='somepackage',
       version='1.0dev',
       include_package_data=True,
       zip_safe=False,
-      cmdclass={'sdist': fanstatic.sdist_compile},
+      cmdclass=cmdclass,
       package_dir={'': 'src'},
       packages=find_packages('src'),
       install_requires=['setuptools', 'fanstatic'],

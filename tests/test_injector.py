@@ -41,11 +41,9 @@ def test_inject():
     request = webob.Request.blank('/')
     response = request.get_response(wrapped_app)
     assert response.body == b'''\
-<html><head>
-    <link rel="stylesheet" type="text/css" href="http://testapp/fanstatic/foo/b.css" />
+<html><head><link rel="stylesheet" type="text/css" href="http://testapp/fanstatic/foo/b.css" />
 <script type="text/javascript" src="http://testapp/fanstatic/foo/a.js"></script>
-<script type="text/javascript" src="http://testapp/fanstatic/foo/c.js"></script>
-</head><body</body></html>'''
+<script type="text/javascript" src="http://testapp/fanstatic/foo/c.js"></script></head><body</body></html>'''
 
 
 def test_needed_deleted_after_request():

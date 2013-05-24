@@ -621,11 +621,9 @@ def test_html_insert():
     # XXX where is extraneous space coming from? misguided attempt at
     # indentation?
     assert needed.render_into_html(html) == b'''\
-<html><head>
-    <link rel="stylesheet" type="text/css" href="/fanstatic/foo/b.css" />
+<html><head>something more<link rel="stylesheet" type="text/css" href="/fanstatic/foo/b.css" />
 <script type="text/javascript" src="/fanstatic/foo/a.js"></script>
-<script type="text/javascript" src="/fanstatic/foo/c.js"></script>
-something more</head></html>'''
+<script type="text/javascript" src="/fanstatic/foo/c.js"></script></head></html>'''
 
 
 def test_html_insert_head_with_attributes():
@@ -636,9 +634,7 @@ def test_html_insert_head_with_attributes():
 
     html = b'<html><head profile="http://example.org">something</head></html>'
     assert needed.render_into_html(html) == b'''\
-<html><head profile="http://example.org">
-    <script type="text/javascript" src="/fanstatic/foo/a.js"></script>
-something</head></html>'''
+<html><head profile="http://example.org">something<script type="text/javascript" src="/fanstatic/foo/a.js"></script></head></html>'''
 
 
 def test_html_top_bottom():
@@ -755,14 +751,12 @@ def test_top_bottom_insert():
     x2 = Resource(foo, 'b.css')
     y1 = Resource(foo, 'c.js', depends=[x1, x2])
 
-    html = b"<html><head>rest of head</head><body>rest of body</body></html>"
+    html = b"<html><head>start of head</head><body>rest of body</body></html>"
 
     needed = NeededResources(bottom=True, force_bottom=True)
     needed.need(y1)
     assert needed.render_topbottom_into_html(html) == b'''\
-<html><head>
-    <link rel="stylesheet" type="text/css" href="/fanstatic/foo/b.css" />
-rest of head</head><body>rest of body<script type="text/javascript" src="/fanstatic/foo/a.js"></script>
+<html><head>start of head<link rel="stylesheet" type="text/css" href="/fanstatic/foo/b.css" /></head><body>rest of body<script type="text/javascript" src="/fanstatic/foo/a.js"></script>
 <script type="text/javascript" src="/fanstatic/foo/c.js"></script></body></html>'''
 
 
