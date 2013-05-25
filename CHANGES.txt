@@ -1,18 +1,21 @@
 CHANGES
 *******
 
-1.0 (unreleased)
-================
+1.0a2 (2013-05-25)
+==================
 
 - Move injection of the inclusions from the beginning of the <head> element to
   the end. See also:
 
   https://groups.google.com/forum/?fromgroups#!topic/fanstatic/VT_WasfDtL4
 
-  This may break your code, but this is probably a good idea.
+  This change may break your code, but it is probably a good idea to include
+  the resources at the end of the <head>.
 
 - Bugfix in sdist_compile: compile resources in *all* packages contained in a
   distribution.
+
+- Fix tox/travis setup and update to buildout v2.
 
 1.0a (2013-04-18)
 =================
