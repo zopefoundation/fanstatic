@@ -34,9 +34,8 @@ class Registry(dict):
 class LibraryRegistry(Registry):
     """A dictionary-like registry of libraries.
 
-    This is a dictionary that mains libraries. A value is
-    a :py:class:`Library` instance, and a key is its
-    library ``name``.
+    This is a dictionary that maintains libraries. A value is a
+    :py:class:`Library` instance, and a key is its library ``name``.
 
     Normally there is only a single global LibraryRegistry,
     obtained by calling ``get_library_registry()``.
