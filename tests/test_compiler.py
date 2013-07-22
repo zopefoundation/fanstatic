@@ -1,5 +1,5 @@
 from fanstatic import Library, Resource, NeededResources
-from fanstatic import compat
+from fanstatic import compat, Inclusion
 from fanstatic import set_resource_file_existence_checking as check_files
 from fanstatic.compiler import Compiler, Minifier
 from .test_checksum import _copy_testdata
@@ -102,16 +102,16 @@ def test_compile_only_for_libraries_under_development(
     lib = Library('lib', '')
     a = Resource(lib, 'a.js', compiler='mock')
 
-    needed = NeededResources(compile=True, resources=[a])
-    needed.render()
+    needed = NeededResources(resources=[a])
+    incl = Inclusion(needed, compile=True)
     assert len(compilers.compiler('mock').calls) == 1
-    # Calling render again will add a call.
-    needed.render()
+    # Gathering all resources again will add a call.
+    incl = Inclusion(needed, compile=True)
     assert len(compilers.compiler('mock').calls) == 2
 
     lib.version = 1
 
-    needed.render()
+    incl = Inclusion(needed, compile=True)
     assert len(compilers.compiler('mock').calls) == 2
 
 def test_setting_compile_False_should_not_call_compiler_and_minifier(
@@ -121,10 +121,9 @@ def test_setting_compile_False_should_not_call_compiler_and_minifier(
 
     lib = Library('lib', '')
     a = Resource(lib, 'a.js', compiler='mock', minifier='mock')
-
-    needed = NeededResources()
-    needed.need(a)
-    needed.render()
+    needed = NeededResources(resources=[a])
+    incl = Inclusion(needed)
+    incl.render()
     assert not compilers.compiler('mock').calls
     assert not compilers.minifier('mock').calls
 
@@ -136,9 +135,9 @@ def test_setting_compile_True_should_call_compiler_and_minifier(
     lib = Library('lib', '')
     a = Resource(lib, 'a.js', compiler='mock', minifier='mock')
 
-    needed = NeededResources(compile=True)
-    needed.need(a)
-    needed.render()
+    needed = NeededResources(resources=[a])
+    incl = Inclusion(needed, compile=True)
+    incl.render()
 
     mock_compiler = compilers.compiler('mock')
     mock_minifier = compilers.minifier('mock')
@@ -155,15 +154,12 @@ def test_minified_mode_should_call_compiler_and_minifier_of_parent_resource(
     lib = Library('lib', '')
     a = Resource(lib, 'a.js', compiler='mock', minifier='mock')
 
-    needed = NeededResources(compile=True, minified=True)
-    needed.need(a)
+    needed = NeededResources(minified=True, resources=[a])
+    incl = Inclusion(needed, compile=True)
+    assert len(incl.resources) == 1
+    assert incl.resources[0].relpath == 'a.min.js'
+    assert incl.resources[0] != a
 
-    resources = needed.resources()
-    assert len(resources) == 1
-    assert resources[0].relpath == 'a.min.js'
-    assert resources[0] != a
-
-    needed.render()
     mock_compiler = compilers.compiler('mock')
     mock_minifier = compilers.minifier('mock')
     assert len(mock_compiler.calls) == 1
@@ -178,10 +174,9 @@ def test_minified_mode_relpath_respect_subdir(compilers):
     lib = Library('lib', '')
     a = Resource(lib, 'foo/bar/a.js', compiler='mock', minifier='mock')
 
-    needed = NeededResources(compile=True, minified=True)
-    needed.need(a)
-
+    needed = NeededResources(resources=[a], minified=True)
     resources = needed.resources()
+    incl = Inclusion(needed, compile=True)
     assert len(resources) == 1
     assert resources[0].relpath == 'foo/bar/a.min.js'
     assert resources[0] != a
@@ -454,8 +449,9 @@ def test_sass_resource(tmpdir):
 }''')
     # Before compilation, the resource is not present.
     assert not tmpdir.join('a.css').check()
-    needed = NeededResources(resources=[a], compile=True)
-    needed.render()
+    needed = NeededResources(resources=[a])
+    incl = Inclusion(needed, compile=True)
+    incl.render()
     # After compilation, the resource is present, and compiled using the sass
     # compiler.
     assert '#navbar li a' in tmpdir.join('a.css').read()

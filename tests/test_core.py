@@ -19,7 +19,9 @@ from fanstatic import (Library,
                        NEEDED,
                        UnknownResourceExtensionError,
                        UnknownResourceError,
-                       set_resource_file_existence_checking, compat)
+                       set_resource_file_existence_checking,
+                       compat,
+                       Inclusion)
 from fanstatic.core import inclusion_renderers
 from fanstatic.core import thread_local_needed_data
 from fanstatic.core import ModeResourceDependencyError
@@ -101,7 +103,7 @@ def test_convenience_need_not_initialized():
 
     dummy.need(y1)
     with pytest.raises(NotImplementedError):
-        dummy.render()
+        dummy.resources()
 
 
 def test_convenience_clear_not_initialized():
@@ -449,10 +451,10 @@ def test_rendering():
     x2 = Resource(foo, 'b.css')
     y1 = Resource(foo, 'c.js', depends=[x1, x2])
 
-    needed = NeededResources()
-    needed.need(y1)
+    needed = NeededResources(resources=[y1])
+    incl = Inclusion(needed)
 
-    assert needed.render() == '''\
+    assert incl.render() == '''\
 <link rel="stylesheet" type="text/css" href="/fanstatic/foo/b.css" />
 <script type="text/javascript" src="/fanstatic/foo/a.js"></script>
 <script type="text/javascript" src="/fanstatic/foo/c.js"></script>'''
@@ -464,16 +466,17 @@ def test_rendering_base_url():
     x2 = Resource(foo, 'b.css')
     y1 = Resource(foo, 'c.js', depends=[x1, x2])
 
-    needed = NeededResources()
-    needed.need(y1)
-    assert needed.render() == '''\
+    needed = NeededResources(resources=[y1])
+    incl = Inclusion(needed)
+    assert incl.render() == '''\
 <link rel="stylesheet" type="text/css" href="/fanstatic/foo/b.css" />
 <script type="text/javascript" src="/fanstatic/foo/a.js"></script>
 <script type="text/javascript" src="/fanstatic/foo/c.js"></script>'''
 
-    needed = NeededResources(base_url='http://localhost/static')
-    needed.need(y1)
-    assert needed.render() == '''\
+    needed = NeededResources(
+        base_url='http://localhost/static', resources=[y1])
+    incl = Inclusion(needed)
+    assert incl.render() == '''\
 <link rel="stylesheet" type="text/css" href="http://localhost/static/fanstatic/foo/b.css" />
 <script type="text/javascript" src="http://localhost/static/fanstatic/foo/a.js"></script>
 <script type="text/javascript" src="http://localhost/static/fanstatic/foo/c.js"></script>'''
@@ -490,10 +493,9 @@ def test_empty_base_url_and_publisher_signature():
     render a URL without them. '''
     foo = Library('foo', '')
     x1 = Resource(foo, 'a.js')
-    needed = NeededResources(publisher_signature='')
-    needed.need(x1)
-
-    assert needed.render() == '''\
+    needed = NeededResources(publisher_signature='', resources=[x1])
+    incl = Inclusion(needed)
+    assert incl.render() == '''\
 <script type="text/javascript" src="/foo/a.js"></script>'''
 
 
@@ -503,10 +505,10 @@ def test_rendering_base_url_assign():
     x2 = Resource(foo, 'b.css')
     y1 = Resource(foo, 'c.js', depends=[x1, x2])
 
-    needed = NeededResources()
-    needed.need(y1)
+    needed = NeededResources(resources=[y1])
     needed.set_base_url('http://localhost/static')
-    assert needed.render() == '''\
+    incl = Inclusion(needed)
+    assert incl.render() == '''\
 <link rel="stylesheet" type="text/css" href="http://localhost/static/fanstatic/foo/b.css" />
 <script type="text/javascript" src="http://localhost/static/fanstatic/foo/a.js"></script>
 <script type="text/javascript" src="http://localhost/static/fanstatic/foo/c.js"></script>'''
@@ -603,161 +605,40 @@ def test_library_url_hashing_recompute(tmpdir):
         time.sleep(1)
     resource.write('/* test */')
 
+    # For a new request, the url is recomputed.
+    new_needed = NeededResources(versioning=True, recompute_hashes=True)
     # the hash is recalculated now, so it changes
-    assert needed.library_url(foo) != url
+    assert new_needed.library_url(foo) != url
 
 
-def test_html_insert():
-    foo = Library('foo', '')
-    x1 = Resource(foo, 'a.js')
-    x2 = Resource(foo, 'b.css')
-    y1 = Resource(foo, 'c.js', depends=[x1, x2])
+def test_library_url_with_url_caching(tmpdir):
+    foo = Library('foo', tmpdir.strpath)
 
-    needed = NeededResources()
-    needed.need(y1)
+    needed = NeededResources(versioning=True, recompute_hashes=True)
 
-    html = b"<html><head>something more</head></html>"
+    url = needed.library_url(foo)
 
-    # XXX where is extraneous space coming from? misguided attempt at
-    # indentation?
-    assert needed.render_into_html(html) == b'''\
-<html><head>something more<link rel="stylesheet" type="text/css" href="/fanstatic/foo/b.css" />
-<script type="text/javascript" src="/fanstatic/foo/a.js"></script>
-<script type="text/javascript" src="/fanstatic/foo/c.js"></script></head></html>'''
+    # now create a file
+    resource = tmpdir.join('test.js')
 
+    time.sleep(0.5)
+    # Sleep extra long on filesystems that report in seconds
+    # instead of milliseconds.
+    if os.path.getmtime(os.curdir).is_integer():
+        time.sleep(1)
+    resource.write('/* test */')
 
-def test_html_insert_head_with_attributes():
-    # ticket 72: .need() broken when <head> tag has attributes
-    foo = Library('foo', '')
-    x1 = Resource(foo, 'a.js')
-    needed = NeededResources(resources=[x1])
-
-    html = b'<html><head profile="http://example.org">something</head></html>'
-    assert needed.render_into_html(html) == b'''\
-<html><head profile="http://example.org">something<script type="text/javascript" src="/fanstatic/foo/a.js"></script></head></html>'''
+    # The url is cached on the needed resources object.
+    assert needed.library_url(foo) == url
 
 
-def test_html_top_bottom():
-    foo = Library('foo', '')
-    x1 = Resource(foo, 'a.js')
-    x2 = Resource(foo, 'b.css')
-    y1 = Resource(foo, 'c.js', depends=[x1, x2])
-
-    needed = NeededResources()
-    needed.need(y1)
-
-    top, bottom = needed.render_topbottom()
-    assert top == '''\
-<link rel="stylesheet" type="text/css" href="/fanstatic/foo/b.css" />
-<script type="text/javascript" src="/fanstatic/foo/a.js"></script>
-<script type="text/javascript" src="/fanstatic/foo/c.js"></script>'''
-    assert bottom == ''
 
 
-def test_html_top_bottom_set_bottom():
-    foo = Library('foo', '')
-    x1 = Resource(foo, 'a.js')
-    x2 = Resource(foo, 'b.css')
-    y1 = Resource(foo, 'c.js', depends=[x1, x2])
 
-    needed = NeededResources(bottom=True)
-    needed.need(y1)
-
-    top, bottom = needed.render_topbottom()
-    assert top == '''\
-<link rel="stylesheet" type="text/css" href="/fanstatic/foo/b.css" />
-<script type="text/javascript" src="/fanstatic/foo/a.js"></script>
-<script type="text/javascript" src="/fanstatic/foo/c.js"></script>'''
-    assert bottom == ''
-
-
-def test_html_top_bottom_force_bottom():
-    foo = Library('foo', '')
-    x1 = Resource(foo, 'a.js')
-    x2 = Resource(foo, 'b.css')
-    y1 = Resource(foo, 'c.js', depends=[x1, x2])
-
-    needed = NeededResources(bottom=True, force_bottom=True)
-    needed.need(y1)
-
-    top, bottom = needed.render_topbottom()
-    assert top == '''\
-<link rel="stylesheet" type="text/css" href="/fanstatic/foo/b.css" />'''
-    assert bottom == '''\
-<script type="text/javascript" src="/fanstatic/foo/a.js"></script>
-<script type="text/javascript" src="/fanstatic/foo/c.js"></script>'''
-
-
-def test_html_bottom_safe():
-    foo = Library('foo', '')
-    x1 = Resource(foo, 'a.js')
-    x2 = Resource(foo, 'b.css')
-    y1 = Resource(foo, 'c.js', depends=[x1, x2])
-    y2 = Resource(foo, 'y2.js', bottom=True)
-
-    needed = NeededResources()
-    needed.need(y1)
-    needed.need(y2)
-    top, bottom = needed.render_topbottom()
-    assert top == '''\
-<link rel="stylesheet" type="text/css" href="/fanstatic/foo/b.css" />
-<script type="text/javascript" src="/fanstatic/foo/a.js"></script>
-<script type="text/javascript" src="/fanstatic/foo/y2.js"></script>
-<script type="text/javascript" src="/fanstatic/foo/c.js"></script>'''
-    assert bottom == ''
-
-    needed = NeededResources(bottom=True)
-    needed.need(y1)
-    needed.need(y2)
-    top, bottom = needed.render_topbottom()
-    assert top == '''\
-<link rel="stylesheet" type="text/css" href="/fanstatic/foo/b.css" />
-<script type="text/javascript" src="/fanstatic/foo/a.js"></script>
-<script type="text/javascript" src="/fanstatic/foo/c.js"></script>'''
-    assert bottom == '''\
-<script type="text/javascript" src="/fanstatic/foo/y2.js"></script>'''
-
-    needed = NeededResources(bottom=True, force_bottom=True)
-    needed.need(y1)
-    needed.need(y2)
-    top, bottom = needed.render_topbottom()
-    assert top == '''\
-<link rel="stylesheet" type="text/css" href="/fanstatic/foo/b.css" />'''
-    assert bottom == '''\
-<script type="text/javascript" src="/fanstatic/foo/a.js"></script>
-<script type="text/javascript" src="/fanstatic/foo/y2.js"></script>
-<script type="text/javascript" src="/fanstatic/foo/c.js"></script>'''
 
 
 # XXX add sanity checks: cannot declare something bottom safe while
 # what it depends on isn't bottom safe
-
-def test_html_bottom_safe_used_with_minified():
-    foo = Library('foo', '')
-    a = Resource(foo, 'a.js', minified='a-minified.js', bottom=True)
-
-    needed = NeededResources(minified=True, bottom=True)
-    needed.need(a)
-
-    top, bottom = needed.render_topbottom()
-    assert top == ''
-    assert bottom == ('<script type="text/javascript" '
-                      'src="/fanstatic/foo/a-minified.js"></script>')
-
-
-def test_top_bottom_insert():
-    foo = Library('foo', '')
-    x1 = Resource(foo, 'a.js')
-    x2 = Resource(foo, 'b.css')
-    y1 = Resource(foo, 'c.js', depends=[x1, x2])
-
-    html = b"<html><head>start of head</head><body>rest of body</body></html>"
-
-    needed = NeededResources(bottom=True, force_bottom=True)
-    needed.need(y1)
-    assert needed.render_topbottom_into_html(html) == b'''\
-<html><head>start of head<link rel="stylesheet" type="text/css" href="/fanstatic/foo/b.css" /></head><body>rest of body<script type="text/javascript" src="/fanstatic/foo/a.js"></script>
-<script type="text/javascript" src="/fanstatic/foo/c.js"></script></body></html>'''
 
 
 def test_inclusion_renderers():
@@ -782,9 +663,10 @@ def test_register_inclusion_renderer():
     register_inclusion_renderer('.unknown', render_unknown)
     a = Resource(foo, 'nothing.unknown')
 
-    needed = NeededResources()
-    needed.need(a)
-    assert needed.render() == ('<link rel="unknown" href="/fanstatic/foo/nothing.unknown" />')
+    needed = NeededResources(resources=[a])
+    incl = Inclusion(needed)
+    assert incl.render() == \
+        '<link rel="unknown" href="/fanstatic/foo/nothing.unknown" />'
 
 
 def test_registered_inclusion_renderers_in_order():
@@ -805,32 +687,17 @@ def test_registered_inclusion_renderers_in_order():
     needed.need(c)
     needed.need(d)
 
-    assert needed.render() == """\
-<link rel="stylesheet" type="text/css" href="/fanstatic/foo/something.css" />
-<script type="text/javascript" src="/fanstatic/foo/something.js"></script>
-<link rel="shortcut icon" type="image/x-icon" href="/fanstatic/foo/something.ico"/>
-<unknown href="/fanstatic/foo/nothing.later"/>"""
+    assert needed.resources() == [c, b, d, a]
 
     register_inclusion_renderer('.sooner', render_unknown, 5)
     e = Resource(foo, 'nothing.sooner')
     needed.need(e)
-    assert needed.render() == """\
-<unknown href="/fanstatic/foo/nothing.sooner"/>
-<link rel="stylesheet" type="text/css" href="/fanstatic/foo/something.css" />
-<script type="text/javascript" src="/fanstatic/foo/something.js"></script>
-<link rel="shortcut icon" type="image/x-icon" href="/fanstatic/foo/something.ico"/>
-<unknown href="/fanstatic/foo/nothing.later"/>"""
+    assert needed.resources() == [e, c, b, d, a]
 
     register_inclusion_renderer('.between', render_unknown, 25)
     f = Resource(foo, 'nothing.between')
     needed.need(f)
-    assert needed.render() == """\
-<unknown href="/fanstatic/foo/nothing.sooner"/>
-<link rel="stylesheet" type="text/css" href="/fanstatic/foo/something.css" />
-<script type="text/javascript" src="/fanstatic/foo/something.js"></script>
-<unknown href="/fanstatic/foo/nothing.between"/>
-<link rel="shortcut icon" type="image/x-icon" href="/fanstatic/foo/something.ico"/>
-<unknown href="/fanstatic/foo/nothing.later"/>"""
+    assert needed.resources() == [e, c, b, f, d, a]
 
 
 def test_custom_renderer_for_resource():
@@ -840,7 +707,8 @@ def test_custom_renderer_for_resource():
     a = Resource(foo, 'printstylesheet.css', renderer=render_print_css)
     needed = NeededResources()
     needed.need(a)
-    assert needed.render() == """\
+    incl = Inclusion(needed)
+    assert incl.render() == """\
 <link rel="stylesheet" type="text/css" href="/fanstatic/foo/printstylesheet.css" media="print" />"""
 
     def render_unknown(url):
@@ -848,7 +716,8 @@ def test_custom_renderer_for_resource():
 
     b = Resource(foo, 'nothing.unknown', renderer=render_unknown)
     needed.need(b)
-    assert needed.render() == """\
+    incl = Inclusion(needed)
+    assert incl.render() == """\
 <link rel="stylesheet" type="text/css" href="/fanstatic/foo/printstylesheet.css" media="print" />
 <unknown href="/fanstatic/foo/nothing.unknown"/>"""
 
@@ -869,10 +738,7 @@ def test_custom_renderer_keep_together():
     needed.need(b)
     needed.need(c)
 
-    assert needed.render() == """\
-<link rel="stylesheet" type="text/css" href="/fanstatic/foo/printstylesheet.css" media="print"/>
-<link rel="stylesheet" type="text/css" href="/fanstatic/foo/regular.css" />
-<script type="text/javascript" src="/fanstatic/foo/something.js"></script>"""
+    assert needed.resources() == [a, b, c]
 
 
 def test_resource_subclass_render():
@@ -883,9 +749,9 @@ def test_resource_subclass_render():
             return '<myresource reference="%s/%s"/>' % (library_url, self.relpath)
 
     a = MyResource(foo, 'printstylesheet.css')
-    needed = NeededResources()
-    needed.need(a)
-    assert needed.render() == """\
+    needed = NeededResources(resources=[a])
+    incl = Inclusion(needed)
+    assert incl.render() == """\
 <myresource reference="/fanstatic/foo/printstylesheet.css"/>"""
 
 
@@ -1220,21 +1086,6 @@ def test_bundle_dont_bundle_in_the_middle():
     assert resources[2] is c
 
 
-def test_bundle_resources_bottomsafe():
-    foo = Library('foo', '')
-    a = Resource(foo, 'a.css')
-    b = Resource(foo, 'b.css', bottom=True)
-
-    needed = NeededResources(resources=[a, b], bundle=True)
-    assert needed.render_topbottom() == ('''\
-<link rel="stylesheet" type="text/css" href="/fanstatic/foo/:bundle:a.css;b.css" />''', '')
-
-    needed = NeededResources(resources=[a, b], bundle=True, bottom=True)
-    assert needed.render_topbottom() == ('''\
-<link rel="stylesheet" type="text/css" href="/fanstatic/foo/a.css" />''', '''\
-<link rel="stylesheet" type="text/css" href="/fanstatic/foo/b.css" />''')
-
-
 def test_bundle_different_renderer():
     # resources with different renderers aren't bundled
     foo = Library('foo', '')
@@ -1381,9 +1232,3 @@ def test_dummy_needed_should_take_slots_argument():
     needed = get_needed()
     a_resource = object()
     needed.need(a_resource, slots={})
-
-
-# XXX tests for hashed resources when this is enabled. Needs some plausible
-# directory to test for hashes
-
-# XXX better error reporting if unknown extensions are used

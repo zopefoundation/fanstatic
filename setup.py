@@ -88,6 +88,9 @@ setup(
         'paste.app_factory': [
             'serf = fanstatic:make_serf',
         ],
+        'fanstatic.injectors': [
+            'topbottom = fanstatic.injector:TopBottomInjector',
+        ],
         'fanstatic.compilers': [
             'coffee = fanstatic.compiler:COFFEE_COMPILER',
             'less = fanstatic.compiler:LESS_COMPILER',

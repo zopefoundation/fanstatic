@@ -130,9 +130,7 @@ def test_render_filled_slots():
 
     needed.need(a, {slot: b})
 
-    assert needed.render() == '''\
-<script type="text/javascript" src="/fanstatic/lib/b.js"></script>
-<script type="text/javascript" src="/fanstatic/lib/a.js"></script>'''
+    assert [r.relpath for r in needed.resources()] == ['b.js', 'a.js']
 
 
 def test_slot_depends():
@@ -148,10 +146,7 @@ def test_slot_depends():
 
     needed.need(a, {slot: b})
 
-    assert needed.render() == '''\
-<script type="text/javascript" src="/fanstatic/lib/c.js"></script>
-<script type="text/javascript" src="/fanstatic/lib/b.js"></script>
-<script type="text/javascript" src="/fanstatic/lib/a.js"></script>'''
+    assert [r.relpath for r in needed.resources()] == ['c.js', 'b.js', 'a.js']
 
 
 def test_slot_depends_subset():
@@ -166,10 +161,7 @@ def test_slot_depends_subset():
 
     needed.need(a, {slot: b})
 
-    assert needed.render() == '''\
-<script type="text/javascript" src="/fanstatic/lib/c.js"></script>
-<script type="text/javascript" src="/fanstatic/lib/b.js"></script>
-<script type="text/javascript" src="/fanstatic/lib/a.js"></script>'''
+    assert [r.relpath for r in needed.resources()] == ['c.js', 'b.js', 'a.js']
 
 
 def test_slot_depends_incorrect():
@@ -186,7 +178,7 @@ def test_slot_depends_incorrect():
     needed.need(a, {slot: b})
 
     with pytest.raises(SlotError):
-        needed.render()
+        needed.resources()
 
 
 def test_slot_minified():
@@ -200,9 +192,8 @@ def test_slot_minified():
     b = Resource(lib, 'b.js', minified='b-min.js')
 
     needed.need(a, {slot: b})
-    assert needed.render() == '''\
-<script type="text/javascript" src="/fanstatic/lib/b-min.js"></script>
-<script type="text/javascript" src="/fanstatic/lib/a.js"></script>'''
+    resources = needed.resources()
+    assert [r.relpath for r in resources] == ['b-min.js', 'a.js']
 
 
 def test_resource_need_should_pass_slots_to_needed():

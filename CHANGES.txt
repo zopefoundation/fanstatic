@@ -4,8 +4,13 @@ CHANGES
 1.0a3 (unreleased)
 ==================
 
-- Nothing changed yet.
+- Refactor NeededResources into a pluggable injector system. Fanstatic users
+  now have the possibility to customize how resources are injected into the
+  HTML.
 
+  We try to keep these changes backwards compatible for users that use
+  the official API. People that use fanstatic internals are encouraged to
+  update their code.
 
 1.0a2 (2013-05-25)
 ==================

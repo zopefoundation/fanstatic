@@ -762,17 +762,6 @@ class NeededResources(object):
       If set to ``False``, the hash URLs will only be
       calculated once after server startup.
 
-    :param bottom: If set to ``True``, Fanstatic will include any
-      resource that has been marked as "bottom safe" at the bottom of
-      the web page, at the end of ``<body>``, as opposed to in the
-      ``<head>`` section. This is useful for optimizing the load-time
-      of Javascript resources.
-
-    :param force_bottom: If set to ``True`` and ``bottom`` is set to
-      ``True`` as well, all Javascript resources will be included at
-      the bottom of a web page, even if they aren't marked bottom
-      safe.
-
     :param minified: If set to ``True``, Fanstatic will include all
       resources in ``minified`` form. If a Resource instance does not
       provide a ``minified`` mode, the "main" (non-named) mode is used.
@@ -802,10 +791,6 @@ class NeededResources(object):
       should be served in the URL. By default this is ``fanstatic``, so
       URLs to resources will start with ``/fanstatic/``.
 
-    :param bundle: If set to True, Fanstatic will attempt to bundle
-      resources that fit together into larger Bundle objects. These
-      can then be rendered as single URLs to these bundles.
-
     :param resources: Optionally, a list of resources we want to
       include. Normally you specify resources to include by calling
       ``.need()`` on them, or alternatively by calling ``.need()``
@@ -828,17 +813,13 @@ class NeededResources(object):
                  versioning=False,
                  versioning_use_md5=False,
                  recompute_hashes=True,
-                 bottom=False,
-                 force_bottom=False,
                  minified=False,
                  debug=False,
                  rollup=False,
                  base_url=None,
                  script_name=None,
                  publisher_signature=DEFAULT_SIGNATURE,
-                 bundle=False,
                  resources=None,
-                 compile=False,
                  ):
         self._versioning = versioning
         if versioning_use_md5:
@@ -847,15 +828,11 @@ class NeededResources(object):
             self._version_method = fanstatic.checksum.mtime
 
         self._recompute_hashes = recompute_hashes
-        self._bottom = bottom
-        self._force_bottom = force_bottom
         self._base_url = base_url
         self._script_name = script_name
         self._publisher_signature = publisher_signature
         self._rollup = rollup
-        self._bundle = bundle
         self._resources = set(resources or [])
-        self._compile = compile
         self._slots = {}
         self._url_cache = {}  # prevent multiple computations per request
         if (debug and minified):
@@ -955,6 +932,10 @@ class NeededResources(object):
 
         :param library: A :py:class:`Library` instance.
         """
+        library_url = self._url_cache.get(library.name)
+        if library_url:
+            return library_url
+
         # The script_name is a fallback and base_url should be honoured
         # if it is provided.
         path = [self._base_url or self._script_name or '']
@@ -966,111 +947,8 @@ class NeededResources(object):
                 library.signature(
                     recompute_hashes=self._recompute_hashes,
                     version_method=self._version_method))
-        return '/'.join(path)
-
-    def render(self):
-        """Render needed resource inclusions.
-
-        This returns a string with the rendered resource inclusions
-        (``<script>`` and ``<link>`` tags), suitable for including
-        in the ``<head>`` section of a web page.
-        """
-        return self.render_inclusions(self.resources())
-
-    def render_inclusions(self, resources):
-        """Render a set of resources as inclusions.
-
-        This renders the listed inclusions and their dependencies as
-        HTML ((``<script>`` and ``<link>`` tags), suitable for
-        inclusion on a web page.
-
-        :param inclusions: A list of :py:class:`Resource` instances.
-        """
-        if self._compile:
-            for resource in resources:
-                resource.compile()
-
-        if self._bundle:
-            resources = bundle_resources(resources)
-        result = []
-        for resource in resources:
-            library = resource.library
-            library_url = self._url_cache.get(library.name)
-            if library_url is None:
-                library_url = self._url_cache[library.name] = self.library_url(
-                    library)
-            result.append(resource.render(library_url))
-        return '\n'.join(result)
-
-    def render_into_html(self, html):
-        """Render needed resource inclusions into HTML.
-
-        :param html: A string with HTML to render the resource
-          inclusions into. This string must have a ``<head>`` section.
-        """
-        to_insert = self.render()
-        return html.replace(
-            compat.as_bytestring('</head>'),
-            compat.as_bytestring('%s</head>' % to_insert), 1)
-
-    def render_topbottom(self):
-        """Render resource inclusions separately into top and bottom fragments.
-
-        Returns a tuple of two HTML snippets, top and bottom.  The top
-        one is to be included in a ``<head>`` section, and the bottom
-        one is to be included at the end of the ``<body>`` section. Only
-        bottom safe resources are included in the bottom section,
-        unless ``force_bottom`` is enabled, in which case all Javascript
-        resources will be included in the bottom.
-        """
-        resources = self.resources()
-
-        # seperate inclusions in top and bottom inclusions if this is needed
-        if self._bottom:
-            top_resources = []
-            bottom_resources = []
-            if not self._force_bottom:
-                for resource in resources:
-                    if resource.bottom:
-                        bottom_resources.append(resource)
-                    else:
-                        top_resources.append(resource)
-            else:
-                for resource in resources:
-                    if resource.ext == '.js':
-                        bottom_resources.append(resource)
-                    else:
-                        top_resources.append(resource)
-        else:
-            top_resources = resources
-            bottom_resources = []
-
-        return (self.render_inclusions(top_resources),
-                self.render_inclusions(bottom_resources))
-
-    def render_topbottom_into_html(self, html):
-        """Render needed resource inclusions into HTML.
-
-        Only bottom safe resources are included in the bottom section,
-        unless ``force_bottom`` is enabled, in which case all
-        Javascript resources will be included in the bottom, just
-        before the ``</body>`` tag.
-
-        :param html: The HTML string in which to insert the rendered
-          resource inclusions.  This string must have a ``<head>`` and
-          a ``<body>`` section.
-        """
-        top, bottom = self.render_topbottom()
-        if top:
-            html = html.replace(
-                compat.as_bytestring('</head>'),
-                compat.as_bytestring('%s</head>' % top), 1)
-        if bottom:
-            html = html.replace(
-                compat.as_bytestring('</body>'),
-                compat.as_bytestring('%s</body>' % bottom), 1)
-        return html
-
+        library_url = self._url_cache[library.name] = '/'.join(path)
+        return library_url
 
 class DummyNeededResources(object):
     """A dummy implementation of the needed resources.
@@ -1094,9 +972,8 @@ class DummyNeededResources(object):
             self.__class__.__name__)
 
     clear = _not_implented_here
-    library_url = render = render_inclusions = _not_implented_here
-    render_into_html = render_topbottom = _not_implented_here
-    resources = render_topbottom_into_html = _not_implented_here
+    library_url = _not_implented_here
+    resources = _not_implented_here
 
 
 thread_local_needed_data = threading.local()
@@ -1265,27 +1142,3 @@ class Bundle(Renderable):
             result.append(self)
 
 
-def bundle_resources(resources):
-    """Bundle sorted resources together.
-
-    resources is expected to be a list previously sorted by sorted_resources.
-
-    Returns a list of renderable resources, which can include several
-    resources bundled together into Bundles.
-    """
-    result = []
-    bundle = Bundle()
-    for resource in resources:
-        if bundle.fits(resource):
-            bundle.append(resource)
-        else:
-            # add the previous bundle to the list and create new bundle
-            bundle.add_to_list(result)
-            bundle = Bundle()
-            if resource.dont_bundle:
-                result.append(resource)
-            else:
-                bundle.append(resource)
-    # add the last bundle to the list
-    bundle.add_to_list(result)
-    return result

@@ -1,6 +1,7 @@
-from fanstatic import Library, Resource, NeededResources
+from fanstatic import Library, Resource, NeededResources, bundle_resources
+from fanstatic import Inclusion
 
-from fanstatic.core import bundle_resources, Bundle
+from fanstatic.core import Bundle
 
 
 def test_bundle_resources():
@@ -56,17 +57,20 @@ def test_render_bundle():
     x2 = Resource(foo, 'b.css')
     x3 = Resource(foo, 'c.css', dont_bundle=True)
     needed = NeededResources(resources=[x1, x2, x3])
-    assert needed.render() == '''<link rel="stylesheet" type="text/css" href="/fanstatic/foo/a.css" />
+    incl = Inclusion(needed)
+    assert incl.render() == '''<link rel="stylesheet" type="text/css" href="/fanstatic/foo/a.css" />
 <link rel="stylesheet" type="text/css" href="/fanstatic/foo/b.css" />
 <link rel="stylesheet" type="text/css" href="/fanstatic/foo/c.css" />'''
 
-    needed = NeededResources(resources=[x1, x2, x3], bundle=True)
-    assert needed.render() == '''<link rel="stylesheet" type="text/css" href="/fanstatic/foo/:bundle:a.css;b.css" />
+    needed = NeededResources(resources=[x1, x2, x3])
+    incl = Inclusion(needed, bundle=True)
+    assert incl.render() == '''<link rel="stylesheet" type="text/css" href="/fanstatic/foo/:bundle:a.css;b.css" />
 <link rel="stylesheet" type="text/css" href="/fanstatic/foo/c.css" />'''
 
     x4 = Resource(foo, 'subdir/subdir/x4.css')
     x5 = Resource(foo, 'subdir/subdir/x5.css')
-    needed = NeededResources(resources=[x1, x2, x4, x5], bundle=True)
-    assert needed.render() == '''<link rel="stylesheet" type="text/css" href="/fanstatic/foo/:bundle:a.css;b.css" />
+    needed = NeededResources(resources=[x1, x2, x4, x5])
+    incl = Inclusion(needed, bundle=True)
+    assert incl.render() == '''<link rel="stylesheet" type="text/css" href="/fanstatic/foo/:bundle:a.css;b.css" />
 <link rel="stylesheet" type="text/css" href="/fanstatic/foo/subdir/subdir/:bundle:x4.css;x5.css" />'''
 
