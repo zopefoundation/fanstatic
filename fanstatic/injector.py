@@ -3,7 +3,6 @@ import webob
 from fanstatic.config import convert_config
 from fanstatic import ConfigurationError
 from fanstatic import compat
-from fanstatic.config import convert_config
 from fanstatic.core import Bundle
 from fanstatic import DEBUG, MINIFIED
 import fanstatic

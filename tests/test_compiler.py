@@ -1,5 +1,5 @@
 from fanstatic import Library, Resource, NeededResources
-from fanstatic import compat, Inclusion
+from fanstatic import compat, Inclusion, MINIFIED
 from fanstatic import set_resource_file_existence_checking as check_files
 from fanstatic.compiler import Compiler, Minifier
 from .test_checksum import _copy_testdata
@@ -154,8 +154,8 @@ def test_minified_mode_should_call_compiler_and_minifier_of_parent_resource(
     lib = Library('lib', '')
     a = Resource(lib, 'a.js', compiler='mock', minifier='mock')
 
-    needed = NeededResources(minified=True, resources=[a])
-    incl = Inclusion(needed, compile=True)
+    needed = NeededResources(resources=[a])
+    incl = Inclusion(needed, compile=True, mode=MINIFIED)
     assert len(incl.resources) == 1
     assert incl.resources[0].relpath == 'a.min.js'
     assert incl.resources[0] != a
@@ -174,12 +174,11 @@ def test_minified_mode_relpath_respect_subdir(compilers):
     lib = Library('lib', '')
     a = Resource(lib, 'foo/bar/a.js', compiler='mock', minifier='mock')
 
-    needed = NeededResources(resources=[a], minified=True)
-    resources = needed.resources()
-    incl = Inclusion(needed, compile=True)
-    assert len(resources) == 1
-    assert resources[0].relpath == 'foo/bar/a.min.js'
-    assert resources[0] != a
+    needed = NeededResources(resources=[a])
+    incl = Inclusion(needed, compile=True, mode=MINIFIED)
+    assert len(incl.resources) == 1
+    assert incl.resources[0].relpath == 'foo/bar/a.min.js'
+    assert incl.resources[0] != a
 
 
 def test_nothing_given_on_resource_uses_settings_from_library(compilers):

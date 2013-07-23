@@ -744,18 +744,15 @@ def test_clear():
     a4 = Resource(foo, 'a4.js', depends=[a1])
     a5 = Resource(foo, 'a5.js', depends=[a4, a3])
 
-    needed = NeededResources()
-    needed.need(a1)
-    needed.need(a2)
-    needed.need(a3)
-    assert needed.resources() == [a1, a2, a3]
+    needed = NeededResources(resources=[a1, a2, a3])
+    assert needed.resources() == set([a1, a2, a3])
     # For some reason,for example an error page needs to be rendered,
     # the currently needed resources need to be cleared.
     needed.clear()
-    assert needed.resources() == []
+    assert len(needed.resources()) == 0
     needed.need(a4)
     needed.need(a5)
-    assert needed.resources() == [a1, a2, a4, a3, a5]
+    assert needed.resources() == set([a1, a2, a4, a3, a5])
 
 
 def test_convenience_clear():
@@ -767,16 +764,15 @@ def test_convenience_clear():
     z1 = Resource(foo, 'd.js')
     z2 = Resource(foo, 'e.js', depends=[z1, x1])
 
-    needed = init_needed()
+    needed = init_needed(resources=[y1])
 
-    y1.need()
-    assert needed.resources() == [x2, x1, y1]
+    assert sort_resources(needed.resources()) == [x2, x1, y1]
     # For some reason,for example an error page needs to be rendered,
     # the currently needed resources need to be cleared.
     clear_needed()
-    assert needed.resources() == []
+    assert len(needed.resources()) == 0
     z2.need()
-    assert needed.resources() == [x1, z1, z2]
+    assert sort_resources(needed.resources()) == [x1, z1, z2]
 
 
 def test_check_resource_dependencies():
@@ -1119,12 +1115,9 @@ def test_inter_library_dependencies_ordering():
     style1 = Resource(lib3, 'style1.css')
     style2 = Resource(lib4, 'style2.css', depends=[style1])
 
-    needed = NeededResources()
-
-    needed.need(js3)
-    needed.need(style2)
-    resources = needed.resources()
-    assert resources == [style1, style2, js1, js2, js3]
+    needed = NeededResources(resources=[js3, style2])
+    assert sort_resources(needed.resources()) == \
+        [style1, style2, js1, js2, js3]
 
 
 def test_library_ordering_bug():
@@ -1151,10 +1144,8 @@ def test_library_ordering_bug():
 
     app = Resource(app_lib, 'app.js', depends=[bread, obviel_datepicker])
 
-    needed = NeededResources()
-
-    needed.need(app)
-    resources = needed.resources()
+    needed = NeededResources(resources=[app])
+    resources = sort_resources(needed.resources())
     for resource in resources:
         print((resource, resource.library.library_nr))
     assert resources == [jquery, jqueryui, obviel, obviel_forms,
