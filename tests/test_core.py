@@ -25,9 +25,9 @@ from fanstatic.core import inclusion_renderers
 from fanstatic.core import thread_local_needed_data
 from fanstatic.core import ModeResourceDependencyError
 from fanstatic.codegen import sort_resources_topological
-from fanstatic.injector import (bundle_resources,
-                                sort_resources,
-                                rollup_resources)
+from fanstatic.inclusion import (bundle_resources,
+                                 sort_resources,
+                                 rollup_resources)
 
 
 def test_resource():
