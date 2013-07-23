@@ -15,6 +15,7 @@ from fanstatic import (Library,
                        register_inclusion_renderer,
                        ConfigurationError,
                        bundle_resources,
+                       sort_resources,
                        LibraryDependencyCycleError,
                        NEEDED,
                        UnknownResourceExtensionError,
@@ -833,7 +834,7 @@ def test_sort_group_per_renderer():
     needed.need(c_js)
     needed.need(a1_js)
 
-    assert needed.resources() == [b_css, a_js, c_js, a1_js]
+    assert sort_resources(needed.resources()) == [b_css, a_js, c_js, a1_js]
 
 
 def test_sort_group_per_library():
@@ -853,7 +854,7 @@ def test_sort_group_per_library():
     needed.need(d)
     needed.need(e)
 
-    assert needed.resources() == [e, d, b, c, a]
+    assert sort_resources(needed.resources()) == [e, d, b, c, a]
 
 
 def test_sort_library_by_name():
@@ -867,7 +868,7 @@ def test_sort_library_by_name():
     needed.need(a_b)
     needed.need(a_a)
 
-    assert needed.resources() == [a_a, a_b]
+    assert sort_resources(needed.resources()) == [a_a, a_b]
 
 
 def test_sort_resources_libraries_together():
@@ -887,13 +888,13 @@ def test_sort_resources_libraries_together():
     needed.need(m2)
     # sort_resources makes an efficient ordering, grouping m1 and m2 together
     # after their dependencies (they are in the same library)
-    assert needed.resources() == [k1, l1, m1, m2]
+    assert sort_resources(needed.resources()) == [k1, l1, m1, m2]
 
     needed = NeededResources()
     needed.need(n1)
     needed.need(m2)
     # the order is unaffected by the ordering of inclusions
-    assert needed.resources() == [k1, l1, m1, m2, n1]
+    assert sort_resources(needed.resources()) == [k1, l1, m1, m2, n1]
 
 
 def test_sort_resources_library_sorting():
@@ -918,7 +919,7 @@ def test_sort_resources_library_sorting():
     needed.need(d)
     needed.need(e)
 
-    assert needed.resources() == [a, c, c1, c2, e, b, d]
+    assert sort_resources(needed.resources()) == [a, c, c1, c2, e, b, d]
 
 
 def test_sort_resources_library_sorting_by_name():
@@ -936,7 +937,7 @@ def test_sort_resources_library_sorting_by_name():
     needed.need(b)
     needed.need(c)
 
-    assert needed.resources() == [a, b, c]
+    assert sort_resources(needed.resources()) == [a, b, c]
 
 
 def test_sort_resources_library_sorting_by_name_deeper():
@@ -951,7 +952,7 @@ def test_sort_resources_library_sorting_by_name_deeper():
 
     needed = NeededResources()
     needed.need(b)
-    assert needed.resources() == [a, c, b]
+    assert sort_resources(needed.resources()) == [a, c, b]
 
 
 def test_library_nr():
