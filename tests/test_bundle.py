@@ -1,4 +1,4 @@
-from fanstatic import Library, Resource, NeededResources, bundle_resources
+from fanstatic import Library, Resource, NeededResources, bundle_resources, sort_resources
 from fanstatic import Inclusion
 
 from fanstatic.core import Bundle
@@ -26,14 +26,9 @@ def test_bundle_resources():
     bundle = bundle_resources([x1, x3, x2])
     assert bundle == [x1, x3, x2]
 
-    # XXX sort_resources does not take care of this for us:
-    needed = NeededResources(bundle=True)
-    needed.need(x1)
-    needed.need(x3)
-    needed.need(x2)
     # The resources are sorted by renderer order, library dependencies
     # and resource dependencies.
-    bundle = bundle_resources(needed.resources())
+    bundle = bundle_resources(sort_resources([x1, x3, x2]))
     assert len(bundle) == 2
     assert isinstance(bundle[0], Bundle)
     assert bundle[1] == x3

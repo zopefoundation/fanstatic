@@ -1022,11 +1022,7 @@ def test_bundle():
     a = Resource(foo, 'a.css')
     b = Resource(foo, 'b.css')
 
-    needed = NeededResources(bundle=True)
-    needed.need(a)
-    needed.need(b)
-
-    resources = bundle_resources(needed.resources())
+    resources = bundle_resources([a, b])
     assert len(resources) == 1
     bundle = resources[0]
     assert bundle.resources() == [a, b]
@@ -1038,12 +1034,7 @@ def test_bundle_dont_bundle_at_the_end():
     b = Resource(foo, 'b.css')
     c = Resource(foo, 'c.css', dont_bundle=True)
 
-    needed = NeededResources(bundle=True)
-    needed.need(a)
-    needed.need(b)
-    needed.need(c)
-
-    resources = bundle_resources(needed.resources())
+    resources = bundle_resources([a, b, c])
     assert len(resources) == 2
     assert resources[0].resources() == [a, b]
     assert resources[-1] is c
@@ -1055,12 +1046,7 @@ def test_bundle_dont_bundle_at_the_start():
     b = Resource(foo, 'b.css')
     c = Resource(foo, 'c.css')
 
-    needed = NeededResources(bundle=True)
-    needed.need(a)
-    needed.need(b)
-    needed.need(c)
-
-    resources = bundle_resources(needed.resources())
+    resources = bundle_resources([a, b, c])
     assert len(resources) == 2
     assert resources[0] is a
     assert resources[1].resources() == [b, c]
@@ -1074,12 +1060,7 @@ def test_bundle_dont_bundle_in_the_middle():
     b = Resource(foo, 'b.css', dont_bundle=True)
     c = Resource(foo, 'c.css')
 
-    needed = NeededResources(bundle=True)
-    needed.need(a)
-    needed.need(b)
-    needed.need(c)
-
-    resources = needed.resources()
+    resources = bundle_resources([a, b, c])
     assert len(resources) == 3
     assert resources[0] is a
     assert resources[1] is b
@@ -1092,12 +1073,7 @@ def test_bundle_different_renderer():
     a = Resource(foo, 'a.css')
     b = Resource(foo, 'b.js')
 
-    needed = NeededResources(bundle=True)
-    needed.need(a)
-    needed.need(b)
-
-    resources = needed.resources()
-
+    resources = bundle_resources([a, b])
     assert len(resources) == 2
     assert resources[0] is a
     assert resources[1] is b
@@ -1110,12 +1086,7 @@ def test_bundle_different_library():
     a = Resource(l1, 'a.js')
     b = Resource(l2, 'b.js')
 
-    needed = NeededResources(bundle=True)
-    needed.need(a)
-    needed.need(b)
-
-    resources = needed.resources()
-
+    resources = bundle_resources([a, b])
     assert len(resources) == 2
     assert resources[0] is a
     assert resources[1] is b
@@ -1127,12 +1098,7 @@ def test_bundle_different_directory():
     a = Resource(foo, 'first/a.css')
     b = Resource(foo, 'second/b.css')
 
-    needed = NeededResources(bundle=True)
-    needed.need(a)
-    needed.need(b)
-
-    resources = needed.resources()
-
+    resources = bundle_resources([a, b])
     assert len(resources) == 2
     assert resources[0] is a
     assert resources[1] is b
@@ -1140,9 +1106,7 @@ def test_bundle_different_directory():
 
 def test_bundle_empty_list():
     # we can successfully bundle an empty list of resources
-    needed = NeededResources(bundle=True)
-
-    resources = needed.resources()
+    resources = bundle_resources([])
     assert resources == []
 
 
@@ -1151,10 +1115,7 @@ def test_bundle_single_entry():
     foo = Library('foo', '')
     a = Resource(foo, 'a.js')
 
-    needed = NeededResources(bundle=True)
-    needed.need(a)
-    resources = needed.resources()
-
+    resources = bundle_resources([a])
     assert resources == [a]
 
 
@@ -1162,10 +1123,7 @@ def test_bundle_single_dont_bundle_entry():
     foo = Library('foo', '')
     a = Resource(foo, 'a.js', dont_bundle=True)
 
-    needed = NeededResources(bundle=True)
-    needed.need(a)
-    resources = needed.resources()
-
+    resources = bundle_resources([a])
     assert resources == [a]
 
 
