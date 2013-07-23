@@ -5,6 +5,7 @@ from fanstatic import ConfigurationError
 from fanstatic import compat
 from fanstatic.config import convert_config
 from fanstatic.core import Bundle
+from fanstatic import DEBUG, MINIFIED
 import fanstatic
 
 CONTENT_TYPES = ['text/html', 'text/xml', 'application/xhtml+xml']
@@ -188,11 +189,6 @@ class Inclusion(object):
             resources = bundle_resources(resources)
 
         self.resources = resources
-        if compile:
-            for resource in self.resources:
-                resource.compile()
-        if bundle:
-            self.resources = bundle_resources(resources)
 
     def __len__(self):
         return len(self.resources)
