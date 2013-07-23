@@ -34,7 +34,6 @@ def test_injector_config():
     assert injector.config == {
         'versioning': True,
         'recompute_hashes': False,
-        'rollup': False,
     }
 
 
@@ -58,6 +57,5 @@ def test_fanstatic_config():
     assert fanstatic.app.config == {
         'versioning': True,
         'recompute_hashes': False,
-        'rollup': False,
         'publisher_signature': 'foo',
     }
