@@ -41,7 +41,7 @@ def Fanstatic(app,
 def make_fanstatic(app, global_config, **local_config):
     local_config = convert_config(local_config)
     # Look up injector factory by name.
-    injector_name = local_config.get('injector', 'topbottom')
+    injector_name = local_config.pop('injector', 'topbottom')
     injector_factory = fanstatic.registry.InjectorRegistry.instance().get(injector_name)
     if injector_factory is None:
         raise ConfigurationError('No injector found for name %s' % injector_name)

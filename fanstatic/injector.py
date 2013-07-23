@@ -1,9 +1,10 @@
 import webob
 
-from fanstatic.config import convert_config
+from fanstatic import ConfigurationError
 from fanstatic import compat
-import fanstatic
+from fanstatic.config import convert_config
 from fanstatic.core import Bundle
+import fanstatic
 
 CONTENT_TYPES = ['text/html', 'text/xml', 'application/xhtml+xml']
 
@@ -59,7 +60,6 @@ class Injector(object):
 
         # Get the response from the wrapped application:
         response = request.get_response(self.app)
-
         # We only continue if the content-type is appropriate.
         if not (response.content_type and
                 response.content_type.lower() in CONTENT_TYPES):
@@ -211,9 +211,10 @@ class TopBottomInjector(object):
 def make_injector(app, global_config, **local_config):
     local_config = convert_config(local_config)
     # Look up injector factory by name.
-    injector_name = local_config.get('injector', 'topbottom')
+    injector_name = local_config.pop('injector', 'topbottom')
     injector_factory = fanstatic.registry.InjectorRegistry.instance().get(injector_name)
     if injector_factory is None:
-        raise ConfigurationError('No injector found for name %s' % injector_name)
+        raise ConfigurationError(
+            'No injector found for name %s' % injector_name)
     injector = injector_factory(local_config)
-    return Injector(app, **local_config)
+    return Injector(app, injector=injector, **local_config)
