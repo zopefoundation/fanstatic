@@ -474,7 +474,6 @@ class Resource(Renderable, Dependable):
         # create a reference to the superseder in the superseded resource
         for resource in self.supersedes:
             resource.rollups.append(self)
-
         # Register ourself with the Library.
         self.library.register(self)
 

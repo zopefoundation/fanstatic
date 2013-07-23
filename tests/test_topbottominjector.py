@@ -1,4 +1,7 @@
-from fanstatic import Library, Resource, NeededResources
+
+import pytest
+
+from fanstatic import Library, Resource, NeededResources, ConfigurationError
 from fanstatic.injector import TopBottomInjector
 
 
@@ -43,6 +46,9 @@ def test_html_bottom_safe_used_with_minified():
     needed = NeededResources(resources=[a])
 
     injector = TopBottomInjector(dict(bottom=True, minified=True))
+
+    with pytest.raises(ConfigurationError):
+        TopBottomInjector(dict(debug=True, minified=True))
 
     top, bottom = injector.group(needed)
     assert len(top) == 0

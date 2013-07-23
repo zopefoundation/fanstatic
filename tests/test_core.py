@@ -39,7 +39,7 @@ def test_resource():
     needed = NeededResources()
     needed.need(y1)
 
-    assert needed.resources() == [x2, x1, y1]
+    assert needed.resources() == set([x2, x1, y1])
 
 
 def test_resource_file_exists(tmpdir):
@@ -149,11 +149,11 @@ def test_convenience_need():
 
     needed = init_needed()
     assert get_needed() == needed
-    assert get_needed().resources() == []
+    assert get_needed().resources() == set([])
 
     y1.need()
 
-    assert get_needed().resources() == [x2, x1, y1]
+    assert get_needed().resources() == set([x2, x1, y1])
 
 
 def test_convenience_group_resource_need():
@@ -165,11 +165,11 @@ def test_convenience_group_resource_need():
 
     needed = init_needed()
     assert get_needed() == needed
-    assert get_needed().resources() == []
+    assert get_needed().resources() == set([])
 
     group.need()
 
-    assert get_needed().resources() == [x2, x1, y1]
+    assert get_needed().resources() == set([x2, x1, y1])
 
 
 def test_depend_on_group():
@@ -187,7 +187,7 @@ def test_depend_on_group():
 
     needed = NeededResources()
     needed.need(c)
-    assert needed.resources() == [a, b, c]
+    assert needed.resources() == set([a, b, c])
 
 
 def test_redundant_resource():
@@ -200,13 +200,16 @@ def test_redundant_resource():
 
     needed.need(y1)
     needed.need(y1)
-    assert needed.resources() == [x2, x1, y1]
+    incl = Inclusion(needed)
+    assert incl.resources == [x2, x1, y1]
 
     needed.need(x1)
-    assert needed.resources() == [x2, x1, y1]
+    incl = Inclusion(needed)
+    assert incl.resources == [x2, x1, y1]
 
     needed.need(x2)
-    assert needed.resources() == [x2, x1, y1]
+    incl = Inclusion(needed)
+    assert incl.resources == [x2, x1, y1]
 
 
 def test_redundant_resource_reorder():
@@ -219,7 +222,8 @@ def test_redundant_resource_reorder():
     needed.need(x1)
     needed.need(x2)
     needed.need(y1)
-    assert needed.resources() == [x2, x1, y1]
+    incl = Inclusion(needed)
+    assert incl.resources == [x2, x1, y1]
 
 
 def test_redundant_more_complicated():
@@ -232,11 +236,13 @@ def test_redundant_more_complicated():
     needed = NeededResources()
     needed.need(a3)
 
-    assert needed.resources() == [a1, a2, a3]
+    incl = Inclusion(needed)
+    assert incl.resources == [a1, a2, a3]
     needed.need(a4)
     # a4 is sorted before a3, because it is less deep
     # in the dependency tree
-    assert needed.resources() == [a1, a2, a4, a3]
+    incl = Inclusion(needed)
+    assert incl.resources == [a1, a2, a4, a3]
 
 
 def test_redundant_more_complicated_reversed():
@@ -251,7 +257,8 @@ def test_redundant_more_complicated_reversed():
     needed.need(a3)
     # this will always be consistent, no matter
     # in what order we need the resources
-    assert needed.resources() == [a1, a2, a4, a3]
+    incl = Inclusion(needed)
+    assert incl.resources == [a1, a2, a4, a3]
 
 
 def test_redundant_more_complicated_depends_on_all():
@@ -264,7 +271,8 @@ def test_redundant_more_complicated_depends_on_all():
 
     needed = NeededResources()
     needed.need(a5)
-    assert needed.resources() == [a1, a2, a4, a3, a5]
+    incl = Inclusion(needed)
+    assert incl.resources == [a1, a2, a4, a3, a5]
 
 
 def test_redundant_more_complicated_depends_on_all_reorder():
@@ -278,8 +286,8 @@ def test_redundant_more_complicated_depends_on_all_reorder():
     needed = NeededResources()
     needed.need(a3)
     needed.need(a5)
-
-    assert needed.resources() == [a1, a2, a4, a3, a5]
+    incl = Inclusion(needed)
+    assert incl.resources == [a1, a2, a4, a3, a5]
 
 
 def test_mode_fully_specified():
@@ -289,43 +297,24 @@ def test_mode_fully_specified():
 
     needed = NeededResources()
     needed.need(k)
+    incl = Inclusion(needed)
+    assert incl.resources == [k]
 
-    assert needed.resources() == [k]
-
-    needed = NeededResources(debug=True)
-    needed.need(k)
-
-    assert needed.resources() == [k_debug]
+    incl = Inclusion(needed, mode='debug')
+    assert incl.resources == [k_debug]
 
     # If no minified can be found, the 'raw' resource is taken.
-    needed = NeededResources(minified=True)
-    needed.need(k)
-    assert needed.resources() == [k]
-
-    with pytest.raises(ConfigurationError):
-        NeededResources(debug=True, minified=True)
+    incl = Inclusion(needed, mode='minified')
+    assert incl.resources == [k]
 
     # If only a minified resource is defined, debug returns the raw version.
     x = Resource(foo, 'x.js', minified='x-min.js')
-    needed = NeededResources(debug=True)
-    needed.need(x)
-    assert needed.resources() == [x]
-
-
-def test_mode_shortcut():
-    foo = Library('foo', '')
-    k = Resource(foo, 'k.js', debug='k-debug.js')
-
     needed = NeededResources()
-    needed.need(k)
-
-    assert needed.resources() == [k]
-
-    needed = NeededResources(debug=True)
-    needed.need(k)
-
-    assert len(needed.resources()) == 1
-    assert needed.resources()[0].relpath == 'k-debug.js'
+    needed.need(x)
+    incl = Inclusion(needed, mode='debug')
+    assert incl.resources == [x]
+    incl = Inclusion(needed, mode='minified')
+    assert incl.resources == [x.modes['minified']]
 
 
 def test_mode_shortcut_inherit_parameters():
@@ -403,8 +392,8 @@ def test_inclusion_rollup_and_debug():
     f2 = Resource(foo, 'f2.js', debug='f2-debug.js')
     giantf = Resource(foo, 'giantf.js', supersedes=[f1, f2],
                       debug='giantf-debug.js')
-    needed = NeededResources([f1, f2])
 
+    needed = NeededResources(resources=[f1, f2])
     incl = Inclusion(needed, rollup=True)
     assert incl.resources == [giantf]
 
@@ -418,9 +407,9 @@ def test_inclusion_rollup_and_debug_missing():
     h2 = Resource(foo, 'h2.js', debug='h2-debug.js')
     gianth = Resource(foo, 'gianth.js', supersedes=[h1, h2])
 
-    needed = NeededResources([h1, h2])
+    needed = NeededResources(resources=[h1, h2])
     incl = Inclusion(needed, rollup=True, mode='debug')
-    # no mode available for rollup, use the rollup.
+    # No mode debug version of the rollup use it instead
     assert incl.resources== [gianth]
 
 
@@ -648,7 +637,7 @@ def test_register_inclusion_renderer():
         '<link rel="unknown" href="/fanstatic/foo/nothing.unknown" />'
 
 
-def test_registered_inclusion_renderers_in_order():
+def test_sort_registered_inclusion_renderers_in_order():
     foo = Library('foo', '')
 
     def render_unknown(url):
@@ -660,23 +649,15 @@ def test_registered_inclusion_renderers_in_order():
     c = Resource(foo, 'something.css')
     d = Resource(foo, 'something.ico')
 
-    needed = NeededResources()
-    needed.need(a)
-    needed.need(b)
-    needed.need(c)
-    needed.need(d)
-
-    assert needed.resources() == [c, b, d, a]
+    assert sort_resources([a, b, c, d]) == [c, b, d, a]
 
     register_inclusion_renderer('.sooner', render_unknown, 5)
     e = Resource(foo, 'nothing.sooner')
-    needed.need(e)
-    assert needed.resources() == [e, c, b, d, a]
+    assert sort_resources([a, b, c, d, e]) == [e, c, b, d, a]
 
     register_inclusion_renderer('.between', render_unknown, 25)
     f = Resource(foo, 'nothing.between')
-    needed.need(f)
-    assert needed.resources() == [e, c, b, f, d, a]
+    assert sort_resources([a, b, c, d, e, f]) == [e, c, b, f, d, a]
 
 
 def test_custom_renderer_for_resource():
@@ -717,7 +698,8 @@ def test_custom_renderer_keep_together():
     needed.need(b)
     needed.need(c)
 
-    assert needed.resources() == [a, b, c]
+    incl = Inclusion(needed)
+    assert incl.resources == [a, b, c]
 
 
 def test_resource_subclass_render():
