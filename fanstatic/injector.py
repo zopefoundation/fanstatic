@@ -85,60 +85,6 @@ class Injector(object):
         return response(environ, start_response)
 
 
-def bundle_resources(resources):
-    """Bundle sorted resources together.
-
-    resources is expected to be a list previously sorted by sorted_resources.
-
-    Returns a list of renderable resources, which can include several
-    resources bundled together into Bundles.
-    """
-    result = []
-    bundle = Bundle()
-    for resource in resources:
-        if bundle.fits(resource):
-            bundle.append(resource)
-        else:
-            # add the previous bundle to the list and create new bundle
-            bundle.add_to_list(result)
-            bundle = Bundle()
-            if resource.dont_bundle:
-                result.append(resource)
-            else:
-                bundle.append(resource)
-    # add the last bundle to the list
-    bundle.add_to_list(result)
-    return result
-
-
-def rollup_resources(resources):
-    # keep track of rollups: rollup key -> set of resource keys
-    potential_rollups = {}
-    for resource in resources:
-        for rollup in resource.rollups:
-            s = potential_rollups.setdefault(
-                (rollup.library, rollup.relpath), set())
-            s.add((resource.library, resource.relpath))
-
-    # now go through resources, replacing them with rollups if
-    # conditions match
-    result = set()
-    for resource in resources:
-        superseders = []
-        for rollup in resource.rollups:
-            s = potential_rollups[(rollup.library, rollup.relpath)]
-            if len(s) == len(rollup.supersedes):
-                superseders.append(rollup)
-        if superseders:
-            # use the exact superseder that rolls up the most
-            superseders = sorted(superseders, key=lambda i: len(i.supersedes))
-            result.add(superseders[-1])
-        else:
-            # nothing to supersede resource so use it directly
-            result.add(resource)
-    return result
-
-
 class Inclusion(object):
     """Will be instantiated for every request.
 
@@ -201,11 +147,38 @@ class Inclusion(object):
         return '\n'.join(result)
 
 
-class TopBottomInjector(object):
+class InjectorPlugin(object):
+    """Base class that can be use to write an injector plugin. It will
+    take out from the configuration the common options that can be
+    used in conjunction with an Inclusion.
+    """
+
+    def __init__(self, options):
+        self._compile = options.pop('compile', False)
+        self._bundle = options.pop('bundle', False)
+        self._rollup = options.pop('rollup', False)
+        debug = options.pop('debug', False)
+        minified = options.pop('minified', False)
+        self._mode = None
+        if (debug and minified):
+            raise ConfigurationError('Choose *one* of debug and minified')
+        if debug is True:
+            self._mode = DEBUG
+        if minified is True:
+            self._mode = MINIFIED
+
+    def make_inclusion(self, needed, resources):
+        """Helper to create an Inclusion passing all the options
+        configured in the configuration file.
+        """
+        return Inclusion(needed, resources,
+            compile=self._compile, bundle=self._bundle,
+            mode=self._mode, rollup=self._rollup)
+
+
+class TopBottomInjector(InjectorPlugin):
 
     name = 'topbottom'
-
-    _mode = None
 
     def __init__(self, options):
         """
@@ -221,21 +194,9 @@ class TopBottomInjector(object):
           safe.
 
         """
-
+        super(TopBottomInjector, self).__init__(options)
         self._bottom = options.pop('bottom', False)
         self._force_bottom = options.pop('force_bottom', False)
-
-        self._compile = options.pop('compile', False)
-        self._bundle = options.pop('bundle', False)
-        self._rollup = options.pop('rollup', False)
-        debug = options.pop('debug', False)
-        minified = options.pop('minified', False)
-        if (debug and minified):
-            raise ConfigurationError('Choose *one* of debug and minified')
-        if debug is True:
-            self._mode = DEBUG
-        if minified is True:
-            self._mode = MINIFIED
 
     def group(self, needed):
         """Return the top and bottom resources."""
@@ -263,11 +224,6 @@ class TopBottomInjector(object):
             self.make_inclusion(needed, bottom_resources)
         )
 
-    def make_inclusion(self, needed, resources):
-        return Inclusion(needed, resources,
-            compile=self._compile, bundle=self._bundle,
-            mode=self._mode, rollup=self._rollup)
-
     def __call__(self, html, needed, request=None, response=None):
         # seperate inclusions in top and bottom inclusions if this is needed
         top, bottom = self.group(needed)
@@ -280,6 +236,65 @@ class TopBottomInjector(object):
                 compat.as_bytestring('</body>'),
                 compat.as_bytestring('%s</body>' % bottom.render()), 1)
         return html
+
+
+
+def bundle_resources(resources):
+    """Bundle sorted resources together.
+
+    resources is expected to be a list previously sorted by sorted_resources.
+
+    Returns a list of renderable resources, which can include several
+    resources bundled together into Bundles.
+    """
+    result = []
+    bundle = Bundle()
+    for resource in resources:
+        if bundle.fits(resource):
+            bundle.append(resource)
+        else:
+            # add the previous bundle to the list and create new bundle
+            bundle.add_to_list(result)
+            bundle = Bundle()
+            if resource.dont_bundle:
+                result.append(resource)
+            else:
+                bundle.append(resource)
+    # add the last bundle to the list
+    bundle.add_to_list(result)
+    return result
+
+
+def rollup_resources(resources):
+    """Rollup resources together: if a resource include multiple
+    separate ones (i.e. is a rollup) and all the separate ones are
+    included the rollup will be used instead.
+    """
+    # keep track of rollups: rollup key -> set of resource keys
+    potential_rollups = {}
+    for resource in resources:
+        for rollup in resource.rollups:
+            s = potential_rollups.setdefault(
+                (rollup.library, rollup.relpath), set())
+            s.add((resource.library, resource.relpath))
+
+    # now go through resources, replacing them with rollups if
+    # conditions match
+    result = set()
+    for resource in resources:
+        superseders = []
+        for rollup in resource.rollups:
+            s = potential_rollups[(rollup.library, rollup.relpath)]
+            if len(s) == len(rollup.supersedes):
+                superseders.append(rollup)
+        if superseders:
+            # use the exact superseder that rolls up the most
+            superseders = sorted(superseders, key=lambda i: len(i.supersedes))
+            result.add(superseders[-1])
+        else:
+            # nothing to supersede resource so use it directly
+            result.add(resource)
+    return result
 
 
 def sort_resources(resources):
