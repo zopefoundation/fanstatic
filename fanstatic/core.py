@@ -474,18 +474,6 @@ class Resource(Renderable, Dependable):
         # create a reference to the superseder in the superseded resource
         for resource in self.supersedes:
             resource.rollups.append(self)
-        # also create a reference to the superseding mode in the superseded
-        # mode
-        # XXX what if mode is full-fledged resource which lists
-        # supersedes itself?
-        for mode_name, mode in compat.iteritems(self.modes):
-            for resource in self.supersedes:
-                superseded_mode = resource.mode(mode_name)
-                # if there is no such mode, let's skip it
-                if superseded_mode is resource:
-                    continue
-                mode.supersedes.append(superseded_mode)
-                superseded_mode.rollups.append(mode)
 
         # Register ourself with the Library.
         self.library.register(self)

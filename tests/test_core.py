@@ -14,8 +14,6 @@ from fanstatic import (Library,
                        clear_needed,
                        register_inclusion_renderer,
                        ConfigurationError,
-                       bundle_resources,
-                       sort_resources,
                        LibraryDependencyCycleError,
                        NEEDED,
                        UnknownResourceExtensionError,
@@ -27,6 +25,9 @@ from fanstatic.core import inclusion_renderers
 from fanstatic.core import thread_local_needed_data
 from fanstatic.core import ModeResourceDependencyError
 from fanstatic.codegen import sort_resources_topological
+from fanstatic.injector import (bundle_resources,
+                                sort_resources,
+                                rollup_resources)
 
 
 def test_resource():
@@ -359,11 +360,7 @@ def test_rollup():
     b2 = Resource(foo, 'b2.js')
     giant = Resource(foo, 'giant.js', supersedes=[b1, b2])
 
-    needed = NeededResources(rollup=True)
-    needed.need(b1)
-    needed.need(b2)
-
-    assert needed.resources() == [giant]
+    assert rollup_resources([b1, b2]) == set([giant])
 
 
 def test_rollup_cannot():
@@ -373,10 +370,7 @@ def test_rollup_cannot():
 
     giant = Resource(foo, 'giant.js', supersedes=[b1, b2])
 
-    needed = NeededResources(rollup=True)
-    needed.need(b1)
-    assert needed.resources() == [b1]
-    assert giant not in needed.resources()
+    assert rollup_resources([b1]) == set([b1])
 
 
 def test_rollup_larger():
@@ -386,18 +380,9 @@ def test_rollup_larger():
     c3 = Resource(foo, 'c3.css')
     giant = Resource(foo, 'giant.css', supersedes=[c1, c2, c3])
 
-    needed = NeededResources(rollup=True)
-    needed.need(c1)
-
-    assert needed.resources() == [c1]
-
-    needed.need(c2)
-
-    assert needed.resources() == [c1, c2]
-
-    needed.need(c3)
-
-    assert needed.resources() == [giant]
+    assert rollup_resources([c1]) == set([c1])
+    assert rollup_resources([c1, c2]) == set([c1, c2])
+    assert rollup_resources([c1, c2, c3]) == set([giant])
 
 
 def test_rollup_size_competing():
@@ -409,41 +394,34 @@ def test_rollup_size_competing():
     giant_bigger = Resource(foo, 'giant-bigger.js',
                             supersedes=[d1, d2, d3])
 
-    needed = NeededResources(rollup=True)
-    needed.need(d1)
-    needed.need(d2)
-    needed.need(d3)
-    assert needed.resources() == [giant_bigger]
-    assert giant not in needed.resources()
+    assert rollup_resources([d1, d2, d3]) == set([giant_bigger])
 
 
-def test_rollup_modes():
+def test_inclusion_rollup_and_debug():
     foo = Library('foo', '')
     f1 = Resource(foo, 'f1.js', debug='f1-debug.js')
     f2 = Resource(foo, 'f2.js', debug='f2-debug.js')
     giantf = Resource(foo, 'giantf.js', supersedes=[f1, f2],
                       debug='giantf-debug.js')
+    needed = NeededResources([f1, f2])
 
-    needed = NeededResources(rollup=True)
-    needed.need(f1)
-    needed.need(f2)
-    assert needed.resources() == [giantf]
+    incl = Inclusion(needed, rollup=True)
+    assert incl.resources == [giantf]
 
-    needed = NeededResources(rollup=True, debug=True)
-    needed.need(f1)
-    needed.need(f2)
-    assert needed.resources() == [giantf.modes['debug']]
+    incl = Inclusion(needed, rollup=True, mode='debug')
+    assert incl.resources == [giantf.modes['debug']]
 
 
-def test_rollup_without_mode():
+def test_inclusion_rollup_and_debug_missing():
     foo = Library('foo', '')
     h1 = Resource(foo, 'h1.js', debug='h1-debug.js')
     h2 = Resource(foo, 'h2.js', debug='h2-debug.js')
     gianth = Resource(foo, 'gianth.js', supersedes=[h1, h2])
 
-    needed = NeededResources(resources=[h1, h2], rollup=True, debug=True)
+    needed = NeededResources([h1, h2])
+    incl = Inclusion(needed, rollup=True, mode='debug')
     # no mode available for rollup, use the rollup.
-    assert needed.resources() == [gianth]
+    assert incl.resources== [gianth]
 
 
 def test_rendering():
