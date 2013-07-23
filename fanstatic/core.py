@@ -342,20 +342,9 @@ class Resource(Renderable, Dependable):
       resource. If no renderer is provided, a renderer is looked up
       based on the resource's filename extension.
 
-    :param debug: optionally, a debug version of the resource.
-      The argument is a :py:class:`Resource` instance, or a string that
-      indicates a relative path to the resource. In the latter case
-      a :py:class:`Resource` instance is constructed that has the same
-      library as the resource.
-
     :param dont_bundle: Don't bundle this resource in any bundles
       (if bundling is enabled).
 
-    :param minified: optionally, a minified version of the resource.
-      The argument is a :py:class:`Resource` instance, or a string that
-      indicates a relative path to the resource. In the latter case
-      a :py:class:`Resource` instance is constructed that has the same
-      library as the resource.
     """
 
     def __init__(self, library, relpath,
@@ -762,20 +751,6 @@ class NeededResources(object):
       If set to ``False``, the hash URLs will only be
       calculated once after server startup.
 
-    :param minified: If set to ``True``, Fanstatic will include all
-      resources in ``minified`` form. If a Resource instance does not
-      provide a ``minified`` mode, the "main" (non-named) mode is used.
-
-    :param debug: If set to ``True``, Fanstatic will include all
-      resources in ``debug`` form. If a Resource instance does not
-      provide a ``debug`` mode, the "main" (non-named) mode is used.
-      An exception is raised when both the ``debug`` and ``minified``
-      parameters are ``True``.
-
-    :param rollup: If set to True (default is False) rolled up
-      combined resources will be served if they exist and supersede
-      existing resources that are needed.
-
     :param base_url: This URL will be prefixed in front of all resource
       URLs. This can be useful if your web framework wants the resources
       to be published on a sub-URL. By default, there is no ``base_url``,
@@ -807,15 +782,10 @@ class NeededResources(object):
     to change this attribute directly on an already existing
     ``NeededResources`` object.
     """
-    _mode = None
-
     def __init__(self,
                  versioning=False,
                  versioning_use_md5=False,
                  recompute_hashes=True,
-                 minified=False,
-                 debug=False,
-                 rollup=False,
                  base_url=None,
                  script_name=None,
                  publisher_signature=DEFAULT_SIGNATURE,
@@ -831,16 +801,9 @@ class NeededResources(object):
         self._base_url = base_url
         self._script_name = script_name
         self._publisher_signature = publisher_signature
-        self._rollup = rollup
         self._resources = set(resources or [])
         self._slots = {}
         self._url_cache = {}  # prevent multiple computations per request
-        if (debug and minified):
-            raise ConfigurationError('Choose *one* of debug and minified')
-        if debug is True:
-            self._mode = DEBUG
-        if minified is True:
-            self._mode = MINIFIED
 
     def has_resources(self):
         """Returns True if any resources are needed.
@@ -891,13 +854,7 @@ class NeededResources(object):
         resources = set()
         for resource in self._resources:
             resources.update(resource.resources)
-
-        resources = self._fill_slots(resources)
-
-        if self._rollup:
-            resources = set(consolidate(resources))
-        resources = [resource.mode(self._mode) for resource in resources]
-        return sort_resources(resources)
+        return self._fill_slots(resources)
 
     def _fill_slots(self, resources):
         result = set()
@@ -1015,66 +972,6 @@ def get_needed():
 def clear_needed():
     needed = get_needed()
     needed.clear()
-
-
-def consolidate(resources):
-    # keep track of rollups: rollup key -> set of resource keys
-    potential_rollups = {}
-    for resource in resources:
-        for rollup in resource.rollups:
-            s = potential_rollups.setdefault(
-                (rollup.library, rollup.relpath), set())
-            s.add((resource.library, resource.relpath))
-
-    # now go through resources, replacing them with rollups if
-    # conditions match
-    result = []
-    for resource in resources:
-        superseders = []
-        for rollup in resource.rollups:
-            s = potential_rollups[(rollup.library, rollup.relpath)]
-            if len(s) == len(rollup.supersedes):
-                superseders.append(rollup)
-        if superseders:
-            # use the exact superseder that rolls up the most
-            superseders = sorted(superseders, key=lambda i: len(i.supersedes))
-            result.append(superseders[-1])
-        else:
-            # nothing to supersede resource so use it directly
-            result.append(resource)
-    return result
-
-
-def sort_resources(resources):
-    """Sort resources for inclusion on web page.
-
-    A number of rules are followed:
-
-    * resources are always grouped per renderer (.js, .css, etc)
-    * resources that depend on other resources are sorted later
-    * resources are grouped by library, if the dependencies allow it
-    * libraries are sorted by name, if dependencies allow it
-    * resources are sorted by resource path if they both would be
-      sorted the same otherwise.
-
-    The only purpose of sorting on library is so we can
-    group resources per library, so that bundles can later be created
-    of them if bundling support is enabled.
-
-    Note this sorting algorithm guarantees a consistent ordering, no
-    matter in what order resources were needed.
-    """
-    for resource in resources:
-        resource.library.init_library_nr()
-
-    def key(resource):
-        return (
-            resource.order,
-            resource.library.library_nr,
-            resource.library.name,
-            resource.dependency_nr,
-            resource.relpath)
-    return sorted(resources, key=key)
 
 
 class Bundle(Renderable):
