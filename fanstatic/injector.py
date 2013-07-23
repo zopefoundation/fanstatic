@@ -175,6 +175,9 @@ class InjectorPlugin(object):
             compile=self._compile, bundle=self._bundle,
             mode=self._mode, rollup=self._rollup)
 
+    def __call__(self, html, needed, request, response):
+        raise NotImplementedError
+
 
 class TopBottomInjector(InjectorPlugin):
 
