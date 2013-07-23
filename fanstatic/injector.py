@@ -1,5 +1,6 @@
 import webob
 
+from fanstatic.config import convert_config
 from fanstatic import ConfigurationError
 from fanstatic import compat
 from fanstatic.config import convert_config
@@ -110,14 +111,82 @@ def bundle_resources(resources):
     return result
 
 
-class Inclusion(object):
-    """Will be instantiated for every request."""
+def rollup_resources(resources):
+    # keep track of rollups: rollup key -> set of resource keys
+    potential_rollups = {}
+    for resource in resources:
+        for rollup in resource.rollups:
+            s = potential_rollups.setdefault(
+                (rollup.library, rollup.relpath), set())
+            s.add((resource.library, resource.relpath))
 
-    def __init__(self, needed, resources=None, compile=False, bundle=False):
+    # now go through resources, replacing them with rollups if
+    # conditions match
+    result = set()
+    for resource in resources:
+        superseders = []
+        for rollup in resource.rollups:
+            s = potential_rollups[(rollup.library, rollup.relpath)]
+            if len(s) == len(rollup.supersedes):
+                superseders.append(rollup)
+        if superseders:
+            # use the exact superseder that rolls up the most
+            superseders = sorted(superseders, key=lambda i: len(i.supersedes))
+            result.add(superseders[-1])
+        else:
+            # nothing to supersede resource so use it directly
+            result.add(resource)
+    return result
+
+
+class Inclusion(object):
+    """Will be instantiated for every request.
+
+    :param minified: If set to ``True``, Fanstatic will include all
+      resources in ``minified`` form. If a Resource instance does not
+      provide a ``minified`` mode, the "main" (non-named) mode is used.
+
+    :param debug: If set to ``True``, Fanstatic will include all
+      resources in ``debug`` form. If a Resource instance does not
+      provide a ``debug`` mode, the "main" (non-named) mode is used.
+      An exception is raised when both the ``debug`` and ``minified``
+      parameters are ``True``.
+
+    :param rollup: If set to True (default is False) rolled up
+      combined resources will be served if they exist and supersede
+      existing resources that are needed.
+
+    :param bundle: If set to True, Fanstatic will attempt to bundle
+      resources that fit together into larger Bundle objects. These
+      can then be rendered as single URLs to these bundles.
+
+    :param compile: XXX
+    """
+    def __init__(self, needed, resources=None,
+            compile=False, bundle=False,
+            mode=None, rollup=False):
+
         # Needed is basically the context object.
         self.needed = needed
+
         if resources is None:
             resources = needed.resources()
+
+        if rollup:
+            resources = rollup_resources(resources)
+
+        if mode is not None:
+            resources = [resource.mode(mode) for resource in resources]
+
+        resources = sort_resources(resources)
+
+        if compile:
+            for resource in resources:
+                resource.compile()
+
+        if bundle:
+            resources = bundle_resources(resources)
+
         self.resources = resources
         if compile:
             for resource in self.resources:
@@ -141,6 +210,8 @@ class TopBottomInjector(object):
 
     name = 'topbottom'
 
+    _mode = None
+
     def __init__(self, options):
         """
         :param bottom: If set to ``True``, Fanstatic will include any
@@ -154,17 +225,22 @@ class TopBottomInjector(object):
           the bottom of a web page, even if they aren't marked bottom
           safe.
 
-        :param bundle: If set to True, Fanstatic will attempt to bundle
-          resources that fit together into larger Bundle objects. These
-          can then be rendered as single URLs to these bundles.
-
-        :param compile: XXX
         """
 
         self._bottom = options.pop('bottom', False)
         self._force_bottom = options.pop('force_bottom', False)
+
         self._compile = options.pop('compile', False)
         self._bundle = options.pop('bundle', False)
+        self._rollup = options.pop('rollup', False)
+        debug = options.pop('debug', False)
+        minified = options.pop('minified', False)
+        if (debug and minified):
+            raise ConfigurationError('Choose *one* of debug and minified')
+        if debug is True:
+            self._mode = DEBUG
+        if minified is True:
+            self._mode = MINIFIED
 
     def group(self, needed):
         """Return the top and bottom resources."""
@@ -188,11 +264,14 @@ class TopBottomInjector(object):
             top_resources = resources
             bottom_resources = []
         return (
-            Inclusion(needed,
-                top_resources, compile=self._compile, bundle=self._bundle),
-            Inclusion(needed,
-                bottom_resources, compile=self._compile, bundle=self._bundle)
+            self.make_inclusion(needed, top_resources),
+            self.make_inclusion(needed, bottom_resources)
         )
+
+    def make_inclusion(self, needed, resources):
+        return Inclusion(needed, resources,
+            compile=self._compile, bundle=self._bundle,
+            mode=self._mode, rollup=self._rollup)
 
     def __call__(self, html, needed, request=None, response=None):
         # seperate inclusions in top and bottom inclusions if this is needed
@@ -206,6 +285,38 @@ class TopBottomInjector(object):
                 compat.as_bytestring('</body>'),
                 compat.as_bytestring('%s</body>' % bottom.render()), 1)
         return html
+
+
+def sort_resources(resources):
+    """Sort resources for inclusion on web page.
+
+    A number of rules are followed:
+
+    * resources are always grouped per renderer (.js, .css, etc)
+    * resources that depend on other resources are sorted later
+    * resources are grouped by library, if the dependencies allow it
+    * libraries are sorted by name, if dependencies allow it
+    * resources are sorted by resource path if they both would be
+      sorted the same otherwise.
+
+    The only purpose of sorting on library is so we can
+    group resources per library, so that bundles can later be created
+    of them if bundling support is enabled.
+
+    Note this sorting algorithm guarantees a consistent ordering, no
+    matter in what order resources were needed.
+    """
+    for resource in resources:
+        resource.library.init_library_nr()
+
+    def key(resource):
+        return (
+            resource.order,
+            resource.library.library_nr,
+            resource.library.name,
+            resource.dependency_nr,
+            resource.relpath)
+    return sorted(resources, key=key)
 
 
 def make_injector(app, global_config, **local_config):

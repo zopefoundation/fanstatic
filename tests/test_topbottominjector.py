@@ -40,9 +40,9 @@ def test_html_bottom_safe_used_with_minified():
     foo = Library('foo', '')
     a = Resource(foo, 'a.js', minified='a-minified.js', bottom=True)
 
-    needed = NeededResources(resources=[a], minified=True)
+    needed = NeededResources(resources=[a])
 
-    injector = TopBottomInjector(dict(bottom=True))
+    injector = TopBottomInjector(dict(bottom=True, minified=True))
 
     top, bottom = injector.group(needed)
     assert len(top) == 0
