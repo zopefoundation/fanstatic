@@ -4,6 +4,7 @@ from fanstatic import Library, Resource, NeededResources
 from fanstatic.injector import InjectorPlugin
 from fanstatic.registry import InjectorRegistry
 from fanstatic import make_injector
+from fanstatic import compat
 from fanstatic import ConfigurationError
 from fanstatic.injector import TopBottomInjector
 
@@ -14,8 +15,9 @@ class TopInjector(InjectorPlugin):
 
     def __call__(self, html, needed):
         needed_html = self.make_inclusion(needed).render()
-        return html.replace('<head>', '<head>%s' % needed_html, 1)
-
+        return html.replace(
+            compat.as_bytestring('<head>'),
+            compat.as_bytestring('<head>%s' % needed_html), 1)
 
 def test_injector_based_on_injectorplugin():
     foo = Library('foo', '')
@@ -28,8 +30,8 @@ def test_injector_based_on_injectorplugin():
     html = b'<html><head></head><body></body></html>'
 
     assert inj(html, needed) == \
-        '''<html><head><link rel="stylesheet" type="text/css" href="/fanstatic/foo/a.css" />
-<link rel="stylesheet" type="text/css" href="/fanstatic/foo/b.css" /></head><body></body></html>'''
+        compat.as_bytestring('''<html><head><link rel="stylesheet" type="text/css" href="/fanstatic/foo/a.css" />
+<link rel="stylesheet" type="text/css" href="/fanstatic/foo/b.css" /></head><body></body></html>''')
 
 
 class TestingRegistry(object):
