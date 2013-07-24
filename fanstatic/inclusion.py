@@ -92,13 +92,15 @@ def sort_resources(resources):
 
 
 class Inclusion(object):
-    """Will be instantiated for every request.
+    """
+    An Inclusion is a container/group for a set of Resources that are needed.
+    The Inclusion controls various aspects of these Resources:
 
-    :param minified: If set to ``True``, Fanstatic will include all
+    :param mode: If set to ``MINIFIED``, Fanstatic will include all
       resources in ``minified`` form. If a Resource instance does not
       provide a ``minified`` mode, the "main" (non-named) mode is used.
 
-    :param debug: If set to ``True``, Fanstatic will include all
+      If set to ``DEBUG``, Fanstatic will include all
       resources in ``debug`` form. If a Resource instance does not
       provide a ``debug`` mode, the "main" (non-named) mode is used.
       An exception is raised when both the ``debug`` and ``minified``
@@ -112,8 +114,11 @@ class Inclusion(object):
       resources that fit together into larger Bundle objects. These
       can then be rendered as single URLs to these bundles.
 
-    :param compile: XXX
+    :param compile: If set to True, Fanstatic will compile resources
+      for every time the Inclusion is created. You'll probably want to set
+      this to False in a production environment.
     """
+
     def __init__(self, needed, resources=None,
             compile=False, bundle=False,
             mode=None, rollup=False):
