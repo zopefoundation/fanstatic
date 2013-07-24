@@ -84,6 +84,7 @@ class Injector(object):
 
         return response(environ, start_response)
 
+
 class InjectorPlugin(object):
     """Base class that can be use to write an injector plugin. It will
     take out from the configuration the common options that can be
@@ -108,14 +109,14 @@ class InjectorPlugin(object):
         """Helper to create an Inclusion passing all the options
         configured in the configuration file.
         """
-        return Inclusion(needed, resources=resources,
+        return Inclusion(
+            needed, resources=resources,
             compile=self._compile, bundle=self._bundle,
             mode=self._mode, rollup=self._rollup)
 
     def __call__(self, html, needed, request=None, response=None):
-        """
-        Render the needed resources into the html.
-        The request and response arguments are, if given,
+        """ Render the needed resources into the html.
+        The request and response arguments are
         webob Request and Response objects.
         """
         raise NotImplementedError

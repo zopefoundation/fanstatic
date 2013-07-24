@@ -1,6 +1,5 @@
 import os
 import sys
-import re
 import threading
 
 from fanstatic import compat
@@ -382,7 +381,7 @@ class Resource(Renderable, Dependable):
             minifier]
         self.minified = minified
         if (self.minified and not isinstance(self.minified, compat.basestring)
-            and self.minifier.available):
+                and self.minifier.available):
             raise ConfigurationError(
                 "Since %s specifies minifier %s, passing another "
                 "Resource object as its minified version does not make sense"
@@ -856,8 +855,8 @@ class NeededResources(object):
                 elif not resource.required:
                     continue
                 else:
-                    raise SlotError("slot %r was required but not filled in" %
-                                resource)
+                    raise SlotError(
+                        "slot %r was required but not filled in" % resource)
             result.add(FilledSlot(resource, fill_resource))
         return result
 
@@ -893,6 +892,7 @@ class NeededResources(object):
                     version_method=self._version_method))
         library_url = self._url_cache[library.name] = '/'.join(path)
         return library_url
+
 
 class DummyNeededResources(object):
     """A dummy implementation of the needed resources.
@@ -1024,5 +1024,3 @@ class Bundle(Renderable):
         else:
             # add the bundle itself
             result.append(self)
-
-

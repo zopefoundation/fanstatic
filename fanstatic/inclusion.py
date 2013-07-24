@@ -1,5 +1,5 @@
-
 from fanstatic.core import Bundle
+
 
 def bundle_resources(resources):
     """Bundle sorted resources together.
@@ -119,7 +119,8 @@ class Inclusion(object):
       this to False in a production environment.
     """
 
-    def __init__(self, needed, resources=None,
+    def __init__(
+            self, needed, resources=None,
             compile=False, bundle=False,
             mode=None, rollup=False):
         # Needed is basically the context object.
@@ -155,4 +156,3 @@ class Inclusion(object):
                 resource.render(
                     self.needed.library_url(resource.library)))
         return '\n'.join(result)
-
