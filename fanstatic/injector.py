@@ -104,15 +104,20 @@ class InjectorPlugin(object):
         if minified is True:
             self._mode = MINIFIED
 
-    def make_inclusion(self, needed, resources):
+    def make_inclusion(self, needed, resources=None):
         """Helper to create an Inclusion passing all the options
         configured in the configuration file.
         """
-        return Inclusion(needed, resources,
+        return Inclusion(needed, resources=resources,
             compile=self._compile, bundle=self._bundle,
             mode=self._mode, rollup=self._rollup)
 
-    def __call__(self, html, needed, request, response):
+    def __call__(self, html, needed, request=None, response=None):
+        """
+        Render the needed resources into the html.
+        The request and response arguments are, if given,
+        webob Request and Response objects.
+        """
         raise NotImplementedError
 
 
