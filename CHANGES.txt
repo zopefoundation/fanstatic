@@ -12,6 +12,10 @@ CHANGES
   the official API. People that use fanstatic internals are encouraged to
   update their code.
 
+- Introduce "Inclusion" object; the responsibilities around bundling,
+  compilation, debug/minified mode and rollup are moved from the
+  NeededResources class to the Inclusion class.
+
 1.0a2 (2013-05-25)
 ==================
 
