@@ -72,6 +72,14 @@ Use bundling of resources::
 
   bundle = true
 
+Use compilation or resources::
+
+  compile = true
+
+Configure an injector plugin, by name::
+
+  injector = foo
+
 A complete ``[filter:fanstatic]`` section could look like this::
 
   [filter:fanstatic]
