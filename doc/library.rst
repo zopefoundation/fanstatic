@@ -215,22 +215,24 @@ See :doc:`compilers` for detailed information on that.
 Bonus: bundling of resources
 ----------------------------
 
-Bundling of resources minimizes the amount of HTTP requests from a 
+Bundling of resources minimizes the amount of HTTP requests from a
 web page. Resources from the same Library can be bundled up into one,
 when they have the same renderer. Bundling is disabled by default.
 If you want bundling, set `bundle` to True::
 
-  from fanstatic import Library, Resource
+  from fanstatic import Library, Resource, Inclusion
 
   qux_library = Library('qux', 'qux_resources')
 
   a = Resource(qux_library, 'a.css')
   b = Resource(qux_library, 'b.css')
 
-  fanstatic.init_needed(bundle=True)
+  needed = fanstatic.init_needed()
 
   a.need()
   b.need()
+
+  Inclusion(needed, bundle=True)
 
 The resulting URL looks like this::
 
@@ -258,14 +260,14 @@ inefficient bundles. For an example look at the following example situation.::
   c = Resource(bar, 'c.js', depends=[a])
 
 If we `need()` resource b in page 1 of our application and would allow
-cross-library bundling, we would get a bundle of a + b. If we then need 
+cross-library bundling, we would get a bundle of a + b. If we then need
 only resource c in page 2 of our application, we would render a bundle of
-a + c. In this example we see that cross-library bundling can lead to 
-inefficient bundles, as the client downloads 2 * a + b + c. 
-Fanstatic doesn't do cross-library bundling, so the client downloads a + b + c. 
+a + c. In this example we see that cross-library bundling can lead to
+inefficient bundles, as the client downloads 2 * a + b + c.
+Fanstatic doesn't do cross-library bundling, so the client downloads a + b + c.
 
 When bundling resources, things could go haywire with regard to relative
-URLs in CSS files. Fanstatic prevents this by taking the dirname of the 
+URLs in CSS files. Fanstatic prevents this by taking the dirname of the
 Resource into account::
 
   from fanstatic import Library, Resource
@@ -277,5 +279,5 @@ Resource into account::
 
 Fanstatic won't bundle `a` and `b`, as `b` may have relative URLs that the
 browser would not be able to resolve.  We *could* rewrite the CSS and inject
-URLs to the proper resources in order to have more efficient bundles, but we 
+URLs to the proper resources in order to have more efficient bundles, but we
 choose to leave the CSS unaltered.
