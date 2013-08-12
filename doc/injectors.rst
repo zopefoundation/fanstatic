@@ -40,4 +40,6 @@ After writing the plugin code, register the plugin through the
 "fanstatic.injectors" entry point.
 
 An example of an injector plugin with configuration taken from paste deploy
-can be found in the :pypi:`sylva.fanstatic` package.
+can be found in the sylva.fanstatic_ package.
+
+.. _sylva.fanstatic: http://silvacms.org/getsilva/packages/silva_all/silva.fanstatic
