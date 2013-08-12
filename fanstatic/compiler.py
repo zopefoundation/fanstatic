@@ -24,7 +24,7 @@ class Compiler(object):
     """Generates a target file from a source file.
     """
 
-    name = NotImplemented  #: name used to reference this from a Resource
+    name = NotImplemented  # name used to reference this from a Resource
     source_extension = NotImplemented
 
     def __call__(self, resource, force=False):

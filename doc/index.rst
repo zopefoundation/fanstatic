@@ -12,6 +12,7 @@ Contents:
    library
    optimization
    compilers
+   injectors
    configuration
    paste_deploy
    serf

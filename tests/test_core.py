@@ -14,16 +14,20 @@ from fanstatic import (Library,
                        clear_needed,
                        register_inclusion_renderer,
                        ConfigurationError,
-                       bundle_resources,
                        LibraryDependencyCycleError,
                        NEEDED,
                        UnknownResourceExtensionError,
                        UnknownResourceError,
-                       set_resource_file_existence_checking, compat)
+                       set_resource_file_existence_checking,
+                       compat,
+                       Inclusion)
 from fanstatic.core import inclusion_renderers
 from fanstatic.core import thread_local_needed_data
 from fanstatic.core import ModeResourceDependencyError
 from fanstatic.codegen import sort_resources_topological
+from fanstatic.inclusion import (bundle_resources,
+                                 sort_resources,
+                                 rollup_resources)
 
 
 def test_resource():
@@ -35,7 +39,7 @@ def test_resource():
     needed = NeededResources()
     needed.need(y1)
 
-    assert needed.resources() == [x2, x1, y1]
+    assert needed.resources() == set([x2, x1, y1])
 
 
 def test_resource_file_exists(tmpdir):
@@ -101,7 +105,7 @@ def test_convenience_need_not_initialized():
 
     dummy.need(y1)
     with pytest.raises(NotImplementedError):
-        dummy.render()
+        dummy.resources()
 
 
 def test_convenience_clear_not_initialized():
@@ -145,11 +149,11 @@ def test_convenience_need():
 
     needed = init_needed()
     assert get_needed() == needed
-    assert get_needed().resources() == []
+    assert get_needed().resources() == set([])
 
     y1.need()
 
-    assert get_needed().resources() == [x2, x1, y1]
+    assert get_needed().resources() == set([x2, x1, y1])
 
 
 def test_convenience_group_resource_need():
@@ -161,11 +165,11 @@ def test_convenience_group_resource_need():
 
     needed = init_needed()
     assert get_needed() == needed
-    assert get_needed().resources() == []
+    assert get_needed().resources() == set([])
 
     group.need()
 
-    assert get_needed().resources() == [x2, x1, y1]
+    assert get_needed().resources() == set([x2, x1, y1])
 
 
 def test_depend_on_group():
@@ -183,7 +187,7 @@ def test_depend_on_group():
 
     needed = NeededResources()
     needed.need(c)
-    assert needed.resources() == [a, b, c]
+    assert needed.resources() == set([a, b, c])
 
 
 def test_redundant_resource():
@@ -196,13 +200,16 @@ def test_redundant_resource():
 
     needed.need(y1)
     needed.need(y1)
-    assert needed.resources() == [x2, x1, y1]
+    incl = Inclusion(needed)
+    assert incl.resources == [x2, x1, y1]
 
     needed.need(x1)
-    assert needed.resources() == [x2, x1, y1]
+    incl = Inclusion(needed)
+    assert incl.resources == [x2, x1, y1]
 
     needed.need(x2)
-    assert needed.resources() == [x2, x1, y1]
+    incl = Inclusion(needed)
+    assert incl.resources == [x2, x1, y1]
 
 
 def test_redundant_resource_reorder():
@@ -215,7 +222,8 @@ def test_redundant_resource_reorder():
     needed.need(x1)
     needed.need(x2)
     needed.need(y1)
-    assert needed.resources() == [x2, x1, y1]
+    incl = Inclusion(needed)
+    assert incl.resources == [x2, x1, y1]
 
 
 def test_redundant_more_complicated():
@@ -228,11 +236,13 @@ def test_redundant_more_complicated():
     needed = NeededResources()
     needed.need(a3)
 
-    assert needed.resources() == [a1, a2, a3]
+    incl = Inclusion(needed)
+    assert incl.resources == [a1, a2, a3]
     needed.need(a4)
     # a4 is sorted before a3, because it is less deep
     # in the dependency tree
-    assert needed.resources() == [a1, a2, a4, a3]
+    incl = Inclusion(needed)
+    assert incl.resources == [a1, a2, a4, a3]
 
 
 def test_redundant_more_complicated_reversed():
@@ -247,7 +257,8 @@ def test_redundant_more_complicated_reversed():
     needed.need(a3)
     # this will always be consistent, no matter
     # in what order we need the resources
-    assert needed.resources() == [a1, a2, a4, a3]
+    incl = Inclusion(needed)
+    assert incl.resources == [a1, a2, a4, a3]
 
 
 def test_redundant_more_complicated_depends_on_all():
@@ -260,7 +271,8 @@ def test_redundant_more_complicated_depends_on_all():
 
     needed = NeededResources()
     needed.need(a5)
-    assert needed.resources() == [a1, a2, a4, a3, a5]
+    incl = Inclusion(needed)
+    assert incl.resources == [a1, a2, a4, a3, a5]
 
 
 def test_redundant_more_complicated_depends_on_all_reorder():
@@ -274,8 +286,8 @@ def test_redundant_more_complicated_depends_on_all_reorder():
     needed = NeededResources()
     needed.need(a3)
     needed.need(a5)
-
-    assert needed.resources() == [a1, a2, a4, a3, a5]
+    incl = Inclusion(needed)
+    assert incl.resources == [a1, a2, a4, a3, a5]
 
 
 def test_mode_fully_specified():
@@ -285,43 +297,24 @@ def test_mode_fully_specified():
 
     needed = NeededResources()
     needed.need(k)
+    incl = Inclusion(needed)
+    assert incl.resources == [k]
 
-    assert needed.resources() == [k]
-
-    needed = NeededResources(debug=True)
-    needed.need(k)
-
-    assert needed.resources() == [k_debug]
+    incl = Inclusion(needed, mode='debug')
+    assert incl.resources == [k_debug]
 
     # If no minified can be found, the 'raw' resource is taken.
-    needed = NeededResources(minified=True)
-    needed.need(k)
-    assert needed.resources() == [k]
-
-    with pytest.raises(ConfigurationError):
-        NeededResources(debug=True, minified=True)
+    incl = Inclusion(needed, mode='minified')
+    assert incl.resources == [k]
 
     # If only a minified resource is defined, debug returns the raw version.
     x = Resource(foo, 'x.js', minified='x-min.js')
-    needed = NeededResources(debug=True)
-    needed.need(x)
-    assert needed.resources() == [x]
-
-
-def test_mode_shortcut():
-    foo = Library('foo', '')
-    k = Resource(foo, 'k.js', debug='k-debug.js')
-
     needed = NeededResources()
-    needed.need(k)
-
-    assert needed.resources() == [k]
-
-    needed = NeededResources(debug=True)
-    needed.need(k)
-
-    assert len(needed.resources()) == 1
-    assert needed.resources()[0].relpath == 'k-debug.js'
+    needed.need(x)
+    incl = Inclusion(needed, mode='debug')
+    assert incl.resources == [x]
+    incl = Inclusion(needed, mode='minified')
+    assert incl.resources == [x.modes['minified']]
 
 
 def test_mode_shortcut_inherit_parameters():
@@ -356,11 +349,7 @@ def test_rollup():
     b2 = Resource(foo, 'b2.js')
     giant = Resource(foo, 'giant.js', supersedes=[b1, b2])
 
-    needed = NeededResources(rollup=True)
-    needed.need(b1)
-    needed.need(b2)
-
-    assert needed.resources() == [giant]
+    assert rollup_resources([b1, b2]) == set([giant])
 
 
 def test_rollup_cannot():
@@ -370,10 +359,7 @@ def test_rollup_cannot():
 
     giant = Resource(foo, 'giant.js', supersedes=[b1, b2])
 
-    needed = NeededResources(rollup=True)
-    needed.need(b1)
-    assert needed.resources() == [b1]
-    assert giant not in needed.resources()
+    assert rollup_resources([b1]) == set([b1])
 
 
 def test_rollup_larger():
@@ -383,18 +369,9 @@ def test_rollup_larger():
     c3 = Resource(foo, 'c3.css')
     giant = Resource(foo, 'giant.css', supersedes=[c1, c2, c3])
 
-    needed = NeededResources(rollup=True)
-    needed.need(c1)
-
-    assert needed.resources() == [c1]
-
-    needed.need(c2)
-
-    assert needed.resources() == [c1, c2]
-
-    needed.need(c3)
-
-    assert needed.resources() == [giant]
+    assert rollup_resources([c1]) == set([c1])
+    assert rollup_resources([c1, c2]) == set([c1, c2])
+    assert rollup_resources([c1, c2, c3]) == set([giant])
 
 
 def test_rollup_size_competing():
@@ -406,41 +383,34 @@ def test_rollup_size_competing():
     giant_bigger = Resource(foo, 'giant-bigger.js',
                             supersedes=[d1, d2, d3])
 
-    needed = NeededResources(rollup=True)
-    needed.need(d1)
-    needed.need(d2)
-    needed.need(d3)
-    assert needed.resources() == [giant_bigger]
-    assert giant not in needed.resources()
+    assert rollup_resources([d1, d2, d3]) == set([giant_bigger])
 
 
-def test_rollup_modes():
+def test_inclusion_rollup_and_debug():
     foo = Library('foo', '')
     f1 = Resource(foo, 'f1.js', debug='f1-debug.js')
     f2 = Resource(foo, 'f2.js', debug='f2-debug.js')
     giantf = Resource(foo, 'giantf.js', supersedes=[f1, f2],
                       debug='giantf-debug.js')
 
-    needed = NeededResources(rollup=True)
-    needed.need(f1)
-    needed.need(f2)
-    assert needed.resources() == [giantf]
+    needed = NeededResources(resources=[f1, f2])
+    incl = Inclusion(needed, rollup=True)
+    assert incl.resources == [giantf]
 
-    needed = NeededResources(rollup=True, debug=True)
-    needed.need(f1)
-    needed.need(f2)
-    assert needed.resources() == [giantf.modes['debug']]
+    incl = Inclusion(needed, rollup=True, mode='debug')
+    assert incl.resources == [giantf.modes['debug']]
 
 
-def test_rollup_without_mode():
+def test_inclusion_rollup_and_debug_missing():
     foo = Library('foo', '')
     h1 = Resource(foo, 'h1.js', debug='h1-debug.js')
     h2 = Resource(foo, 'h2.js', debug='h2-debug.js')
     gianth = Resource(foo, 'gianth.js', supersedes=[h1, h2])
 
-    needed = NeededResources(resources=[h1, h2], rollup=True, debug=True)
-    # no mode available for rollup, use the rollup.
-    assert needed.resources() == [gianth]
+    needed = NeededResources(resources=[h1, h2])
+    incl = Inclusion(needed, rollup=True, mode='debug')
+    # No mode debug version of the rollup use it instead
+    assert incl.resources== [gianth]
 
 
 def test_rendering():
@@ -449,10 +419,10 @@ def test_rendering():
     x2 = Resource(foo, 'b.css')
     y1 = Resource(foo, 'c.js', depends=[x1, x2])
 
-    needed = NeededResources()
-    needed.need(y1)
+    needed = NeededResources(resources=[y1])
+    incl = Inclusion(needed)
 
-    assert needed.render() == '''\
+    assert incl.render() == '''\
 <link rel="stylesheet" type="text/css" href="/fanstatic/foo/b.css" />
 <script type="text/javascript" src="/fanstatic/foo/a.js"></script>
 <script type="text/javascript" src="/fanstatic/foo/c.js"></script>'''
@@ -464,16 +434,17 @@ def test_rendering_base_url():
     x2 = Resource(foo, 'b.css')
     y1 = Resource(foo, 'c.js', depends=[x1, x2])
 
-    needed = NeededResources()
-    needed.need(y1)
-    assert needed.render() == '''\
+    needed = NeededResources(resources=[y1])
+    incl = Inclusion(needed)
+    assert incl.render() == '''\
 <link rel="stylesheet" type="text/css" href="/fanstatic/foo/b.css" />
 <script type="text/javascript" src="/fanstatic/foo/a.js"></script>
 <script type="text/javascript" src="/fanstatic/foo/c.js"></script>'''
 
-    needed = NeededResources(base_url='http://localhost/static')
-    needed.need(y1)
-    assert needed.render() == '''\
+    needed = NeededResources(
+        base_url='http://localhost/static', resources=[y1])
+    incl = Inclusion(needed)
+    assert incl.render() == '''\
 <link rel="stylesheet" type="text/css" href="http://localhost/static/fanstatic/foo/b.css" />
 <script type="text/javascript" src="http://localhost/static/fanstatic/foo/a.js"></script>
 <script type="text/javascript" src="http://localhost/static/fanstatic/foo/c.js"></script>'''
@@ -490,10 +461,9 @@ def test_empty_base_url_and_publisher_signature():
     render a URL without them. '''
     foo = Library('foo', '')
     x1 = Resource(foo, 'a.js')
-    needed = NeededResources(publisher_signature='')
-    needed.need(x1)
-
-    assert needed.render() == '''\
+    needed = NeededResources(publisher_signature='', resources=[x1])
+    incl = Inclusion(needed)
+    assert incl.render() == '''\
 <script type="text/javascript" src="/foo/a.js"></script>'''
 
 
@@ -503,10 +473,10 @@ def test_rendering_base_url_assign():
     x2 = Resource(foo, 'b.css')
     y1 = Resource(foo, 'c.js', depends=[x1, x2])
 
-    needed = NeededResources()
-    needed.need(y1)
+    needed = NeededResources(resources=[y1])
     needed.set_base_url('http://localhost/static')
-    assert needed.render() == '''\
+    incl = Inclusion(needed)
+    assert incl.render() == '''\
 <link rel="stylesheet" type="text/css" href="http://localhost/static/fanstatic/foo/b.css" />
 <script type="text/javascript" src="http://localhost/static/fanstatic/foo/a.js"></script>
 <script type="text/javascript" src="http://localhost/static/fanstatic/foo/c.js"></script>'''
@@ -603,161 +573,40 @@ def test_library_url_hashing_recompute(tmpdir):
         time.sleep(1)
     resource.write('/* test */')
 
+    # For a new request, the url is recomputed.
+    new_needed = NeededResources(versioning=True, recompute_hashes=True)
     # the hash is recalculated now, so it changes
-    assert needed.library_url(foo) != url
+    assert new_needed.library_url(foo) != url
 
 
-def test_html_insert():
-    foo = Library('foo', '')
-    x1 = Resource(foo, 'a.js')
-    x2 = Resource(foo, 'b.css')
-    y1 = Resource(foo, 'c.js', depends=[x1, x2])
+def test_library_url_with_url_caching(tmpdir):
+    foo = Library('foo', tmpdir.strpath)
 
-    needed = NeededResources()
-    needed.need(y1)
+    needed = NeededResources(versioning=True, recompute_hashes=True)
 
-    html = b"<html><head>something more</head></html>"
+    url = needed.library_url(foo)
 
-    # XXX where is extraneous space coming from? misguided attempt at
-    # indentation?
-    assert needed.render_into_html(html) == b'''\
-<html><head>something more<link rel="stylesheet" type="text/css" href="/fanstatic/foo/b.css" />
-<script type="text/javascript" src="/fanstatic/foo/a.js"></script>
-<script type="text/javascript" src="/fanstatic/foo/c.js"></script></head></html>'''
+    # now create a file
+    resource = tmpdir.join('test.js')
 
+    time.sleep(0.5)
+    # Sleep extra long on filesystems that report in seconds
+    # instead of milliseconds.
+    if os.path.getmtime(os.curdir).is_integer():
+        time.sleep(1)
+    resource.write('/* test */')
 
-def test_html_insert_head_with_attributes():
-    # ticket 72: .need() broken when <head> tag has attributes
-    foo = Library('foo', '')
-    x1 = Resource(foo, 'a.js')
-    needed = NeededResources(resources=[x1])
-
-    html = b'<html><head profile="http://example.org">something</head></html>'
-    assert needed.render_into_html(html) == b'''\
-<html><head profile="http://example.org">something<script type="text/javascript" src="/fanstatic/foo/a.js"></script></head></html>'''
+    # The url is cached on the needed resources object.
+    assert needed.library_url(foo) == url
 
 
-def test_html_top_bottom():
-    foo = Library('foo', '')
-    x1 = Resource(foo, 'a.js')
-    x2 = Resource(foo, 'b.css')
-    y1 = Resource(foo, 'c.js', depends=[x1, x2])
-
-    needed = NeededResources()
-    needed.need(y1)
-
-    top, bottom = needed.render_topbottom()
-    assert top == '''\
-<link rel="stylesheet" type="text/css" href="/fanstatic/foo/b.css" />
-<script type="text/javascript" src="/fanstatic/foo/a.js"></script>
-<script type="text/javascript" src="/fanstatic/foo/c.js"></script>'''
-    assert bottom == ''
 
 
-def test_html_top_bottom_set_bottom():
-    foo = Library('foo', '')
-    x1 = Resource(foo, 'a.js')
-    x2 = Resource(foo, 'b.css')
-    y1 = Resource(foo, 'c.js', depends=[x1, x2])
 
-    needed = NeededResources(bottom=True)
-    needed.need(y1)
-
-    top, bottom = needed.render_topbottom()
-    assert top == '''\
-<link rel="stylesheet" type="text/css" href="/fanstatic/foo/b.css" />
-<script type="text/javascript" src="/fanstatic/foo/a.js"></script>
-<script type="text/javascript" src="/fanstatic/foo/c.js"></script>'''
-    assert bottom == ''
-
-
-def test_html_top_bottom_force_bottom():
-    foo = Library('foo', '')
-    x1 = Resource(foo, 'a.js')
-    x2 = Resource(foo, 'b.css')
-    y1 = Resource(foo, 'c.js', depends=[x1, x2])
-
-    needed = NeededResources(bottom=True, force_bottom=True)
-    needed.need(y1)
-
-    top, bottom = needed.render_topbottom()
-    assert top == '''\
-<link rel="stylesheet" type="text/css" href="/fanstatic/foo/b.css" />'''
-    assert bottom == '''\
-<script type="text/javascript" src="/fanstatic/foo/a.js"></script>
-<script type="text/javascript" src="/fanstatic/foo/c.js"></script>'''
-
-
-def test_html_bottom_safe():
-    foo = Library('foo', '')
-    x1 = Resource(foo, 'a.js')
-    x2 = Resource(foo, 'b.css')
-    y1 = Resource(foo, 'c.js', depends=[x1, x2])
-    y2 = Resource(foo, 'y2.js', bottom=True)
-
-    needed = NeededResources()
-    needed.need(y1)
-    needed.need(y2)
-    top, bottom = needed.render_topbottom()
-    assert top == '''\
-<link rel="stylesheet" type="text/css" href="/fanstatic/foo/b.css" />
-<script type="text/javascript" src="/fanstatic/foo/a.js"></script>
-<script type="text/javascript" src="/fanstatic/foo/y2.js"></script>
-<script type="text/javascript" src="/fanstatic/foo/c.js"></script>'''
-    assert bottom == ''
-
-    needed = NeededResources(bottom=True)
-    needed.need(y1)
-    needed.need(y2)
-    top, bottom = needed.render_topbottom()
-    assert top == '''\
-<link rel="stylesheet" type="text/css" href="/fanstatic/foo/b.css" />
-<script type="text/javascript" src="/fanstatic/foo/a.js"></script>
-<script type="text/javascript" src="/fanstatic/foo/c.js"></script>'''
-    assert bottom == '''\
-<script type="text/javascript" src="/fanstatic/foo/y2.js"></script>'''
-
-    needed = NeededResources(bottom=True, force_bottom=True)
-    needed.need(y1)
-    needed.need(y2)
-    top, bottom = needed.render_topbottom()
-    assert top == '''\
-<link rel="stylesheet" type="text/css" href="/fanstatic/foo/b.css" />'''
-    assert bottom == '''\
-<script type="text/javascript" src="/fanstatic/foo/a.js"></script>
-<script type="text/javascript" src="/fanstatic/foo/y2.js"></script>
-<script type="text/javascript" src="/fanstatic/foo/c.js"></script>'''
 
 
 # XXX add sanity checks: cannot declare something bottom safe while
 # what it depends on isn't bottom safe
-
-def test_html_bottom_safe_used_with_minified():
-    foo = Library('foo', '')
-    a = Resource(foo, 'a.js', minified='a-minified.js', bottom=True)
-
-    needed = NeededResources(minified=True, bottom=True)
-    needed.need(a)
-
-    top, bottom = needed.render_topbottom()
-    assert top == ''
-    assert bottom == ('<script type="text/javascript" '
-                      'src="/fanstatic/foo/a-minified.js"></script>')
-
-
-def test_top_bottom_insert():
-    foo = Library('foo', '')
-    x1 = Resource(foo, 'a.js')
-    x2 = Resource(foo, 'b.css')
-    y1 = Resource(foo, 'c.js', depends=[x1, x2])
-
-    html = b"<html><head>start of head</head><body>rest of body</body></html>"
-
-    needed = NeededResources(bottom=True, force_bottom=True)
-    needed.need(y1)
-    assert needed.render_topbottom_into_html(html) == b'''\
-<html><head>start of head<link rel="stylesheet" type="text/css" href="/fanstatic/foo/b.css" /></head><body>rest of body<script type="text/javascript" src="/fanstatic/foo/a.js"></script>
-<script type="text/javascript" src="/fanstatic/foo/c.js"></script></body></html>'''
 
 
 def test_inclusion_renderers():
@@ -782,12 +631,13 @@ def test_register_inclusion_renderer():
     register_inclusion_renderer('.unknown', render_unknown)
     a = Resource(foo, 'nothing.unknown')
 
-    needed = NeededResources()
-    needed.need(a)
-    assert needed.render() == ('<link rel="unknown" href="/fanstatic/foo/nothing.unknown" />')
+    needed = NeededResources(resources=[a])
+    incl = Inclusion(needed)
+    assert incl.render() == \
+        '<link rel="unknown" href="/fanstatic/foo/nothing.unknown" />'
 
 
-def test_registered_inclusion_renderers_in_order():
+def test_sort_registered_inclusion_renderers_in_order():
     foo = Library('foo', '')
 
     def render_unknown(url):
@@ -799,38 +649,15 @@ def test_registered_inclusion_renderers_in_order():
     c = Resource(foo, 'something.css')
     d = Resource(foo, 'something.ico')
 
-    needed = NeededResources()
-    needed.need(a)
-    needed.need(b)
-    needed.need(c)
-    needed.need(d)
-
-    assert needed.render() == """\
-<link rel="stylesheet" type="text/css" href="/fanstatic/foo/something.css" />
-<script type="text/javascript" src="/fanstatic/foo/something.js"></script>
-<link rel="shortcut icon" type="image/x-icon" href="/fanstatic/foo/something.ico"/>
-<unknown href="/fanstatic/foo/nothing.later"/>"""
+    assert sort_resources([a, b, c, d]) == [c, b, d, a]
 
     register_inclusion_renderer('.sooner', render_unknown, 5)
     e = Resource(foo, 'nothing.sooner')
-    needed.need(e)
-    assert needed.render() == """\
-<unknown href="/fanstatic/foo/nothing.sooner"/>
-<link rel="stylesheet" type="text/css" href="/fanstatic/foo/something.css" />
-<script type="text/javascript" src="/fanstatic/foo/something.js"></script>
-<link rel="shortcut icon" type="image/x-icon" href="/fanstatic/foo/something.ico"/>
-<unknown href="/fanstatic/foo/nothing.later"/>"""
+    assert sort_resources([a, b, c, d, e]) == [e, c, b, d, a]
 
     register_inclusion_renderer('.between', render_unknown, 25)
     f = Resource(foo, 'nothing.between')
-    needed.need(f)
-    assert needed.render() == """\
-<unknown href="/fanstatic/foo/nothing.sooner"/>
-<link rel="stylesheet" type="text/css" href="/fanstatic/foo/something.css" />
-<script type="text/javascript" src="/fanstatic/foo/something.js"></script>
-<unknown href="/fanstatic/foo/nothing.between"/>
-<link rel="shortcut icon" type="image/x-icon" href="/fanstatic/foo/something.ico"/>
-<unknown href="/fanstatic/foo/nothing.later"/>"""
+    assert sort_resources([a, b, c, d, e, f]) == [e, c, b, f, d, a]
 
 
 def test_custom_renderer_for_resource():
@@ -840,7 +667,8 @@ def test_custom_renderer_for_resource():
     a = Resource(foo, 'printstylesheet.css', renderer=render_print_css)
     needed = NeededResources()
     needed.need(a)
-    assert needed.render() == """\
+    incl = Inclusion(needed)
+    assert incl.render() == """\
 <link rel="stylesheet" type="text/css" href="/fanstatic/foo/printstylesheet.css" media="print" />"""
 
     def render_unknown(url):
@@ -848,7 +676,8 @@ def test_custom_renderer_for_resource():
 
     b = Resource(foo, 'nothing.unknown', renderer=render_unknown)
     needed.need(b)
-    assert needed.render() == """\
+    incl = Inclusion(needed)
+    assert incl.render() == """\
 <link rel="stylesheet" type="text/css" href="/fanstatic/foo/printstylesheet.css" media="print" />
 <unknown href="/fanstatic/foo/nothing.unknown"/>"""
 
@@ -869,10 +698,8 @@ def test_custom_renderer_keep_together():
     needed.need(b)
     needed.need(c)
 
-    assert needed.render() == """\
-<link rel="stylesheet" type="text/css" href="/fanstatic/foo/printstylesheet.css" media="print"/>
-<link rel="stylesheet" type="text/css" href="/fanstatic/foo/regular.css" />
-<script type="text/javascript" src="/fanstatic/foo/something.js"></script>"""
+    incl = Inclusion(needed)
+    assert incl.resources == [a, b, c]
 
 
 def test_resource_subclass_render():
@@ -883,9 +710,9 @@ def test_resource_subclass_render():
             return '<myresource reference="%s/%s"/>' % (library_url, self.relpath)
 
     a = MyResource(foo, 'printstylesheet.css')
-    needed = NeededResources()
-    needed.need(a)
-    assert needed.render() == """\
+    needed = NeededResources(resources=[a])
+    incl = Inclusion(needed)
+    assert incl.render() == """\
 <myresource reference="/fanstatic/foo/printstylesheet.css"/>"""
 
 
@@ -899,18 +726,15 @@ def test_clear():
     a4 = Resource(foo, 'a4.js', depends=[a1])
     a5 = Resource(foo, 'a5.js', depends=[a4, a3])
 
-    needed = NeededResources()
-    needed.need(a1)
-    needed.need(a2)
-    needed.need(a3)
-    assert needed.resources() == [a1, a2, a3]
+    needed = NeededResources(resources=[a1, a2, a3])
+    assert needed.resources() == set([a1, a2, a3])
     # For some reason,for example an error page needs to be rendered,
     # the currently needed resources need to be cleared.
     needed.clear()
-    assert needed.resources() == []
+    assert len(needed.resources()) == 0
     needed.need(a4)
     needed.need(a5)
-    assert needed.resources() == [a1, a2, a4, a3, a5]
+    assert needed.resources() == set([a1, a2, a4, a3, a5])
 
 
 def test_convenience_clear():
@@ -922,16 +746,15 @@ def test_convenience_clear():
     z1 = Resource(foo, 'd.js')
     z2 = Resource(foo, 'e.js', depends=[z1, x1])
 
-    needed = init_needed()
+    needed = init_needed(resources=[y1])
 
-    y1.need()
-    assert needed.resources() == [x2, x1, y1]
+    assert sort_resources(needed.resources()) == [x2, x1, y1]
     # For some reason,for example an error page needs to be rendered,
     # the currently needed resources need to be cleared.
     clear_needed()
-    assert needed.resources() == []
+    assert len(needed.resources()) == 0
     z2.need()
-    assert needed.resources() == [x1, z1, z2]
+    assert sort_resources(needed.resources()) == [x1, z1, z2]
 
 
 def test_check_resource_dependencies():
@@ -967,7 +790,7 @@ def test_sort_group_per_renderer():
     needed.need(c_js)
     needed.need(a1_js)
 
-    assert needed.resources() == [b_css, a_js, c_js, a1_js]
+    assert sort_resources(needed.resources()) == [b_css, a_js, c_js, a1_js]
 
 
 def test_sort_group_per_library():
@@ -987,7 +810,7 @@ def test_sort_group_per_library():
     needed.need(d)
     needed.need(e)
 
-    assert needed.resources() == [e, d, b, c, a]
+    assert sort_resources(needed.resources()) == [e, d, b, c, a]
 
 
 def test_sort_library_by_name():
@@ -1001,7 +824,7 @@ def test_sort_library_by_name():
     needed.need(a_b)
     needed.need(a_a)
 
-    assert needed.resources() == [a_a, a_b]
+    assert sort_resources(needed.resources()) == [a_a, a_b]
 
 
 def test_sort_resources_libraries_together():
@@ -1021,13 +844,13 @@ def test_sort_resources_libraries_together():
     needed.need(m2)
     # sort_resources makes an efficient ordering, grouping m1 and m2 together
     # after their dependencies (they are in the same library)
-    assert needed.resources() == [k1, l1, m1, m2]
+    assert sort_resources(needed.resources()) == [k1, l1, m1, m2]
 
     needed = NeededResources()
     needed.need(n1)
     needed.need(m2)
     # the order is unaffected by the ordering of inclusions
-    assert needed.resources() == [k1, l1, m1, m2, n1]
+    assert sort_resources(needed.resources()) == [k1, l1, m1, m2, n1]
 
 
 def test_sort_resources_library_sorting():
@@ -1052,7 +875,7 @@ def test_sort_resources_library_sorting():
     needed.need(d)
     needed.need(e)
 
-    assert needed.resources() == [a, c, c1, c2, e, b, d]
+    assert sort_resources(needed.resources()) == [a, c, c1, c2, e, b, d]
 
 
 def test_sort_resources_library_sorting_by_name():
@@ -1070,7 +893,7 @@ def test_sort_resources_library_sorting_by_name():
     needed.need(b)
     needed.need(c)
 
-    assert needed.resources() == [a, b, c]
+    assert sort_resources(needed.resources()) == [a, b, c]
 
 
 def test_sort_resources_library_sorting_by_name_deeper():
@@ -1085,7 +908,7 @@ def test_sort_resources_library_sorting_by_name_deeper():
 
     needed = NeededResources()
     needed.need(b)
-    assert needed.resources() == [a, c, b]
+    assert sort_resources(needed.resources()) == [a, c, b]
 
 
 def test_library_nr():
@@ -1156,11 +979,7 @@ def test_bundle():
     a = Resource(foo, 'a.css')
     b = Resource(foo, 'b.css')
 
-    needed = NeededResources(bundle=True)
-    needed.need(a)
-    needed.need(b)
-
-    resources = bundle_resources(needed.resources())
+    resources = bundle_resources([a, b])
     assert len(resources) == 1
     bundle = resources[0]
     assert bundle.resources() == [a, b]
@@ -1172,12 +991,7 @@ def test_bundle_dont_bundle_at_the_end():
     b = Resource(foo, 'b.css')
     c = Resource(foo, 'c.css', dont_bundle=True)
 
-    needed = NeededResources(bundle=True)
-    needed.need(a)
-    needed.need(b)
-    needed.need(c)
-
-    resources = bundle_resources(needed.resources())
+    resources = bundle_resources([a, b, c])
     assert len(resources) == 2
     assert resources[0].resources() == [a, b]
     assert resources[-1] is c
@@ -1189,12 +1003,7 @@ def test_bundle_dont_bundle_at_the_start():
     b = Resource(foo, 'b.css')
     c = Resource(foo, 'c.css')
 
-    needed = NeededResources(bundle=True)
-    needed.need(a)
-    needed.need(b)
-    needed.need(c)
-
-    resources = bundle_resources(needed.resources())
+    resources = bundle_resources([a, b, c])
     assert len(resources) == 2
     assert resources[0] is a
     assert resources[1].resources() == [b, c]
@@ -1208,31 +1017,11 @@ def test_bundle_dont_bundle_in_the_middle():
     b = Resource(foo, 'b.css', dont_bundle=True)
     c = Resource(foo, 'c.css')
 
-    needed = NeededResources(bundle=True)
-    needed.need(a)
-    needed.need(b)
-    needed.need(c)
-
-    resources = needed.resources()
+    resources = bundle_resources([a, b, c])
     assert len(resources) == 3
     assert resources[0] is a
     assert resources[1] is b
     assert resources[2] is c
-
-
-def test_bundle_resources_bottomsafe():
-    foo = Library('foo', '')
-    a = Resource(foo, 'a.css')
-    b = Resource(foo, 'b.css', bottom=True)
-
-    needed = NeededResources(resources=[a, b], bundle=True)
-    assert needed.render_topbottom() == ('''\
-<link rel="stylesheet" type="text/css" href="/fanstatic/foo/:bundle:a.css;b.css" />''', '')
-
-    needed = NeededResources(resources=[a, b], bundle=True, bottom=True)
-    assert needed.render_topbottom() == ('''\
-<link rel="stylesheet" type="text/css" href="/fanstatic/foo/a.css" />''', '''\
-<link rel="stylesheet" type="text/css" href="/fanstatic/foo/b.css" />''')
 
 
 def test_bundle_different_renderer():
@@ -1241,12 +1030,7 @@ def test_bundle_different_renderer():
     a = Resource(foo, 'a.css')
     b = Resource(foo, 'b.js')
 
-    needed = NeededResources(bundle=True)
-    needed.need(a)
-    needed.need(b)
-
-    resources = needed.resources()
-
+    resources = bundle_resources([a, b])
     assert len(resources) == 2
     assert resources[0] is a
     assert resources[1] is b
@@ -1259,12 +1043,7 @@ def test_bundle_different_library():
     a = Resource(l1, 'a.js')
     b = Resource(l2, 'b.js')
 
-    needed = NeededResources(bundle=True)
-    needed.need(a)
-    needed.need(b)
-
-    resources = needed.resources()
-
+    resources = bundle_resources([a, b])
     assert len(resources) == 2
     assert resources[0] is a
     assert resources[1] is b
@@ -1276,12 +1055,7 @@ def test_bundle_different_directory():
     a = Resource(foo, 'first/a.css')
     b = Resource(foo, 'second/b.css')
 
-    needed = NeededResources(bundle=True)
-    needed.need(a)
-    needed.need(b)
-
-    resources = needed.resources()
-
+    resources = bundle_resources([a, b])
     assert len(resources) == 2
     assert resources[0] is a
     assert resources[1] is b
@@ -1289,9 +1063,7 @@ def test_bundle_different_directory():
 
 def test_bundle_empty_list():
     # we can successfully bundle an empty list of resources
-    needed = NeededResources(bundle=True)
-
-    resources = needed.resources()
+    resources = bundle_resources([])
     assert resources == []
 
 
@@ -1300,10 +1072,7 @@ def test_bundle_single_entry():
     foo = Library('foo', '')
     a = Resource(foo, 'a.js')
 
-    needed = NeededResources(bundle=True)
-    needed.need(a)
-    resources = needed.resources()
-
+    resources = bundle_resources([a])
     assert resources == [a]
 
 
@@ -1311,10 +1080,7 @@ def test_bundle_single_dont_bundle_entry():
     foo = Library('foo', '')
     a = Resource(foo, 'a.js', dont_bundle=True)
 
-    needed = NeededResources(bundle=True)
-    needed.need(a)
-    resources = needed.resources()
-
+    resources = bundle_resources([a])
     assert resources == [a]
 
 
@@ -1331,12 +1097,9 @@ def test_inter_library_dependencies_ordering():
     style1 = Resource(lib3, 'style1.css')
     style2 = Resource(lib4, 'style2.css', depends=[style1])
 
-    needed = NeededResources()
-
-    needed.need(js3)
-    needed.need(style2)
-    resources = needed.resources()
-    assert resources == [style1, style2, js1, js2, js3]
+    needed = NeededResources(resources=[js3, style2])
+    assert sort_resources(needed.resources()) == \
+        [style1, style2, js1, js2, js3]
 
 
 def test_library_ordering_bug():
@@ -1363,10 +1126,8 @@ def test_library_ordering_bug():
 
     app = Resource(app_lib, 'app.js', depends=[bread, obviel_datepicker])
 
-    needed = NeededResources()
-
-    needed.need(app)
-    resources = needed.resources()
+    needed = NeededResources(resources=[app])
+    resources = sort_resources(needed.resources())
     for resource in resources:
         print((resource, resource.library.library_nr))
     assert resources == [jquery, jqueryui, obviel, obviel_forms,
@@ -1381,9 +1142,3 @@ def test_dummy_needed_should_take_slots_argument():
     needed = get_needed()
     a_resource = object()
     needed.need(a_resource, slots={})
-
-
-# XXX tests for hashed resources when this is enabled. Needs some plausible
-# directory to test for hashes
-
-# XXX better error reporting if unknown extensions are used

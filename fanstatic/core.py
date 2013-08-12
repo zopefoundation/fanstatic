@@ -1,6 +1,5 @@
 import os
 import sys
-import re
 import threading
 
 from fanstatic import compat
@@ -342,20 +341,9 @@ class Resource(Renderable, Dependable):
       resource. If no renderer is provided, a renderer is looked up
       based on the resource's filename extension.
 
-    :param debug: optionally, a debug version of the resource.
-      The argument is a :py:class:`Resource` instance, or a string that
-      indicates a relative path to the resource. In the latter case
-      a :py:class:`Resource` instance is constructed that has the same
-      library as the resource.
-
     :param dont_bundle: Don't bundle this resource in any bundles
       (if bundling is enabled).
 
-    :param minified: optionally, a minified version of the resource.
-      The argument is a :py:class:`Resource` instance, or a string that
-      indicates a relative path to the resource. In the latter case
-      a :py:class:`Resource` instance is constructed that has the same
-      library as the resource.
     """
 
     def __init__(self, library, relpath,
@@ -393,7 +381,7 @@ class Resource(Renderable, Dependable):
             minifier]
         self.minified = minified
         if (self.minified and not isinstance(self.minified, compat.basestring)
-            and self.minifier.available):
+                and self.minifier.available):
             raise ConfigurationError(
                 "Since %s specifies minifier %s, passing another "
                 "Resource object as its minified version does not make sense"
@@ -485,19 +473,6 @@ class Resource(Renderable, Dependable):
         # create a reference to the superseder in the superseded resource
         for resource in self.supersedes:
             resource.rollups.append(self)
-        # also create a reference to the superseding mode in the superseded
-        # mode
-        # XXX what if mode is full-fledged resource which lists
-        # supersedes itself?
-        for mode_name, mode in compat.iteritems(self.modes):
-            for resource in self.supersedes:
-                superseded_mode = resource.mode(mode_name)
-                # if there is no such mode, let's skip it
-                if superseded_mode is resource:
-                    continue
-                mode.supersedes.append(superseded_mode)
-                superseded_mode.rollups.append(mode)
-
         # Register ourself with the Library.
         self.library.register(self)
 
@@ -762,31 +737,6 @@ class NeededResources(object):
       If set to ``False``, the hash URLs will only be
       calculated once after server startup.
 
-    :param bottom: If set to ``True``, Fanstatic will include any
-      resource that has been marked as "bottom safe" at the bottom of
-      the web page, at the end of ``<body>``, as opposed to in the
-      ``<head>`` section. This is useful for optimizing the load-time
-      of Javascript resources.
-
-    :param force_bottom: If set to ``True`` and ``bottom`` is set to
-      ``True`` as well, all Javascript resources will be included at
-      the bottom of a web page, even if they aren't marked bottom
-      safe.
-
-    :param minified: If set to ``True``, Fanstatic will include all
-      resources in ``minified`` form. If a Resource instance does not
-      provide a ``minified`` mode, the "main" (non-named) mode is used.
-
-    :param debug: If set to ``True``, Fanstatic will include all
-      resources in ``debug`` form. If a Resource instance does not
-      provide a ``debug`` mode, the "main" (non-named) mode is used.
-      An exception is raised when both the ``debug`` and ``minified``
-      parameters are ``True``.
-
-    :param rollup: If set to True (default is False) rolled up
-      combined resources will be served if they exist and supersede
-      existing resources that are needed.
-
     :param base_url: This URL will be prefixed in front of all resource
       URLs. This can be useful if your web framework wants the resources
       to be published on a sub-URL. By default, there is no ``base_url``,
@@ -801,10 +751,6 @@ class NeededResources(object):
     :param publisher_signature: The name under which resource libraries
       should be served in the URL. By default this is ``fanstatic``, so
       URLs to resources will start with ``/fanstatic/``.
-
-    :param bundle: If set to True, Fanstatic will attempt to bundle
-      resources that fit together into larger Bundle objects. These
-      can then be rendered as single URLs to these bundles.
 
     :param resources: Optionally, a list of resources we want to
       include. Normally you specify resources to include by calling
@@ -822,23 +768,14 @@ class NeededResources(object):
     to change this attribute directly on an already existing
     ``NeededResources`` object.
     """
-    _mode = None
-
     def __init__(self,
                  versioning=False,
                  versioning_use_md5=False,
                  recompute_hashes=True,
-                 bottom=False,
-                 force_bottom=False,
-                 minified=False,
-                 debug=False,
-                 rollup=False,
                  base_url=None,
                  script_name=None,
                  publisher_signature=DEFAULT_SIGNATURE,
-                 bundle=False,
                  resources=None,
-                 compile=False,
                  ):
         self._versioning = versioning
         if versioning_use_md5:
@@ -847,23 +784,12 @@ class NeededResources(object):
             self._version_method = fanstatic.checksum.mtime
 
         self._recompute_hashes = recompute_hashes
-        self._bottom = bottom
-        self._force_bottom = force_bottom
         self._base_url = base_url
         self._script_name = script_name
         self._publisher_signature = publisher_signature
-        self._rollup = rollup
-        self._bundle = bundle
         self._resources = set(resources or [])
-        self._compile = compile
         self._slots = {}
         self._url_cache = {}  # prevent multiple computations per request
-        if (debug and minified):
-            raise ConfigurationError('Choose *one* of debug and minified')
-        if debug is True:
-            self._mode = DEBUG
-        if minified is True:
-            self._mode = MINIFIED
 
     def has_resources(self):
         """Returns True if any resources are needed.
@@ -914,13 +840,7 @@ class NeededResources(object):
         resources = set()
         for resource in self._resources:
             resources.update(resource.resources)
-
-        resources = self._fill_slots(resources)
-
-        if self._rollup:
-            resources = set(consolidate(resources))
-        resources = [resource.mode(self._mode) for resource in resources]
-        return sort_resources(resources)
+        return self._fill_slots(resources)
 
     def _fill_slots(self, resources):
         result = set()
@@ -935,8 +855,8 @@ class NeededResources(object):
                 elif not resource.required:
                     continue
                 else:
-                    raise SlotError("slot %r was required but not filled in" %
-                                resource)
+                    raise SlotError(
+                        "slot %r was required but not filled in" % resource)
             result.add(FilledSlot(resource, fill_resource))
         return result
 
@@ -955,6 +875,10 @@ class NeededResources(object):
 
         :param library: A :py:class:`Library` instance.
         """
+        library_url = self._url_cache.get(library.name)
+        if library_url:
+            return library_url
+
         # The script_name is a fallback and base_url should be honoured
         # if it is provided.
         path = [self._base_url or self._script_name or '']
@@ -966,110 +890,8 @@ class NeededResources(object):
                 library.signature(
                     recompute_hashes=self._recompute_hashes,
                     version_method=self._version_method))
-        return '/'.join(path)
-
-    def render(self):
-        """Render needed resource inclusions.
-
-        This returns a string with the rendered resource inclusions
-        (``<script>`` and ``<link>`` tags), suitable for including
-        in the ``<head>`` section of a web page.
-        """
-        return self.render_inclusions(self.resources())
-
-    def render_inclusions(self, resources):
-        """Render a set of resources as inclusions.
-
-        This renders the listed inclusions and their dependencies as
-        HTML ((``<script>`` and ``<link>`` tags), suitable for
-        inclusion on a web page.
-
-        :param inclusions: A list of :py:class:`Resource` instances.
-        """
-        if self._compile:
-            for resource in resources:
-                resource.compile()
-
-        if self._bundle:
-            resources = bundle_resources(resources)
-        result = []
-        for resource in resources:
-            library = resource.library
-            library_url = self._url_cache.get(library.name)
-            if library_url is None:
-                library_url = self._url_cache[library.name] = self.library_url(
-                    library)
-            result.append(resource.render(library_url))
-        return '\n'.join(result)
-
-    def render_into_html(self, html):
-        """Render needed resource inclusions into HTML.
-
-        :param html: A string with HTML to render the resource
-          inclusions into. This string must have a ``<head>`` section.
-        """
-        to_insert = self.render()
-        return html.replace(
-            compat.as_bytestring('</head>'),
-            compat.as_bytestring('%s</head>' % to_insert), 1)
-
-    def render_topbottom(self):
-        """Render resource inclusions separately into top and bottom fragments.
-
-        Returns a tuple of two HTML snippets, top and bottom.  The top
-        one is to be included in a ``<head>`` section, and the bottom
-        one is to be included at the end of the ``<body>`` section. Only
-        bottom safe resources are included in the bottom section,
-        unless ``force_bottom`` is enabled, in which case all Javascript
-        resources will be included in the bottom.
-        """
-        resources = self.resources()
-
-        # seperate inclusions in top and bottom inclusions if this is needed
-        if self._bottom:
-            top_resources = []
-            bottom_resources = []
-            if not self._force_bottom:
-                for resource in resources:
-                    if resource.bottom:
-                        bottom_resources.append(resource)
-                    else:
-                        top_resources.append(resource)
-            else:
-                for resource in resources:
-                    if resource.ext == '.js':
-                        bottom_resources.append(resource)
-                    else:
-                        top_resources.append(resource)
-        else:
-            top_resources = resources
-            bottom_resources = []
-
-        return (self.render_inclusions(top_resources),
-                self.render_inclusions(bottom_resources))
-
-    def render_topbottom_into_html(self, html):
-        """Render needed resource inclusions into HTML.
-
-        Only bottom safe resources are included in the bottom section,
-        unless ``force_bottom`` is enabled, in which case all
-        Javascript resources will be included in the bottom, just
-        before the ``</body>`` tag.
-
-        :param html: The HTML string in which to insert the rendered
-          resource inclusions.  This string must have a ``<head>`` and
-          a ``<body>`` section.
-        """
-        top, bottom = self.render_topbottom()
-        if top:
-            html = html.replace(
-                compat.as_bytestring('</head>'),
-                compat.as_bytestring('%s</head>' % top), 1)
-        if bottom:
-            html = html.replace(
-                compat.as_bytestring('</body>'),
-                compat.as_bytestring('%s</body>' % bottom), 1)
-        return html
+        library_url = self._url_cache[library.name] = '/'.join(path)
+        return library_url
 
 
 class DummyNeededResources(object):
@@ -1094,9 +916,8 @@ class DummyNeededResources(object):
             self.__class__.__name__)
 
     clear = _not_implented_here
-    library_url = render = render_inclusions = _not_implented_here
-    render_into_html = render_topbottom = _not_implented_here
-    resources = render_topbottom_into_html = _not_implented_here
+    library_url = _not_implented_here
+    resources = _not_implented_here
 
 
 thread_local_needed_data = threading.local()
@@ -1138,66 +959,6 @@ def get_needed():
 def clear_needed():
     needed = get_needed()
     needed.clear()
-
-
-def consolidate(resources):
-    # keep track of rollups: rollup key -> set of resource keys
-    potential_rollups = {}
-    for resource in resources:
-        for rollup in resource.rollups:
-            s = potential_rollups.setdefault(
-                (rollup.library, rollup.relpath), set())
-            s.add((resource.library, resource.relpath))
-
-    # now go through resources, replacing them with rollups if
-    # conditions match
-    result = []
-    for resource in resources:
-        superseders = []
-        for rollup in resource.rollups:
-            s = potential_rollups[(rollup.library, rollup.relpath)]
-            if len(s) == len(rollup.supersedes):
-                superseders.append(rollup)
-        if superseders:
-            # use the exact superseder that rolls up the most
-            superseders = sorted(superseders, key=lambda i: len(i.supersedes))
-            result.append(superseders[-1])
-        else:
-            # nothing to supersede resource so use it directly
-            result.append(resource)
-    return result
-
-
-def sort_resources(resources):
-    """Sort resources for inclusion on web page.
-
-    A number of rules are followed:
-
-    * resources are always grouped per renderer (.js, .css, etc)
-    * resources that depend on other resources are sorted later
-    * resources are grouped by library, if the dependencies allow it
-    * libraries are sorted by name, if dependencies allow it
-    * resources are sorted by resource path if they both would be
-      sorted the same otherwise.
-
-    The only purpose of sorting on library is so we can
-    group resources per library, so that bundles can later be created
-    of them if bundling support is enabled.
-
-    Note this sorting algorithm guarantees a consistent ordering, no
-    matter in what order resources were needed.
-    """
-    for resource in resources:
-        resource.library.init_library_nr()
-
-    def key(resource):
-        return (
-            resource.order,
-            resource.library.library_nr,
-            resource.library.name,
-            resource.dependency_nr,
-            resource.relpath)
-    return sorted(resources, key=key)
 
 
 class Bundle(Renderable):
@@ -1263,29 +1024,3 @@ class Bundle(Renderable):
         else:
             # add the bundle itself
             result.append(self)
-
-
-def bundle_resources(resources):
-    """Bundle sorted resources together.
-
-    resources is expected to be a list previously sorted by sorted_resources.
-
-    Returns a list of renderable resources, which can include several
-    resources bundled together into Bundles.
-    """
-    result = []
-    bundle = Bundle()
-    for resource in resources:
-        if bundle.fits(resource):
-            bundle.append(resource)
-        else:
-            # add the previous bundle to the list and create new bundle
-            bundle.add_to_list(result)
-            bundle = Bundle()
-            if resource.dont_bundle:
-                result.append(resource)
-            else:
-                bundle.append(resource)
-    # add the last bundle to the list
-    bundle.add_to_list(result)
-    return result

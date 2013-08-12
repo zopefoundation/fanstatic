@@ -10,8 +10,6 @@ from fanstatic.core import (Library,
                             DEBUG,
                             MINIFIED,
                             NEEDED,
-                            sort_resources,
-                            bundle_resources,
                             init_needed,
                             del_needed,
                             get_needed,
@@ -29,7 +27,11 @@ from fanstatic.registry import (get_library_registry,
                                 CompilerRegistry,
                                 MinifierRegistry)
 from fanstatic.codegen import generate_code
-from fanstatic.injector import Injector, make_injector
+from fanstatic.injector import (Injector,
+                                make_injector)
+from fanstatic.inclusion import (Inclusion,
+                                 bundle_resources,
+                                 sort_resources)
 from fanstatic.publisher import (Publisher, Delegator, make_publisher,
                                  LibraryPublisher)
 from fanstatic.wsgi import Fanstatic, make_fanstatic, Serf, make_serf

@@ -8,6 +8,7 @@ import fanstatic
 
 def Fanstatic(app,
               publisher_signature=fanstatic.DEFAULT_SIGNATURE,
+              injector=None,
               **config):
     """Fanstatic WSGI framework component.
 
@@ -16,27 +17,36 @@ def Fanstatic(app,
     :param publisher_signature: Optional argument to define the
       signature of the publisher in a URL. The default is ``fanstatic``.
 
+    :param injector: A injector callable.
+
     :param ``**config``: Optional keyword arguments. These are
       passed to :py:class:`NeededInclusions` when it is constructed.
     """
     # Wrap the app inside the injector middleware, inside the
     # delegator middleware.
-    injector = Injector(
+    injector_middleware = Injector(
         app,
         publisher_signature=publisher_signature,
+        injector=injector,
         **config)
 
-    publisher = Publisher(LibraryRegistry.instance())
+    publisher_middleware = Publisher(LibraryRegistry.instance())
 
     return Delegator(
-        injector,
-        publisher,
+        injector_middleware,
+        publisher_middleware,
         publisher_signature=publisher_signature)
 
 
 def make_fanstatic(app, global_config, **local_config):
     local_config = convert_config(local_config)
-    return Fanstatic(app, **local_config)
+    # Look up injector factory by name.
+    injector_name = local_config.pop('injector', 'topbottom')
+    injector_factory = fanstatic.registry.InjectorRegistry.instance().get(injector_name)
+    if injector_factory is None:
+        raise ConfigurationError('No injector found for name %s' % injector_name)
+    injector = injector_factory(local_config)
+    return Fanstatic(app, injector=injector, **local_config)
 
 
 class Serf(object):

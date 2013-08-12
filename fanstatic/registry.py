@@ -82,3 +82,8 @@ class MinifierRegistry(Registry):
     def __init__(self, items=()):
         super(MinifierRegistry, self).__init__(items)
         self.add(NullCompiler())
+
+
+class InjectorRegistry(Registry):
+
+    ENTRY_POINT = 'fanstatic.injectors'
