@@ -1,7 +1,7 @@
 CHANGES
 *******
 
-1.0a3 (unreleased)
+1.0a3 (2013-08-12)
 ==================
 
 - Refactor NeededResources into a pluggable injector system. Fanstatic users
