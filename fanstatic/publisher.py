@@ -225,7 +225,5 @@ class Delegator(object):
         return self.publisher(environ, start_response)
 
 
-def make_publisher(app, global_config,
-                   publisher_signature=fanstatic.DEFAULT_SIGNATURE):
-    publisher = Publisher(fanstatic.LibraryRegistry.instance())
-    return Delegator(app, publisher, publisher_signature=publisher_signature)
+def make_publisher(global_config):
+    return Publisher(fanstatic.LibraryRegistry.instance())

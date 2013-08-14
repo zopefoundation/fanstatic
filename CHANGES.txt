@@ -4,8 +4,11 @@ CHANGES
 1.0a4 (unreleased)
 ==================
 
-- Nothing changed yet.
+- Update entry points in order to use the fanstatic Publisher used as an
+  application instead of a filter, for instance in a configuration
+  with paste.urlmap.
 
+  http://pythonpaste.org/modules/urlmap.html
 
 1.0a3 (2013-08-12)
 ==================

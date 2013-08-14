@@ -82,11 +82,11 @@ setup(
         ],
         'paste.filter_app_factory': [
             'fanstatic = fanstatic:make_fanstatic',
-            'publisher = fanstatic:make_publisher',
             'injector = fanstatic:make_injector',
         ],
         'paste.app_factory': [
             'serf = fanstatic:make_serf',
+            'publisher = fanstatic:make_publisher',
         ],
         'fanstatic.injectors': [
             'topbottom = fanstatic.injector:TopBottomInjector',
