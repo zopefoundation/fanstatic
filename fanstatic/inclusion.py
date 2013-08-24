@@ -91,6 +91,20 @@ def sort_resources(resources):
     return sorted(resources, key=key)
 
 
+def cleanup_resources(resources):
+    """
+    """
+    seen = set()
+    for resource in resources:
+        if resource.rollups:
+            s = set(resource.rollups)
+            if s.issubset(seen):
+                # Drop this resource, it has already been seen.
+                continue
+        seen.add(resource)
+        yield resource
+
+
 class Inclusion(object):
     """
     An Inclusion is a container/group for a set of Resources that are needed.
@@ -136,6 +150,8 @@ class Inclusion(object):
             resources = [resource.mode(mode) for resource in resources]
 
         resources = sort_resources(resources)
+
+        resources = cleanup_resources(resources)
 
         if compile:
             for resource in resources:
