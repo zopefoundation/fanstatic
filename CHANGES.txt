@@ -4,8 +4,9 @@ CHANGES
 1.0a4 (unreleased)
 ==================
 
-- Nothing changed yet.
-
+- Also setup the injector for HEAD requests. We don't want the app which we
+  are wrapping to choke on the NotImplementedError raised by
+  DummyNeededResources.
 
 1.0a3 (2013-08-12)
 ==================

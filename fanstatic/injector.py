@@ -44,7 +44,7 @@ class Injector(object):
     def __call__(self, environ, start_response):
         request = webob.Request(environ)
         # We only continue if the request method is appropriate.
-        if not request.method in ['GET', 'POST']:
+        if not request.method in ['GET', 'POST', 'HEAD']:
             return self.app(environ, start_response)
 
         # Initialize a needed resources object.
