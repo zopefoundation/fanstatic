@@ -62,6 +62,32 @@ def test_incorrect_configuration_options():
         "keyword argument 'incorrect'") in str(e)
 
 
+def test_backward_compatible_configuration_options():
+    foo = Library('foo', '')
+    x1 = Resource(foo, 'a.js')
+    x2 = Resource(foo, 'b.css')
+    y1 = Resource(foo, 'c.js', depends=[x1, x2])
+
+    def app(environ, start_response):
+        start_response('200 OK', [])
+        needed = get_needed()
+        needed.need(y1)
+        return [b'<html><head></head><body</body></html>']
+
+    wrapped_app = Fanstatic(
+        app, base_url='http://testapp',
+        bundle=True, minified=True)
+
+    request = webob.Request.blank('/')
+    # base_url is defined so SCRIPT_NAME shouldn't be taken into account
+    request.environ['SCRIPT_NAME'] = '/root'
+
+    response = request.get_response(wrapped_app)
+    assert response.body == b'''\
+<html><head><link rel="stylesheet" type="text/css" href="http://testapp/fanstatic/foo/b.css" />
+<script type="text/javascript" src="http://testapp/fanstatic/foo/:bundle:a.js;c.js"></script></head><body</body></html>'''
+
+
 def test_inject_unicode_base_url():
     foo = Library('foo', '')
     x1 = Resource(foo, 'a.js')

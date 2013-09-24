@@ -29,16 +29,17 @@ class Injector(object):
       ``NeededResources``.
     """
     def __init__(self, app, injector=None, **config):
-        self.app = app
-
-        # this is just to give useful feedback early on
-        fanstatic.NeededResources(**config)
-
-        self.config = config
-        # BBB Backwards compatible: the default behavior was the top bottom
-        # injector.
+        # BBB Backwards compatible: the default behavior was the top
+        # bottom injector. It need to be called first since it will
+        # remove options from config.
         if injector is None:
             injector = TopBottomInjector(config)
+
+        # This is just to validate config
+        fanstatic.NeededResources(**config)
+
+        self.app = app
+        self.config = config
         self.injector = injector
 
     def __call__(self, environ, start_response):
