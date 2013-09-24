@@ -37,12 +37,6 @@ def test_injector_config():
     }
 
 
-def test_publisher_config():
-    publisher = make_publisher(None, {}, publisher_signature='foo')
-    assert publisher.trigger == '/foo/'
-    assert publisher.app is None
-
-
 def test_fanstatic_config():
     d = {
         'versioning': 't',
