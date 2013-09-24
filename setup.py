@@ -45,7 +45,7 @@ class PyTest(Command):
 
 setup(
     name='fanstatic',
-    version='1.0a4',
+    version='1.0a5.dev0',
     description="Flexible static resources for web applications",
     classifiers=[
         'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
