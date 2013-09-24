@@ -1,7 +1,7 @@
 CHANGES
 *******
 
-1.0a4 (unreleased)
+1.0a4 (2013-09-24)
 ==================
 
 - Also setup the injector for HEAD requests. We don't want the app which we
