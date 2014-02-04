@@ -1,5 +1,4 @@
 from fanstatic import compat
-from which import which, WhichError as NotFound
 import argparse
 import fanstatic
 import os.path
@@ -9,6 +8,12 @@ import pkg_resources
 import setuptools.command.sdist
 import subprocess
 import sys
+import shutil
+
+if not hasattr(shutil, 'which'):
+    import shutilwhich
+
+from shutil import which
 
 mtime = os.path.getmtime
 
@@ -171,10 +176,7 @@ class CommandlineBase(object):
     def available(self):
         if os.path.exists(self.command):
             return True
-        try:
-            return bool(which(self.command))
-        except NotFound:
-            return False
+        return which(self.command) is not None
 
     def process(self, source, target):
         cmd = [self.command] + self._expand(self.arguments, source, target)
