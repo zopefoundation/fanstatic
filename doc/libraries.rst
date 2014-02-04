@@ -173,6 +173,10 @@ Here's a list of currently available libraries:
       - `jquery lightbox <http://leandrovieira.com/projects/jquery/lightbox/>`_
       - `GitHub <https://github.com/amleczko/js.lightbox>`__
 
+    * - :pypi:`js.mochikit`
+      - `Mochikit <http://mochikit.org/>`_
+      - `Bitbucket <https://bitbucket.org/gocept/js.mochikit>`__
+
     * - :pypi:`js.modernizr`
       - `Modernizr <http://modernizr.com/>`_
       - ?
