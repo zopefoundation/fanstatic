@@ -2,4 +2,3 @@ jsmin
 cssmin
 closure
 pytest-capturelog
-shutilwhich
