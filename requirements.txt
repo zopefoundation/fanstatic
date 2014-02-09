@@ -1,4 +1,4 @@
 jsmin
 cssmin
-closure
+closure==20140110
 pytest-capturelog
