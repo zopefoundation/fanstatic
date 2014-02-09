@@ -1,6 +1,6 @@
 from fanstatic import Library, Resource, NeededResources
 from fanstatic import compat, Inclusion, MINIFIED
-from fanstatic import set_resource_file_existence_checking as check_files
+from fanstatic import set_resource_file_existence_checking
 from fanstatic.compiler import Compiler, Minifier
 from .test_checksum import _copy_testdata
 from zipfile import ZipFile
@@ -277,7 +277,7 @@ def test_should_not_process_if_target_is_newer_than_source(tmpdir):
 def test_compiler_available_and_source_not_present_should_raise(
     tmpdir, compilers):
     compilers.add_compiler(MockCompiler())
-    check_files(True)
+    set_resource_file_existence_checking(True)
     lib = Library('lib', str(tmpdir))
     with pytest.raises(fanstatic.UnknownResourceError) as exc:
         a = Resource(lib, 'a.js', compiler='mock')
@@ -290,7 +290,7 @@ def test_compiler_not_available_and_source_not_present_should_raise(
     compiler = MockCompiler()
     compiler.available = False
     compilers.add_compiler(compiler)
-    check_files(True)
+    set_resource_file_existence_checking(True)
     lib = Library('lib', str(tmpdir))
     # assert_nothing_raised
     a = Resource(lib, 'a.js', compiler='mock')
@@ -301,7 +301,7 @@ def test_compiler_available_and_resource_file_not_present_should_not_raise(
     open(str(tmpdir / 'a.source'), 'w').close()
     # since the compiler can be used to generate the resource file
     compilers.add_compiler(MockCompiler())
-    check_files(True)
+    set_resource_file_existence_checking(True)
     lib = Library('lib', str(tmpdir))
     # assert_nothing_raised
     a = Resource(lib, 'a.js', compiler='mock')
@@ -312,7 +312,7 @@ def test_compiler_not_available_and_resource_file_not_present_should_raise(
     compiler = MockCompiler()
     compiler.available = False
     compilers.add_compiler(compiler)
-    check_files(True)
+    set_resource_file_existence_checking(True)
     lib = Library('lib', str(tmpdir))
     with pytest.raises(fanstatic.UnknownResourceError) as exc:
         a = Resource(lib, 'a.js', compiler='mock')
@@ -323,7 +323,7 @@ def test_minifier_available_and_minified_file_not_present_should_not_raise(
     tmpdir, compilers):
     open(str(tmpdir / 'a.js'), 'w').close()
     compilers.add_minifier(MockMinifier())
-    check_files(True)
+    set_resource_file_existence_checking(True)
     lib = Library('lib', str(tmpdir))
     # assert_nothing_raised
     a = Resource(lib, 'a.js', minifier='mock')
