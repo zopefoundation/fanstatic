@@ -4,8 +4,13 @@ CHANGES
 1.0a5 (unreleased)
 ==================
 
-- Nothing changed yet.
+- Fix issue #87 "install-error-with-python3":
 
+  Fanstatic now depends on shutil.which when it's available
+  (Python 3.3+) or uses shutilwhich library in other cases. This
+  is useful because which.py is no longer supported.
+
+  Thanks to Ivan Bulanov.
 
 1.0a4 (2013-09-24)
 ==================

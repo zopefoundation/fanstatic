@@ -6,17 +6,29 @@ long_description = (
     + '\n' +
     open('CHANGES.txt').read())
 
-
 install_requires = [
     'WebOb >= 1.2',
     'setuptools',
+    'shutilwhich',
 ]
+
+# We use tox to test fanstatic across python versions. We would like to
+# declare the python-version-based dependency on the "shutilwhich" package
+# like this:
+#
+# if sys.version_info < (3, 3):
+#     install_requires.append('shutilwhich')
+#
+# Unfortunately, we can't do this because of how tox works; if not listing
+# shutilwhich as a dependency, the py33 tests fail when filling the fanstatic
+# compiler and minifier registries.
+#
+# We choose to list shutilwhich as a dependency in order to be able to use
+# tox. This is not an ideal situation, but the shutilwhich code is harmless on
+# python3.3.
 
 if sys.version_info < (2, 7):
     install_requires.append('argparse')
-
-if sys.version_info < (3, 3):
-    install_requires.append('shutilwhich')
 
 tests_require = [
     'closure',
