@@ -15,10 +15,8 @@ install_requires = [
 if sys.version_info < (2, 7):
     install_requires.append('argparse')
 
-if sys.version_info < (3,):
-    install_requires.append('which')
-else:
-    install_requires.append('which==1.1.3.py3')
+if sys.version_info < (3, 3):
+    install_requires.append('shutilwhich')
 
 tests_require = [
     'closure',
@@ -27,6 +25,7 @@ tests_require = [
     'pytest >= 2.3',
     'pytest-capturelog',
 ]
+
 
 class PyTest(Command):
     user_options = []
