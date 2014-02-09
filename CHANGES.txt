@@ -1,7 +1,7 @@
 CHANGES
 *******
 
-1.0a5 (unreleased)
+1.0a5 (2014-02-09)
 ==================
 
 - Fix issue #87 "install-error-with-python3":
