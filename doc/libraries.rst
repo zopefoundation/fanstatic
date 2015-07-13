@@ -53,8 +53,8 @@ Here's a list of currently available libraries:
 
     * - :pypi:`js.d3`
       - `D3.js (Data Driven Documents) <http://d3js.org/>`_
-      - `GitHub <http://github.com/mgood/js.d3/>`__
-        
+      - `GitHub <https://github.com/fanstatic/js.d3/>`__
+
     * - :pypi:`js.d3_cloud`
       - `D3-Cloud <http://www.jasondavies.com/wordcloud/>`_ (`Wordle
         <http://wordle.net>`_-style layout for D3) 
@@ -67,7 +67,7 @@ Here's a list of currently available libraries:
     * - :pypi:`js.galleriffic`
       - `Galleriffic <http://www.twospy.com/galleriffic>`_
       - `Bitbucket <http://bitbucket.org/fanstatic/js.yui>`__
-        
+
     * - :pypi:`js.leaflet`
       - `Leaflet <http://leafletjs.com/>`_
       - `GitHub <https://github.com/davidjb/js.leaflet>`__
@@ -87,7 +87,7 @@ Here's a list of currently available libraries:
     * - :pypi:`js.jquery_form`
       - the jQuery plugin `Form <http://jquery.malsup.com/form>`_
       - `Bitbucket <http://bitbucket.org/fanstatic/js.jquery_form>`__
-        
+
     * - :pypi:`js.jquery_jcrop`
       - `JCrop - Image Cropping Plugin for JQuery
         <http://deepliquid.com/content/Jcrop.html>`_
