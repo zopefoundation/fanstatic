@@ -307,10 +307,12 @@ class Dependable(object):
     """Dependables have a depends and an a resources attributes.
     """
     resources = None
+    depends = None
+    supports = None
 
     def add_dependency(self, dependency):
         new_dependencies = set(self.depends)
-        new_dependencies.add(dependency)
+        new_dependencies.update(normalize_groups([dependency]))
         if new_dependencies != self.depends:
             self.set_dependencies(new_dependencies)
 
@@ -324,6 +326,7 @@ class RegisteredDependable(Dependable):
 
     def __init__(self, library, depends=None):
         self.library = library
+        self.supports = set()
         self.set_dependencies(depends)
         self.library.register(self)
 
@@ -338,7 +341,11 @@ class RegisteredDependable(Dependable):
 
         self.resources = set([self])
         for depend in self.depends:
+            depend.supports.add(self)
             self.resources.update(depend.resources)
+
+        for supports in self.supports:
+            supports.resources.update(self.resources)
 
         # Check for library dependency cycles.
         self.library.check_dependency_cycle(self)
@@ -673,6 +680,7 @@ class Group(Dependable):
      :py:class:`Group` instances.
     """
     def __init__(self, depends):
+        self.supports = set()
         self.set_dependencies(depends)
 
     def set_dependencies(self, depends):
@@ -680,7 +688,12 @@ class Group(Dependable):
         self.depends = set(normalize_groups(depends))
         self.resources = set()
         for depend in self.depends:
+            depend.supports.add(self)
             self.resources.update(depend.resources)
+
+        for supports in self.supports:
+            supports.resources.update(self.resources)
+
 
     def need(self, slots=None):
         """Need this group resource.
