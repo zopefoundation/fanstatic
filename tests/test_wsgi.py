@@ -104,6 +104,10 @@ def test_inject_unicode_base_url():
 
 
 def test_serf():
+    from fanstatic import get_library_registry
+    lib_reg = get_library_registry()
+    lib_reg.load_items_from_entry_points()
+
     pytest.importorskip('mypackage')
     # also test serf config
     d = {

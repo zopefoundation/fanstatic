@@ -4,6 +4,10 @@ from fanstatic import get_library_registry, Library, compat
 
 
 def test_library_registry():
+    from fanstatic import get_library_registry
+    lib_reg = get_library_registry()
+    lib_reg.load_items_from_entry_points()
+
     # Skip this test if the test fixtures has not been installed.
     pytest.importorskip('mypackage')
 

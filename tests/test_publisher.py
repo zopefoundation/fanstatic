@@ -199,14 +199,24 @@ def test_publisher_ignores(tmpdir):
 
 def test_bundle_resources(tmpdir):
     foo_library_dir = tmpdir.mkdir('foo')
-    foo = Library('foo', foo_library_dir.strpath)
 
+    foo = Library('foo', foo_library_dir.strpath)
     test1 = Resource(foo, 'test1.js')
     tmpdir.join('foo').join('test1.js').write('/* a test 1 */')
     test2 = Resource(foo, 'test2.js')
     tmpdir.join('foo').join('test2.js').write('/* a test 2 */')
 
+    subdir = tmpdir.join('foo').mkdir('sub').mkdir('sub')
+    r1 = Resource(foo, 'sub/sub/r1.css')
+    subdir.join('r1.css').write('r1')
+    r2 = Resource(foo, 'sub/sub/r2.css')
+    subdir.join('r2.css').write('r2')
+    r3 = Resource(foo, 'r3.css')
+    r4 = Resource(foo, 'sub/sub/r4.css', depends=[r1, r2])
+    subdir.join('r4.css').write('r4')
+
     libraries = LibraryRegistry([foo])
+    libraries.prepare()
 
     app = Publisher(libraries)
 
@@ -244,25 +254,16 @@ def test_bundle_resources(tmpdir):
     response = request.get_response(app)
     assert response.status_int == 403
 
-    subdir = tmpdir.join('foo').mkdir('sub').mkdir('sub')
-    r1 = Resource(foo, 'sub/sub/r1.css')
-    subdir.join('r1.css').write('r1')
-    r2 = Resource(foo, 'sub/sub/r2.css')
-    subdir.join('r2.css').write('r2')
-
     request = webob.Request.blank('/foo/sub/sub/:bundle:r1.css;r2.css')
     response = request.get_response(app)
     assert response.body == b'''r1
 r2'''
 
-    r3 = Resource(foo, 'r3.css')
     # r3 does not exist, trigger bundleapp error.
     request = webob.Request.blank('/foo/:bundle:r3.css')
     response = request.get_response(app)
     assert response.status_int == 404
 
-    r4 = Resource(foo, 'sub/sub/r4.css', depends=[r1, r2])
-    subdir.join('r4.css').write('r4')
     request = webob.Request.blank('/foo/sub/sub/:bundle:r1.css;r2.css;r4.css')
     response = request.get_response(app)
     assert response.body == b'''r1

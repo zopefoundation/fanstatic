@@ -67,6 +67,10 @@ class LibraryRegistry(Registry):
         finally:
             prepare_lock.release()
 
+    def clear(self):
+        super(LibraryRegistry, self).clear()
+        self.prepared = False
+
     def make_item_from_entry_point(self, entry_point):
         item = super(LibraryRegistry, self).make_item_from_entry_point(
             entry_point)

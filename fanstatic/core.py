@@ -18,6 +18,7 @@ DEBUG = 'debug'
 MINIFIED = 'minified'
 
 _resource_file_existence_checking = True
+_auto_register_library = False
 
 
 def set_resource_file_existence_checking(v):
@@ -131,6 +132,8 @@ class Library(object):
         self.minifiers = minifiers
         if self.minifiers is None:
             self.minifiers = {}
+
+        fanstatic.get_library_registry().add(self)
 
     def __repr__(self):
         return "<Library '%s' at '%s'>" % (self.name, self.path)
