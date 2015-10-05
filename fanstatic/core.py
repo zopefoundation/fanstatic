@@ -40,6 +40,15 @@ def set_resource_file_existence_checking(v):
     _resource_file_existence_checking = v
 
 
+def set_auto_register_library(v):
+    """
+    Global to say whether the Library instances should auto-register
+    themselves to the Library registry. Defaults to False, is useful in tests.
+    """
+    global _auto_register_library
+    _auto_register_library = v
+
+
 class UnknownResourceExtensionError(Exception):
     """A resource has an unrecognized extension.
     """
@@ -133,7 +142,8 @@ class Library(object):
         if self.minifiers is None:
             self.minifiers = {}
 
-        fanstatic.get_library_registry().add(self)
+        if _auto_register_library:
+            fanstatic.get_library_registry().add(self)
 
     def __repr__(self):
         return "<Library '%s' at '%s'>" % (self.name, self.path)

@@ -21,6 +21,7 @@ from fanstatic.core import (Library,
                             ConfigurationError,
                             SlotError,
                             set_resource_file_existence_checking,
+                            set_auto_register_library,
                             UnknownResourceError)
 from fanstatic.registry import (get_library_registry,
                                 LibraryRegistry,
