@@ -555,7 +555,6 @@ def test_console_script_collects_resources_from_package(
 
 def test_custom_sdist_command_runs_compiler_beforehand(tmpdir, monkeypatch):
     import os
-    from fanstatic import get_library_registry
     import shutilwhich
     import webob
 

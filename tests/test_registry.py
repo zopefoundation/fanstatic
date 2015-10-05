@@ -4,14 +4,11 @@ from fanstatic import get_library_registry, Library, compat
 
 
 def test_library_registry():
-    from fanstatic import get_library_registry
-    lib_reg = get_library_registry()
-    lib_reg.load_items_from_entry_points()
+    library_registry = get_library_registry()
+    library_registry.load_items_from_entry_points()
 
     # Skip this test if the test fixtures has not been installed.
     pytest.importorskip('mypackage')
-
-    library_registry = get_library_registry()
     # the 'foo' library has been placed here by the test buildout
     # fixtures/MyPackage by the entry point mechanism
     assert compat.dict_keys(library_registry) == ['foo']
