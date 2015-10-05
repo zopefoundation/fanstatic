@@ -111,7 +111,6 @@ class Library(object):
     """
 
     _signature = None
-    _library_deps = None
 
     def __init__(self, name, rootpath, ignores=None, version=None,
                  compilers=None, minifiers=None):
@@ -122,6 +121,7 @@ class Library(object):
         self.version = version
         self._library_deps = set()
         self.known_resources = {}
+        self.known_dependables = []
         self.library_nr = None
         self.module = sys._getframe(1).f_globals['__name__']
 
@@ -177,10 +177,12 @@ class Library(object):
         itself with its Library, the Library knows about the Resources
         associated to it.
         """
-        if resource.relpath in self.known_resources:
-            raise ConfigurationError(
-                'Resource path %s is already defined.' % resource.relpath)
-        self.known_resources[resource.relpath] = resource
+        if isinstance(resource, Resource):
+            if resource.relpath in self.known_resources:
+                raise ConfigurationError(
+                    'Resource path %s is already defined.' % resource.relpath)
+            self.known_resources[resource.relpath] = resource
+        self.known_dependables.append(resource)
 
     def signature(self, recompute_hashes=False, version_method=None):
         """Get a unique signature for this Library.
@@ -280,6 +282,7 @@ class Renderable(object):
 
     A renderable must have a library attribute and a dependency_nr.
     """
+
     def render(self, library_url):
         """Render this renderable as something to insert in HTML.
 
@@ -288,24 +291,57 @@ class Renderable(object):
 
 
 class Dependable(object):
-    """A dependable.
-
-    A dependable must have a depends attribute, which is a sequence
-    of those dependables that this dependable depends on directly.
+    """Dependables have a depends and an a resources attributes.
     """
-
     resources = None
-    """A set of the renderable resources that this dependable depends on.
 
-    This might possibly include the object itself, as for a normal
-    Resource.
+    def add_dependency(self, dependency):
+        new_dependencies = set(self.depends)
+        new_dependencies.add(dependency)
+        if new_dependencies != self.depends:
+            self.set_dependencies(new_dependencies)
+
+    def set_dependencies(self, depends):
+        raise NotImplementedError
+
+
+class RegisteredDependable(Dependable):
+    """A dependable that registered to a library.
     """
+
+    def __init__(self, library, depends=None):
+        self.library = library
+        self.set_dependencies(depends)
+        self.library.register(self)
+
+    def set_dependencies(self, depends):
+        assert not isinstance(depends, compat.basestring)
+        self.depends = set()
+        if depends is not None:
+            # Normalize groups into the underlying resources...
+            depends = normalize_groups(depends)
+            # ...before updating the set of dependencies of this resource.
+            self.depends.update(depends)
+
+        self.resources = set([self])
+        for depend in self.depends:
+            self.resources.update(depend.resources)
+
+        # Check for library dependency cycles.
+        self.library.check_dependency_cycle(self)
+
+    def init_dependency_nr(self):
+        # on dependency within the library
+        dependency_nr = 0
+        for depend in self.depends:
+            dependency_nr = max(depend.dependency_nr + 1, dependency_nr)
+        self.dependency_nr = dependency_nr
 
 
 NOTHING = object()
 
 
-class Resource(Renderable, Dependable):
+class Resource(Renderable, RegisteredDependable):
     """A resource.
 
     A resource specifies a single resource in a library so that it can
@@ -358,8 +394,8 @@ class Resource(Renderable, Dependable):
                  compiler=NOTHING,
                  source=None,
                  mode_parent=None):
-        self.library = library
         self.relpath = relpath
+        super(Resource, self).__init__(library, depends)
         self.dirname, self.filename = os.path.split(relpath)
         if self.dirname and not self.dirname.endswith('/'):
             self.dirname += '/'
@@ -423,25 +459,6 @@ class Resource(Renderable, Dependable):
             self.order, _ = inclusion_renderers.get(
                 self.ext, (compat.maxsize, None))
 
-        assert not isinstance(depends, compat.basestring)
-        self.depends = set()
-        if depends is not None:
-            # Normalize groups into the underlying resources...
-            depends = normalize_groups(depends)
-            # ...before updating the set of dependencies of this resource.
-            self.depends.update(depends)
-
-        self.resources = set([self])
-        for depend in self.depends:
-            self.resources.update(depend.resources)
-
-        # Check for library dependency cycles.
-        self.library.check_dependency_cycle(self)
-
-        # generate an internal number for sorting the resource
-        # on dependency within the library
-        self.init_dependency_nr()
-
         self.modes = {}
         for mode_name, argument in [(DEBUG, debug), (MINIFIED, self.minified)]:
             if argument is None:
@@ -463,7 +480,6 @@ class Resource(Renderable, Dependable):
                     raise ModeResourceDependencyError
                 mode_resource = argument
 
-            mode_resource.dependency_nr = self.dependency_nr
             self.modes[mode_name] = mode_resource
 
         assert not isinstance(supersedes, compat.basestring)
@@ -473,21 +489,11 @@ class Resource(Renderable, Dependable):
         # create a reference to the superseder in the superseded resource
         for resource in self.supersedes:
             resource.rollups.append(self)
-        # Register ourself with the Library.
-        self.library.register(self)
 
     def fullpath(self, path=None):
         if path is None:
             path = self.relpath
         return os.path.normpath(os.path.join(self.library.path, path))
-
-    def init_dependency_nr(self):
-        # on dependency within the library
-        dependency_nr = 0
-        for depend in self.depends:
-            dependency_nr = max(depend.dependency_nr + 1,
-                                dependency_nr)
-        self.dependency_nr = dependency_nr
 
     def compile(self, force=False):
         # Skip compilation if this library has a version.
@@ -548,7 +554,7 @@ REQUIRED_DEFAULT_MARKER = object()
 
 # XXX have to lie here: a slot itself is not directly renderable,
 # that's a FilledSlot.
-class Slot(Renderable, Dependable):
+class Slot(Renderable, RegisteredDependable):
     """A resource slot.
 
     Sometimes only the application has knowledge on how to fill in a
@@ -577,6 +583,7 @@ class Slot(Renderable, Dependable):
     def __init__(self, library, extension, depends=None,
                  required=REQUIRED_DEFAULT_MARKER,
                  default=None):
+        super(Slot, self).__init__(library, depends)
         #We need to detect if required was set to true explicitly.
         if required is True and default is not None:
             raise ValueError('A slot with a default is not required and can '
@@ -584,41 +591,15 @@ class Slot(Renderable, Dependable):
         if required is REQUIRED_DEFAULT_MARKER:
             required = True
         self.default = default
-        self.library = library
         assert extension.startswith('.')
         self.ext = extension
         self.required = required
 
-        assert not isinstance(depends, compat.basestring)
-        self.depends = set()
-        if depends is not None:
-            # Normalize groups into the underlying resources...
-            depends = normalize_groups(depends)
-            # ...before updating the set of dependencies of this resource.
-            self.depends.update(depends)
 
-        self.resources = set([self])
-        for depend in self.depends:
-            self.resources.update(depend.resources)
+class FilledSlot(Renderable):
 
-        # Check for library dependency cycles.
-        self.library.check_dependency_cycle(self)
-
-        # generate an internal number for sorting the resource
-        # on dependency within the library
-        self.init_dependency_nr()
-
-    def init_dependency_nr(self):
-        # on dependency within the library
-        dependency_nr = 0
-        for depend in self.depends:
-            dependency_nr = max(depend.dependency_nr + 1,
-                                dependency_nr)
-        self.dependency_nr = dependency_nr
-
-
-class FilledSlot(Renderable, Dependable):
     def __init__(self, slot, resource):
+        self.filledby = resource
         self.library = resource.library
         self.relpath = resource.relpath
         self.dirname, self.filename = resource.dirname, resource.filename
@@ -647,7 +628,10 @@ class FilledSlot(Renderable, Dependable):
         # XXX how do slots interact with rollups?
 
     def render(self, library_url):
-        return self.renderer('%s/%s' % (library_url, self.relpath))
+        return self.filledby.render(library_url)
+
+    def compile(self, force=False):
+        self.filledby.compile(force=force)
 
     def __repr__(self):
         return "<FilledSlot '%s' in library '%s'>" % (
@@ -676,6 +660,9 @@ class Group(Dependable):
      :py:class:`Group` instances.
     """
     def __init__(self, depends):
+        self.set_dependencies(depends)
+
+    def set_dependencies(self, depends):
         # Normalize groups in order to `flatten` Groups depending on Groups.
         self.depends = set(normalize_groups(depends))
         self.resources = set()
@@ -927,6 +914,8 @@ def init_needed(*args, **kw):
     """Initialize a NeededResources object in the thread-local data. Arguments
     are passed verbatim to the NeededResource __init__.
     """
+    registry = fanstatic.registry.get_library_registry()
+    registry.prepare()
     needed = NeededResources(*args, **kw)
     thread_local_needed_data.__dict__[NEEDED] = needed
     return needed

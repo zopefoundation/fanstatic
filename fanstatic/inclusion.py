@@ -78,9 +78,6 @@ def sort_resources(resources):
     Note this sorting algorithm guarantees a consistent ordering, no
     matter in what order resources were needed.
     """
-    for resource in resources:
-        resource.library.init_library_nr()
-
     def key(resource):
         return (
             resource.order,
