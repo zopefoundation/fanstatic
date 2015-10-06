@@ -162,15 +162,17 @@ class Library(object):
         # depending libraries + 1
         max_library_nr = 0
         for resource in compat.itervalues(self.known_resources):
-            for dep in resource.depends:
-                # we don't care about resources in the same library
-                if dep.library is self:
-                    continue
-                # assign library number of library we are dependent on
-                # recursively if necessary
-                if dep.library.library_nr is None:
-                    dep.library.init_library_nr()
-                max_library_nr = max(max_library_nr, dep.library.library_nr + 1)
+            for depend in resource.depends:
+                for asset in depend.list_assets():
+                    # we don't care about resources in the same library
+                    if asset.library is self:
+                        continue
+                    # assign library number of library we are dependent on
+                    # recursively if necessary
+                    if asset.library.library_nr is None:
+                        asset.library.init_library_nr()
+                    max_library_nr = max(
+                        max_library_nr, asset.library.library_nr + 1)
         self.library_nr = max_library_nr
 
     def check_dependency_cycle(self, resource):
@@ -301,27 +303,41 @@ class Renderable(object):
 
         This returns a snippet.
         """
+        raise NotImplementedError()
 
 
 class Dependable(object):
-    """Dependables have a depends and an a resources attributes.
+    """Dependables have a dependencies and an a resources attributes.
     """
     resources = None
     depends = None
     supports = None
 
     def add_dependency(self, dependency):
+        if dependency in self.depends:
+            return
+        if dependency in self.list_supporting():
+            raise ValueError('Cannot create dependencies loops')
         new_dependencies = set(self.depends)
-        new_dependencies.update(normalize_groups([dependency]))
-        if new_dependencies != self.depends:
-            self.set_dependencies(new_dependencies)
+        new_dependencies.add(dependency)
+        self.set_dependencies(new_dependencies)
 
-    def set_dependencies(self, depends):
-        raise NotImplementedError
+    def set_dependencies(self, dependencies):
+        raise NotImplementedError()
+
+    def list_assets(self):
+        raise NotImplementedError()
+
+    def list_supporting(self):
+        supports = set()
+        for dependable in self.supports:
+            supports.add(dependable)
+            supports.update(dependable.list_supporting())
+        return supports
 
 
-class RegisteredDependable(Dependable):
-    """A dependable that registered to a library.
+class Asset(Dependable):
+    """An asset can either a resource or a slot.
     """
 
     def __init__(self, library, depends=None):
@@ -332,36 +348,39 @@ class RegisteredDependable(Dependable):
 
     def set_dependencies(self, depends):
         assert not isinstance(depends, compat.basestring)
-        self.depends = set()
         if depends is not None:
-            # Normalize groups into the underlying resources...
-            depends = normalize_groups(depends)
-            # ...before updating the set of dependencies of this resource.
-            self.depends.update(depends)
+            self.depends = set(depends)
+        else:
+            self.depends = set()
 
         self.resources = set([self])
         for depend in self.depends:
             depend.supports.add(self)
             self.resources.update(depend.resources)
 
-        for supports in self.supports:
-            supports.resources.update(self.resources)
+        # Update resources if needed.
+        for dependable in self.list_supporting():
+            dependable.resources.update(self.resources)
 
         # Check for library dependency cycles.
         self.library.check_dependency_cycle(self)
+
+    def list_assets(self):
+        return set([self])
 
     def init_dependency_nr(self):
         # on dependency within the library
         dependency_nr = 0
         for depend in self.depends:
-            dependency_nr = max(depend.dependency_nr + 1, dependency_nr)
+            for asset in depend.list_assets():
+                dependency_nr = max(asset.dependency_nr + 1, dependency_nr)
         self.dependency_nr = dependency_nr
 
 
 NOTHING = object()
 
 
-class Resource(Renderable, RegisteredDependable):
+class Resource(Renderable, Asset):
     """A resource.
 
     A resource specifies a single resource in a library so that it can
@@ -572,9 +591,7 @@ class Resource(Renderable, RegisteredDependable):
 REQUIRED_DEFAULT_MARKER = object()
 
 
-# XXX have to lie here: a slot itself is not directly renderable,
-# that's a FilledSlot.
-class Slot(Renderable, RegisteredDependable):
+class Slot(Asset):
     """A resource slot.
 
     Sometimes only the application has knowledge on how to fill in a
@@ -679,21 +696,26 @@ class Group(Dependable):
      on. Entries in the list can be :py:class:`Resource` instances, or
      :py:class:`Group` instances.
     """
+
     def __init__(self, depends):
         self.supports = set()
         self.set_dependencies(depends)
 
     def set_dependencies(self, depends):
-        # Normalize groups in order to `flatten` Groups depending on Groups.
-        self.depends = set(normalize_groups(depends))
+        self.depends = set(depends)
         self.resources = set()
         for depend in self.depends:
             depend.supports.add(self)
             self.resources.update(depend.resources)
 
-        for supports in self.supports:
-            supports.resources.update(self.resources)
+        for dependable in self.list_supporting():
+            dependable.resources.update(self.resources)
 
+    def list_assets(self):
+        assets = set([])
+        for depend in self.depends:
+            assets.update(depend.list_assets())
+        return assets
 
     def need(self, slots=None):
         """Need this group resource.
@@ -714,16 +736,6 @@ class Group(Dependable):
 
 # backwards compatibility alias
 GroupResource = Group
-
-
-def normalize_groups(resources):
-    result = []
-    for resource in resources:
-        if not isinstance(resource, Renderable):
-            result.extend(resource.depends)
-        else:
-            result.append(resource)
-    return result
 
 
 class NeededResources(object):
@@ -977,6 +989,7 @@ def clear_needed():
 
 
 class Bundle(Renderable):
+
     def __init__(self):
         self._resources = []
 

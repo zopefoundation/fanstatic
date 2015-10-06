@@ -67,6 +67,11 @@ class LibraryRegistry(Registry):
         finally:
             prepare_lock.release()
 
+    def __setitem__(self, key, value):
+        if self.prepared:
+            raise ValueError('Registry initialized.')
+        super(LibraryRegistry, self).__setitem__(key, value)
+
     def clear(self):
         super(LibraryRegistry, self).clear()
         self.prepared = False

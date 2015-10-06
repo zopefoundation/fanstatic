@@ -169,7 +169,6 @@ def test_slot_depends_incorrect():
 
 
 def test_slot_minified():
-
     lib = Library('lib', '')
 
     slot = Slot(lib, '.js')

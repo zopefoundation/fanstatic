@@ -1,4 +1,4 @@
-from fanstatic import Library, Resource, init_needed
+from fanstatic import Library, Resource, Slot, init_needed
 from fanstatic import compat, Inclusion, MINIFIED
 from fanstatic import set_resource_file_existence_checking
 from fanstatic.compiler import Compiler, Minifier
@@ -113,6 +113,21 @@ def test_compile_only_for_libraries_under_development(
 
     incl = Inclusion(needed, compile=True)
     assert len(compilers.compiler('mock').calls) == 2
+
+
+def test_compile_with_slots(compilers):
+    compilers.add_compiler(MockCompiler())
+
+    lib = Library('lib', '')
+    slot = Slot(lib, '.js')
+    a = Resource(lib, 'a.js', compiler='mock')
+    b = Resource(lib, 'b.js', depends=[slot])
+
+    needed = init_needed()
+    needed.need(b, {slot: a})
+    incl = Inclusion(needed, compile=True)
+    assert len(compilers.compiler('mock').calls) == 1
+
 
 def test_setting_compile_False_should_not_call_compiler_and_minifier(
     compilers):

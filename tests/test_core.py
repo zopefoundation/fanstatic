@@ -24,7 +24,6 @@ from fanstatic import (Library,
 from fanstatic.core import inclusion_renderers
 from fanstatic.core import thread_local_needed_data
 from fanstatic.core import ModeResourceDependencyError
-from fanstatic.codegen import sort_resources_topological
 from fanstatic.inclusion import (bundle_resources,
                                  sort_resources,
                                  rollup_resources)
@@ -172,18 +171,157 @@ def test_convenience_group_resource_need():
     assert get_needed().resources() == set([x2, x1, y1])
 
 
-def test_depend_on_group():
+def test_add_dependency_resource_to_resource():
+    foo = Library('foo', '')
+    a1 = Resource(foo, 'a1.js')
+    b1 = Resource(foo, 'b1.js', depends=[a1])
+    c1 = Resource(foo, 'c1.js', depends=[b1])
+
+    assert a1.depends == set([])
+    assert a1.resources == set([a1])
+
+    assert b1.depends == set([a1])
+    assert b1.resources == set([a1, b1])
+
+    assert c1.depends == set([b1])
+    assert c1.resources == set([a1, b1, c1])
+
+    a2 = Resource(foo, 'a2.js')
+    b1.add_dependency(a2)
+
+    assert b1.depends == set([a1, a2])
+    assert b1.resources == set([a1, a2, b1])
+
+    assert c1.depends == set([b1])
+    assert c1.resources == set([a1, a2, b1, c1])
+
+    # Adding it twice does not change anything.
+    b1.add_dependency(a2)
+
+    assert b1.depends == set([a1, a2])
+    assert b1.resources == set([a1, a2, b1])
+
+    assert c1.depends == set([b1])
+    assert c1.resources == set([a1, a2, b1, c1])
+
+
+def test_cannot_add_dependency_loop():
+    foo = Library('foo', '')
+    a1 = Resource(foo, 'a1.js')
+    b1 = Resource(foo, 'b1.js', depends=[a1])
+
+    with pytest.raises(ValueError):
+        a1.add_dependency(b1)
+
+
+def test_add_dependency_group_to_resource():
+    foo = Library('foo', '')
+    a1 = Resource(foo, 'a1.js')
+    b1 = Resource(foo, 'b1.js', depends=[a1])
+    c1 = Resource(foo, 'c1.js', depends=[b1])
+
+    assert a1.depends == set([])
+    assert a1.resources == set([a1])
+
+    assert b1.depends == set([a1])
+    assert b1.resources == set([a1, b1])
+
+    assert c1.depends == set([b1])
+    assert c1.resources == set([a1, b1, c1])
+
+    a2 = Resource(foo, 'a2.js')
+    a3 = Group([a1, a2])
+    b1.add_dependency(a3)
+
+    assert b1.depends == set([a1, a3])
+    assert b1.resources == set([a1, a2, b1])
+
+    assert c1.depends == set([b1])
+    assert c1.resources == set([a1, a2, b1, c1])
+
+    # Adding it twice does not change anything.
+    b1.add_dependency(a3)
+
+    assert b1.depends == set([a1, a3])
+    assert b1.resources == set([a1, a2, b1])
+
+    assert c1.depends == set([b1])
+    assert c1.resources == set([a1, a2, b1, c1])
+
+
+def test_add_dependency_resource_to_group():
+    foo = Library('foo', '')
+    a1 = Resource(foo, 'a1.js')
+    b1 = Group([a1])
+    c1 = Resource(foo, 'c1.js', depends=[b1])
+
+    assert a1.depends == set([])
+    assert a1.resources == set([a1])
+
+    assert b1.depends == set([a1])
+    assert b1.resources == set([a1])
+
+    assert c1.depends == set([b1])
+    assert c1.resources == set([a1, c1])
+
+    a2 = Resource(foo, 'a2.js')
+    b1.add_dependency(a2)
+
+    assert b1.depends == set([a1, a2])
+    assert b1.resources == set([a1, a2])
+
+    assert c1.depends == set([b1])
+    assert c1.resources == set([a1, a2, c1])
+
+    # Adding it twice does not change anything.
+    b1.add_dependency(a2)
+
+    assert b1.depends == set([a1, a2])
+    assert b1.resources == set([a1, a2])
+
+    assert c1.depends == set([b1])
+    assert c1.resources == set([a1, a2, c1])
+
+
+def test_dependables():
     foo = Library('foo', '')
     a = Resource(foo, 'a.js')
     b = Resource(foo, 'b.js')
-    g = Group([a, b])
-    c = Resource(foo, 'c.js', depends=[g])
-    g2 = Group([g])
-    g3 = Group([g, g2])
+    g1 = Group([a, b])
+    c = Resource(foo, 'c.js', depends=[g1])
+    g2 = Group([g1])
+    g3 = Group([g1, g2])
 
-    assert c.depends == set([a, b])
-    assert g2.depends == set([a, b])
-    assert g3.depends == set([a, b])
+
+    assert a.supports == set([g1])
+    assert a.list_assets() == set([a])
+    assert a.list_supporting() == set([c, g1, g2, g3])
+
+    assert b.supports == set([g1])
+    assert b.list_assets() == set([b])
+    assert b.list_supporting() == set([c, g1, g2, g3])
+
+    assert c.depends == set([g1])
+    assert c.resources == set([a, b, c])
+    assert c.list_assets() == set([c])
+    assert c.list_supporting() == set([])
+
+    assert g1.depends == set([a, b])
+    assert g1.resources == set([a, b])
+    assert g1.supports == set([c, g2, g3])
+    assert g1.list_assets() == set([a, b])
+    assert g1.list_supporting() == set([c, g2, g3])
+
+    assert g2.depends == set([g1])
+    assert g2.resources == set([a, b])
+    assert g2.supports == set([g3])
+    assert g2.list_assets() == set([a, b])
+    assert g2.list_supporting() == set([g3])
+
+    assert g3.depends == set([g1, g2])
+    assert g3.resources == set([a, b])
+    assert g3.list_assets() == set([a, b])
+    assert g3.list_supporting() == set([])
 
     needed = init_needed()
     needed.need(c)
@@ -517,6 +655,8 @@ def test_library_url_script_name_base_url():
 
 def test_library_url_version_hashing(tmpdir):
     foo = Library('foo', tmpdir.strpath)
+    # If the Library defines a version, the version is used.
+    bar = Library('bar', '', version='1')
 
     needed = init_needed(versioning=True)
     url = needed.library_url(foo)
@@ -528,8 +668,6 @@ def test_library_url_version_hashing(tmpdir):
     md5_url = needed.library_url(foo)
     assert url != md5_url
 
-    # If the Library defines a version, the version is used.
-    bar = Library('bar', '', version='1')
     assert needed.library_url(bar) == '/fanstatic/bar/:version:1'
 
 
@@ -953,17 +1091,6 @@ def test_library_dependency_cycles():
     #
     with pytest.raises(LibraryDependencyCycleError):
         c2 = Resource(C, 'c2.js', depends=[e1])
-
-
-def test_sort_resources_topological():
-    foo = Library('foo', '')
-
-    a1 = Resource(foo, 'a1.js')
-    a2 = Resource(foo, 'a2.js', depends=[a1])
-    a3 = Resource(foo, 'a3.js', depends=[a2])
-    a5 = Resource(foo, 'a5.js', depends=[a3])
-
-    assert sort_resources_topological([a5, a3, a1, a2]) == [a1, a2, a3, a5]
 
 
 def test_bundle():

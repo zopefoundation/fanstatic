@@ -1,9 +1,12 @@
 import pytest
 
 from fanstatic import get_library_registry, Library, compat
+from fanstatic import set_auto_register_library
 
 
 def test_library_registry():
+    set_auto_register_library(False)
+
     library_registry = get_library_registry()
     library_registry.load_items_from_entry_points()
 
@@ -31,3 +34,22 @@ def test_library_registry():
 
     # MyPackage has been installed in development mode:
     assert library_registry['foo'].version is None
+
+
+def test_do_add_library_after_register():
+    set_auto_register_library(False)
+
+    library_registry = get_library_registry()
+    bar = Library('bar', '')
+
+    assert 'bar' not in library_registry
+
+    library_registry.add(bar)
+
+    assert 'bar' in library_registry
+
+    library_registry.prepare()
+    foo = Library('foo', '')
+
+    with pytest.raises(ValueError):
+        library_registry.add(foo)
