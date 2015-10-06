@@ -61,8 +61,8 @@ class LibraryRegistry(Registry):
             for library in self.values():
                 library.init_library_nr()
             for library in sorted(self.values(), key=lambda l: l.library_nr):
-                for dependable in library.known_dependables:
-                    dependable.init_dependency_nr()
+                for asset in library.known_assets:
+                    asset.init_dependency_nr()
             self.prepared = True
         finally:
             prepare_lock.release()

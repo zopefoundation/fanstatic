@@ -131,7 +131,7 @@ class Library(object):
         self.version = version
         self._library_deps = set()
         self.known_resources = {}
-        self.known_dependables = []
+        self.known_assets = []
         self.library_nr = None
         self.module = sys._getframe(1).f_globals['__name__']
 
@@ -197,7 +197,7 @@ class Library(object):
                 raise ConfigurationError(
                     'Resource path %s is already defined.' % resource.relpath)
             self.known_resources[resource.relpath] = resource
-        self.known_dependables.append(resource)
+        self.known_assets.append(resource)
 
     def signature(self, recompute_hashes=False, version_method=None):
         """Get a unique signature for this Library.
