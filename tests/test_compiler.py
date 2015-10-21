@@ -572,6 +572,7 @@ def test_custom_sdist_command_runs_compiler_beforehand(tmpdir, monkeypatch):
     import os
     import shutilwhich
     import webob
+    import re
 
     # Fix the dependencies.
     environ = os.environ.copy()
@@ -590,10 +591,14 @@ def test_custom_sdist_command_runs_compiler_beforehand(tmpdir, monkeypatch):
         env=environ)
     stdout, stderr = p.communicate()
     p.wait()
-    assert compat.as_bytestring(
-        'hard linking src/somepackage/resources/style.min.css') in stdout
 
-    dist = ZipFile(str(pkgdir / 'dist' / 'somepackage-1.0.dev0.zip'))
+    search = re.search(
+        "^creating 'dist/(somepackage-1\.[0-9a-z\.]+)\.zip'",
+        stdout.decode('ascii'), flags=re.MULTILINE)
+
+    assert len(search.groups()) == 1
+    distname = search.groups()[0]
+    dist = ZipFile(str(pkgdir / 'dist' / '{}.zip'.format(distname)))
     assert (
-        'somepackage-1.0.dev0/src/somepackage/resources/style.min.css'
+        '{}/src/somepackage/resources/style.min.css'.format(distname)
         in dist.namelist())
