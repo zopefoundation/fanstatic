@@ -1,4 +1,4 @@
-from fanstatic import Library, Resource, NeededResources
+from fanstatic import Library, Resource, Slot, init_needed
 from fanstatic import compat, Inclusion, MINIFIED
 from fanstatic import set_resource_file_existence_checking
 from fanstatic.compiler import Compiler, Minifier
@@ -102,7 +102,7 @@ def test_compile_only_for_libraries_under_development(
     lib = Library('lib', '')
     a = Resource(lib, 'a.js', compiler='mock')
 
-    needed = NeededResources(resources=[a])
+    needed = init_needed(resources=[a])
     incl = Inclusion(needed, compile=True)
     assert len(compilers.compiler('mock').calls) == 1
     # Gathering all resources again will add a call.
@@ -114,6 +114,21 @@ def test_compile_only_for_libraries_under_development(
     incl = Inclusion(needed, compile=True)
     assert len(compilers.compiler('mock').calls) == 2
 
+
+def test_compile_with_slots(compilers):
+    compilers.add_compiler(MockCompiler())
+
+    lib = Library('lib', '')
+    slot = Slot(lib, '.js')
+    a = Resource(lib, 'a.js', compiler='mock')
+    b = Resource(lib, 'b.js', depends=[slot])
+
+    needed = init_needed()
+    needed.need(b, {slot: a})
+    incl = Inclusion(needed, compile=True)
+    assert len(compilers.compiler('mock').calls) == 1
+
+
 def test_setting_compile_False_should_not_call_compiler_and_minifier(
     compilers):
     compilers.add_compiler(MockCompiler())
@@ -121,7 +136,7 @@ def test_setting_compile_False_should_not_call_compiler_and_minifier(
 
     lib = Library('lib', '')
     a = Resource(lib, 'a.js', compiler='mock', minifier='mock')
-    needed = NeededResources(resources=[a])
+    needed = init_needed(resources=[a])
     incl = Inclusion(needed)
     incl.render()
     assert not compilers.compiler('mock').calls
@@ -135,7 +150,7 @@ def test_setting_compile_True_should_call_compiler_and_minifier(
     lib = Library('lib', '')
     a = Resource(lib, 'a.js', compiler='mock', minifier='mock')
 
-    needed = NeededResources(resources=[a])
+    needed = init_needed(resources=[a])
     incl = Inclusion(needed, compile=True)
     incl.render()
 
@@ -154,7 +169,7 @@ def test_minified_mode_should_call_compiler_and_minifier_of_parent_resource(
     lib = Library('lib', '')
     a = Resource(lib, 'a.js', compiler='mock', minifier='mock')
 
-    needed = NeededResources(resources=[a])
+    needed = init_needed(resources=[a])
     incl = Inclusion(needed, compile=True, mode=MINIFIED)
     assert len(incl.resources) == 1
     assert incl.resources[0].relpath == 'a.min.js'
@@ -174,7 +189,7 @@ def test_minified_mode_relpath_respect_subdir(compilers):
     lib = Library('lib', '')
     a = Resource(lib, 'foo/bar/a.js', compiler='mock', minifier='mock')
 
-    needed = NeededResources(resources=[a])
+    needed = init_needed(resources=[a])
     incl = Inclusion(needed, compile=True, mode=MINIFIED)
     assert len(incl.resources) == 1
     assert incl.resources[0].relpath == 'foo/bar/a.min.js'
@@ -383,7 +398,7 @@ def test_converts_placeholders_to_arguments(tmpdir):
             return p.stdout.read()
 
     assert Echo().process(source, target) == compat.as_bytestring(
-        '%s %s' % (source, target))
+        '-n %s %s\n' % (source, target))
 
 
 def test_coffeescript_compiler(tmpdir):
@@ -448,7 +463,7 @@ def test_sass_resource(tmpdir):
 }''')
     # Before compilation, the resource is not present.
     assert not tmpdir.join('a.css').check()
-    needed = NeededResources(resources=[a])
+    needed = init_needed(resources=[a])
     incl = Inclusion(needed, compile=True)
     incl.render()
     # After compilation, the resource is present, and compiled using the sass
@@ -533,11 +548,16 @@ def libraries(request):
 
 def test_console_script_collects_resources_from_package(
     monkeypatch, libraries):
+    from fanstatic import get_library_registry
+    lib_reg = get_library_registry()
+    lib_reg.load_items_from_entry_points()
+
     mypackage = pytest.importorskip('mypackage')
 
     lib = Library('other', '')
     a = Resource(lib, 'a.js')
-    fanstatic.LibraryRegistry.instance().add(lib)
+
+    lib_reg.add(lib)
 
     def log_compile(self, force=False):
         calls.append((self, force))
@@ -549,17 +569,31 @@ def test_console_script_collects_resources_from_package(
 
 
 def test_custom_sdist_command_runs_compiler_beforehand(tmpdir, monkeypatch):
+    import os
+    import shutilwhich
+    import webob
+
+    # Fix the dependencies.
+    environ = os.environ.copy()
+    environ['PYTHONPATH'] = ':'.join([
+        os.path.dirname(fanstatic.__path__[0]),
+        os.path.dirname(webob.__path__[0]),
+        os.path.dirname(shutilwhich.__path__[0])])
+
     pkgdir = _copy_testdata(tmpdir)
     monkeypatch.chdir(pkgdir)
+    # Put fanstatic on the python path.
     p = subprocess.Popen(
         [sys.executable, 'setup.py', 'sdist', '--formats', 'zip'],
         stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE)
-    stdout, _ = p.communicate()
+        stderr=subprocess.PIPE,
+        env=environ)
+    stdout, stderr = p.communicate()
     p.wait()
     assert compat.as_bytestring(
         'hard linking src/somepackage/resources/style.min.css') in stdout
-    dist = ZipFile(str(pkgdir / 'dist' / 'somepackage-1.0dev.zip'))
+
+    dist = ZipFile(str(pkgdir / 'dist' / 'somepackage-1.0.dev0.zip'))
     assert (
-        'somepackage-1.0dev/src/somepackage/resources/style.min.css'
+        'somepackage-1.0.dev0/src/somepackage/resources/style.min.css'
         in dist.namelist())

@@ -4,7 +4,15 @@ CHANGES
 1.0a6 (unreleased)
 ==================
 
-- Nothing changed yet.
+- Allow dependencies of a Resources or a Group to be modified after
+  being defined, but yet before being used. This allows to add
+  optional dependencies then needed to generically defined
+  packages. This required a complete re-factoring of the dependency
+  mechanism.
+
+- Fix slot so they can be used then a compiler is defined.
+
+- Remove fanstatic.codegen. That was not applicable in enough cases.
 
 
 1.0a5 (2014-02-09)

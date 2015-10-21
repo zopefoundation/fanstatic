@@ -1,13 +1,17 @@
 import pytest
 
 from fanstatic import get_library_registry, Library, compat
+from fanstatic import set_auto_register_library
 
 
 def test_library_registry():
-    # Skip this test if the test fixtures has not been installed.
-    pytest.importorskip('mypackage')
+    set_auto_register_library(False)
 
     library_registry = get_library_registry()
+    library_registry.load_items_from_entry_points()
+
+    # Skip this test if the test fixtures has not been installed.
+    pytest.importorskip('mypackage')
     # the 'foo' library has been placed here by the test buildout
     # fixtures/MyPackage by the entry point mechanism
     assert compat.dict_keys(library_registry) == ['foo']
@@ -30,3 +34,22 @@ def test_library_registry():
 
     # MyPackage has been installed in development mode:
     assert library_registry['foo'].version is None
+
+
+def test_do_add_library_after_register():
+    set_auto_register_library(False)
+
+    library_registry = get_library_registry()
+    bar = Library('bar', '')
+
+    assert 'bar' not in library_registry
+
+    library_registry.add(bar)
+
+    assert 'bar' in library_registry
+
+    library_registry.prepare()
+    foo = Library('foo', '')
+
+    with pytest.raises(ValueError):
+        library_registry.add(foo)

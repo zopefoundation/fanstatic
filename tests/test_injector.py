@@ -1,7 +1,7 @@
 import pytest
 import webob
 
-from fanstatic import (Library, Resource, Injector, get_needed,
+from fanstatic import (Library, Resource, Slot, Injector, get_needed,
                        NEEDED)
 
 
@@ -44,6 +44,30 @@ def test_inject():
 <html><head><link rel="stylesheet" type="text/css" href="http://testapp/fanstatic/foo/b.css" />
 <script type="text/javascript" src="http://testapp/fanstatic/foo/a.js"></script>
 <script type="text/javascript" src="http://testapp/fanstatic/foo/c.js"></script></head><body</body></html>'''
+
+
+def test_inject_filled_slot():
+    lib = Library('foo', '')
+    c = Resource(lib, 'c.js')
+    slot = Slot(lib, '.js', depends=[c])
+    a = Resource(lib, 'a.js', depends=[slot])
+    b = Resource(lib, 'b.js', depends=[c])
+
+    def app(environ, start_response):
+        start_response('200 OK', [])
+        needed = get_needed()
+        needed.need(a, {slot: b})
+        needed.set_base_url('http://testapp')
+        return [b'<html><head></head><body</body></html>']
+
+    wrapped_app = Injector(app)
+
+    request = webob.Request.blank('/')
+    response = request.get_response(wrapped_app)
+    assert response.body == b'''\
+<html><head><script type="text/javascript" src="http://testapp/fanstatic/foo/c.js"></script>
+<script type="text/javascript" src="http://testapp/fanstatic/foo/b.js"></script>
+<script type="text/javascript" src="http://testapp/fanstatic/foo/a.js"></script></head><body</body></html>'''
 
 
 def test_needed_deleted_after_request():

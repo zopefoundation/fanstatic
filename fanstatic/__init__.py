@@ -21,12 +21,12 @@ from fanstatic.core import (Library,
                             ConfigurationError,
                             SlotError,
                             set_resource_file_existence_checking,
+                            set_auto_register_library,
                             UnknownResourceError)
 from fanstatic.registry import (get_library_registry,
                                 LibraryRegistry,
                                 CompilerRegistry,
                                 MinifierRegistry)
-from fanstatic.codegen import generate_code
 from fanstatic.injector import (Injector,
                                 make_injector)
 from fanstatic.inclusion import (Inclusion,

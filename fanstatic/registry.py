@@ -1,5 +1,9 @@
 from fanstatic.compiler import NullCompiler
 import pkg_resources
+import threading
+
+
+prepare_lock = threading.Lock()
 
 
 class Registry(dict):
@@ -44,6 +48,33 @@ class LibraryRegistry(Registry):
     """
 
     ENTRY_POINT = 'fanstatic.libraries'
+
+    prepared = False
+
+    def prepare(self):
+        if self.prepared:
+            return
+        prepare_lock.acquire()
+        try:
+            if self.prepared:
+                return
+            for library in self.values():
+                library.init_library_nr()
+            for library in sorted(self.values(), key=lambda l: l.library_nr):
+                for asset in library.known_assets:
+                    asset.init_dependency_nr()
+            self.prepared = True
+        finally:
+            prepare_lock.release()
+
+    def __setitem__(self, key, value):
+        if self.prepared:
+            raise ValueError('Registry initialized.')
+        super(LibraryRegistry, self).__setitem__(key, value)
+
+    def clear(self):
+        super(LibraryRegistry, self).clear()
+        self.prepared = False
 
     def make_item_from_entry_point(self, entry_point):
         item = super(LibraryRegistry, self).make_item_from_entry_point(

@@ -1,6 +1,6 @@
 import pytest
 
-from fanstatic import Library, Resource, NeededResources
+from fanstatic import Library, Resource, init_needed
 from fanstatic.injector import InjectorPlugin
 from fanstatic.registry import InjectorRegistry
 from fanstatic import make_injector
@@ -23,7 +23,7 @@ def test_injector_based_on_injectorplugin():
     foo = Library('foo', '')
     a = Resource(foo, 'a.css')
     b = Resource(foo, 'b.css', bottom=True)
-    needed = NeededResources(resources=[a,b])
+    needed = init_needed(resources=[a,b])
 
     inj = TopInjector({})
 
