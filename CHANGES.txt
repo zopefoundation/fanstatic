@@ -1,7 +1,7 @@
 CHANGES
 *******
 
-1.0a6 (unreleased)
+1.0a6 (2015-10-21)
 ==================
 
 - Allow dependencies of a Resources or a Group to be modified after
