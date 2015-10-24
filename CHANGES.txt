@@ -4,8 +4,8 @@ CHANGES
 1.0a7 (unreleased)
 ==================
 
-- Nothing changed yet.
-
+- Add option zest.releaser helper script to compile resources when using
+  zest.releaser.
 
 1.0a6 (2015-10-21)
 ==================

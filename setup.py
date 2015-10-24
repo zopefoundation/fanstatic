@@ -86,6 +86,7 @@ setup(
         'cssmin': ['cssmin'],
         'jsmin': ['jsmin'],
         'test': tests_require,
+        'zestreleaser': ['zest.releaser'],
     },
     cmdclass={'test': PyTest},
     entry_points={
