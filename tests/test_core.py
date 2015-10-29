@@ -516,6 +516,24 @@ def test_rollup_size_competing():
     assert rollup_resources([d1, d2, d3]) == set([giant_bigger])
 
 
+def test_rollup_with_slot():
+    from fanstatic import Slot
+
+    lib = Library('lib', '')
+    c = Resource(lib, 'c.js')
+    slot = Slot(lib, '.js', depends=[c])
+    a = Resource(lib, 'a.js', depends=[slot])
+    b = Resource(lib, 'b.js', depends=[c])
+
+    needed = init_needed()
+    needed.need(a, {slot: b})
+
+    incl = Inclusion(needed, rollup=True)
+    assert len(incl.resources) == 3
+    assert a in incl.resources
+    assert c in incl.resources
+
+
 def test_inclusion_rollup_and_debug():
     foo = Library('foo', '')
     f1 = Resource(foo, 'f1.js', debug='f1-debug.js')

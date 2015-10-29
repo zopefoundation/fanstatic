@@ -641,6 +641,7 @@ class FilledSlot(Renderable):
         self.relpath = resource.relpath
         self.dirname, self.filename = resource.dirname, resource.filename
         self.bottom = resource.bottom
+        self.rollups = resource.rollups
         self.dont_bundle = resource.dont_bundle
         if slot.ext != resource.ext:
             raise SlotError(
