@@ -18,6 +18,7 @@ FOREVER = YEAR_IN_SECONDS * 10
 
 
 class BundleApp(webob.static.FileApp):
+
     def __init__(self, rootpath, bundle, filenames):
         # Let FileApp determine content_type and encoding based on bundlename.
         super(BundleApp, self).__init__(bundle)
@@ -80,15 +81,18 @@ class LibraryPublisher(webob.static.DirectoryApp):
             if not path.startswith(self.path):
                 raise webob.exc.HTTPForbidden()
             elif fanstatic.BUNDLE_PREFIX in path:
+
                 # We are handling a bundle request.
-                subdir, bundle = req.path_info.split(fanstatic.BUNDLE_PREFIX, 1)
+                subdir, bundle = req.path_info.split(
+                    fanstatic.BUNDLE_PREFIX, 1)
                 subdir = subdir.lstrip('/')
                 dependency_nr = 0
                 filenames = []
                 # Check for duplicate filenames (`dirty bundles`) and check
                 # whether the filenames belong to a Resource definition.
                 for filename in bundle.split(';'):
-                    resource = self.library.known_resources.get(subdir + filename)
+                    resource = self.library.known_resources.get(
+                        subdir + filename)
                     if resource is None:
                         raise webob.exc.HTTPNotFound()
                     if resource.dependency_nr < dependency_nr:
@@ -129,12 +133,12 @@ class Publisher(object):
     :py:func:`Fanstatic` WSGI framework component, but can also be
     used independently if you need more control.
 
-    :param library_registry: an instance of
+    :param registry: an instance of
       :py:class:`LibraryRegistry` with those resource libraries that
       should be published.
     """
-    def __init__(self, library_registry):
-        self.library_registry = library_registry
+    def __init__(self, registry):
+        self.registry = registry
         self.directory_publishers = {}
 
     @webob.dec.wsgify
@@ -163,10 +167,11 @@ class Publisher(object):
 
         directory_publisher = self.directory_publishers.get(library_name)
         if directory_publisher is None:
-            library = self.library_registry.get(library_name)
+            library = self.registry.get(library_name)
             if library is None:
                 # unknown library
                 raise webob.exc.HTTPNotFound()
+            self.registry.prepare()
             directory_publisher = self.directory_publishers[library_name] = \
                 LibraryPublisher(library)
 
@@ -226,4 +231,5 @@ class Delegator(object):
 
 
 def make_publisher(global_config):
-    return Publisher(fanstatic.LibraryRegistry.instance())
+    registry = fanstatic.get_library_registry()
+    return Publisher(registry)

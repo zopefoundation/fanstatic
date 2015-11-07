@@ -4,6 +4,9 @@ CHANGES
 1.0a7 (unreleased)
 ==================
 
+- Make sure the registry is prepared if only the publisher is used
+  within a process.
+
 - Fix bug with rollups and slots.
 
 

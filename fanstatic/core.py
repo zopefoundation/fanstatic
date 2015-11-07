@@ -953,7 +953,7 @@ def init_needed(*args, **kw):
     """Initialize a NeededResources object in the thread-local data. Arguments
     are passed verbatim to the NeededResource __init__.
     """
-    registry = fanstatic.registry.get_library_registry()
+    registry = fanstatic.get_library_registry()
     registry.prepare()
     needed = NeededResources(*args, **kw)
     thread_local_needed_data.__dict__[NEEDED] = needed
