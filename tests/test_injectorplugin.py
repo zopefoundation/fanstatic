@@ -34,7 +34,7 @@ def test_injector_based_on_injectorplugin():
 <link rel="stylesheet" type="text/css" href="/fanstatic/foo/b.css" /></head><body></body></html>''')
 
 
-class TestingRegistry(object):
+class MockRegistry(object):
 
     def __init__(self, request):
         self.request = request
@@ -51,7 +51,7 @@ class TestingRegistry(object):
 
 @pytest.fixture
 def injectors(request):
-    return TestingRegistry(request)
+    return MockRegistry(request)
 
 
 def test_injector_plugin_registered_by_name(injectors):

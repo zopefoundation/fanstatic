@@ -36,7 +36,6 @@ tests_require = [
     'cssmin',
     'jsmin',
     'pytest >= 2.3',
-    'pytest-capturelog',
 ]
 
 

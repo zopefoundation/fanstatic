@@ -13,10 +13,10 @@ def test_inject():
     y1 = Resource(foo, 'c.js', depends=[x1, x2])
 
     def app(environ, start_response):
-        start_response('200 OK', [])
+        start_response('200 OK', [('Content-Type', 'text/html')])
         needed = get_needed()
         needed.need(y1)
-        return [b'<html><head></head><body</body></html>']
+        return [b'<html><head></head><body></body></html>']
 
     wrapped_app = Fanstatic(app, base_url='http://testapp')
 
@@ -27,7 +27,7 @@ def test_inject():
     assert response.body == b'''\
 <html><head><link rel="stylesheet" type="text/css" href="http://testapp/fanstatic/foo/b.css" />
 <script type="text/javascript" src="http://testapp/fanstatic/foo/a.js"></script>
-<script type="text/javascript" src="http://testapp/fanstatic/foo/c.js"></script></head><body</body></html>'''
+<script type="text/javascript" src="http://testapp/fanstatic/foo/c.js"></script></head><body></body></html>'''
 
 
 def test_inject_script_name():
@@ -37,10 +37,10 @@ def test_inject_script_name():
     y1 = Resource(foo, 'c.js', depends=[x1, x2])
 
     def app(environ, start_response):
-        start_response('200 OK', [])
+        start_response('200 OK', [('Content-Type', 'text/html')])
         needed = get_needed()
         needed.need(y1)
-        return [b'<html><head></head><body</body></html>']
+        return [b'<html><head></head><body></body></html>']
 
     wrapped_app = Fanstatic(app)
 
@@ -50,7 +50,7 @@ def test_inject_script_name():
     assert response.body == b'''\
 <html><head><link rel="stylesheet" type="text/css" href="/root/fanstatic/foo/b.css" />
 <script type="text/javascript" src="/root/fanstatic/foo/a.js"></script>
-<script type="text/javascript" src="/root/fanstatic/foo/c.js"></script></head><body</body></html>'''
+<script type="text/javascript" src="/root/fanstatic/foo/c.js"></script></head><body></body></html>'''
 
 
 def test_incorrect_configuration_options():
@@ -69,10 +69,10 @@ def test_backward_compatible_configuration_options():
     y1 = Resource(foo, 'c.js', depends=[x1, x2])
 
     def app(environ, start_response):
-        start_response('200 OK', [])
+        start_response('200 OK', [('Content-Type', 'text/html')])
         needed = get_needed()
         needed.need(y1)
-        return [b'<html><head></head><body</body></html>']
+        return [b'<html><head></head><body></body></html>']
 
     wrapped_app = Fanstatic(
         app, base_url='http://testapp',
@@ -85,7 +85,7 @@ def test_backward_compatible_configuration_options():
     response = request.get_response(wrapped_app)
     assert response.body == b'''\
 <html><head><link rel="stylesheet" type="text/css" href="http://testapp/fanstatic/foo/b.css" />
-<script type="text/javascript" src="http://testapp/fanstatic/foo/:bundle:a.js;c.js"></script></head><body</body></html>'''
+<script type="text/javascript" src="http://testapp/fanstatic/foo/:bundle:a.js;c.js"></script></head><body></body></html>'''
 
 
 def test_inject_unicode_base_url():
@@ -93,9 +93,9 @@ def test_inject_unicode_base_url():
     x1 = Resource(foo, 'a.js')
 
     def app(environ, start_response):
-        start_response('200 OK', [])
+        start_response('200 OK', [('Content-Type', 'text/html;charset=utf-8')])
         x1.need()
-        return [b'<html><head></head><body</body></html>']
+        return [b'<html><head></head><body></body></html>']
 
     request = webob.Request.blank('/')
     wrapped = Fanstatic(app, base_url=compat.u('http://localhost'))

@@ -1,4 +1,3 @@
 jsmin
 cssmin
 closure==20140110
-pytest-capturelog

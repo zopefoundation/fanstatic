@@ -17,7 +17,7 @@ A simple WSGI application
 A simple WSGI application will stand in for your web application::
 
     def app(environ, start_response):
-        start_response('200 OK', [])
+        start_response('200 OK', [('Content-Type', 'text/html')])
         return ['<html><head></head><body></body></html>']
 
 As you can see, it simply produces the following web page, no
@@ -70,7 +70,7 @@ How would we do this with Fanstatic? Like this::
     from js.jquery import jquery
 
     def app(environ, start_response):
-        start_response('200 OK', [])
+        start_response('200 OK', [('Content-Type', 'text/html')])
         jquery.need()
         return ['<html><head></head><body></body></html>']
 

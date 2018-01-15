@@ -30,11 +30,11 @@ def test_inject():
     y1 = Resource(foo, 'c.js', depends=[x1, x2])
 
     def app(environ, start_response):
-        start_response('200 OK', [])
+        start_response('200 OK', [('Content-Type', 'text/html')])
         needed = get_needed()
         needed.need(y1)
         needed.set_base_url('http://testapp')
-        return [b'<html><head></head><body</body></html>']
+        return [b'<html><head></head><body></body></html>']
 
     wrapped_app = Injector(app)
 
@@ -43,7 +43,7 @@ def test_inject():
     assert response.body == b'''\
 <html><head><link rel="stylesheet" type="text/css" href="http://testapp/fanstatic/foo/b.css" />
 <script type="text/javascript" src="http://testapp/fanstatic/foo/a.js"></script>
-<script type="text/javascript" src="http://testapp/fanstatic/foo/c.js"></script></head><body</body></html>'''
+<script type="text/javascript" src="http://testapp/fanstatic/foo/c.js"></script></head><body></body></html>'''
 
 
 def test_inject_filled_slot():
@@ -54,11 +54,11 @@ def test_inject_filled_slot():
     b = Resource(lib, 'b.js', depends=[c])
 
     def app(environ, start_response):
-        start_response('200 OK', [])
+        start_response('200 OK', [('Content-Type', 'text/html')])
         needed = get_needed()
         needed.need(a, {slot: b})
         needed.set_base_url('http://testapp')
-        return [b'<html><head></head><body</body></html>']
+        return [b'<html><head></head><body></body></html>']
 
     wrapped_app = Injector(app)
 
@@ -67,14 +67,14 @@ def test_inject_filled_slot():
     assert response.body == b'''\
 <html><head><script type="text/javascript" src="http://testapp/fanstatic/foo/c.js"></script>
 <script type="text/javascript" src="http://testapp/fanstatic/foo/b.js"></script>
-<script type="text/javascript" src="http://testapp/fanstatic/foo/a.js"></script></head><body</body></html>'''
+<script type="text/javascript" src="http://testapp/fanstatic/foo/a.js"></script></head><body></body></html>'''
 
 
 def test_needed_deleted_after_request():
     def html_app(environ, start_response):
         start_response('200 OK', [('Content-Type', 'text/html')])
         assert NEEDED in environ
-        return [b'<html><head></head><body</body></html>']
+        return [b'<html><head></head><body></body></html>']
 
     wrapped_app = Injector(html_app)
     request = webob.Request.blank('/')
@@ -88,7 +88,7 @@ def test_needed_deleted_after_request():
     def textplain_app(environ, start_response):
         start_response('200 OK', [('Content-Type', 'text/plain')])
         assert NEEDED in environ
-        return [b'<html><head></head><body</body></html>']
+        return [b'<html><head></head><body></body></html>']
 
     wrapped_app = Injector(textplain_app)
     request = webob.Request.blank('/')
@@ -111,19 +111,19 @@ def test_no_inject_into_non_html():
         start_response('200 OK', [('Content-Type', 'text/plain')])
         needed = get_needed()
         needed.need(y1)
-        return [b'<html><head></head><body</body></html>']
+        return [b'<html><head></head><body></body></html>']
 
     wrapped_app = Injector(app)
 
     request = webob.Request.blank('/')
     response = request.get_response(wrapped_app)
-    assert response.body == b'<html><head></head><body</body></html>'
+    assert response.body == b'<html><head></head><body></body></html>'
 
 
 def test_no_needed_into_non_get_post():
     def app(environ, start_response):
         assert NEEDED not in environ
-        start_response('200 OK', [])
+        start_response('200 OK', [('Content-Type', 'text/html')])
         return [b'foo']
     wrapped_app = Injector(app)
     request = webob.Request.blank('/', method='PUT')
@@ -132,7 +132,7 @@ def test_no_needed_into_non_get_post():
 
 def test_needed_from_environ():
     def app(environ, start_response):
-        start_response('200 OK', [])
+        start_response('200 OK', [('Content-Type', 'text/html')])
         needed = get_needed()
         assert needed is environ[NEEDED]
 

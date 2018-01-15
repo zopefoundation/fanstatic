@@ -142,7 +142,7 @@ def test_delegator(tmpdir):
     publisher = Publisher(libraries)
 
     def real_app(environ, start_response):
-        start_response('200 OK', [])
+        start_response('200 OK', [('Content-Type', 'text/html')])
         return ['Hello world!']
 
     delegator = Delegator(real_app, publisher)
@@ -161,7 +161,7 @@ def test_delegator(tmpdir):
     request = webob.Request.blank('/somethingelse')
     response = request.get_response(delegator)
     assert response.body == 'Hello world!'
-    #Default content type from WebOb
+    # Default content type from WebOb
     assert response.content_type == 'text/html'
 
 

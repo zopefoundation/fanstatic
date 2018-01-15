@@ -39,7 +39,7 @@ class MockMinifier(fanstatic.compiler.Minifier):
         self.calls.append(resource)
 
 
-class TestingRegistry(object):
+class MockRegistry(object):
 
     def __init__(self, request):
         self.request = request
@@ -67,7 +67,7 @@ class TestingRegistry(object):
 
 @pytest.fixture
 def compilers(request):
-    return TestingRegistry(request)
+    return MockRegistry(request)
 
 
 
@@ -87,10 +87,10 @@ def test_logging_when_compiling(tmpdir, compilers, caplog):
     lib = Library('lib', str(tmpdir))
     tmpdir.join('a.frop').write(' foo bar baz ')
     a = Resource(lib, 'a.js', compiler='whitespace')
-    assert len(caplog.records()) == 0
+    assert len(caplog.records) == 0
     a.compile()
-    assert len(caplog.records()) == 1
-    assert "Compiling <Resource 'a.js' in library 'lib'> in" in caplog.text()
+    assert len(caplog.records) == 1
+    assert "Compiling <Resource 'a.js' in library 'lib'> in" in caplog.text
     # The 'compiler' really worked!
     assert tmpdir.join('a.js').read() == 'foobarbaz'
 
@@ -536,7 +536,7 @@ def test_closure_minifier_communicate_exit_status(tmpdir):
 
     with pytest.raises(CompilerError) as exc:
         compiler.process(source, target)
-    assert 'Cannot read:' in str(exc)
+    assert 'Cannot read' in str(exc)
 
 
 @pytest.fixture
