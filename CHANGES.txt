@@ -3,9 +3,8 @@ CHANGES
 
 1.0a8 (unreleased)
 ==================
-
-- Nothing changed yet.
-
+- Fixup tests for new versions of dependencies and changed contracts. This
+  also improves Python 3 compatibility.
 
 1.0a7 (2015-11-07)
 ==================
@@ -14,7 +13,6 @@ CHANGES
   within a process.
 
 - Fix bug with rollups and slots.
-
 
 1.0a6 (2015-10-21)
 ==================
