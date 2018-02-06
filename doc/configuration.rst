@@ -162,10 +162,7 @@ collection of resources can be served in one go.
 You can create special :py:class:`Resource` instances that declare
 they supersede a collection of other resources. If ``rollup`` is
 enabled, Fanstatic will serve a combined resource if it finds out that
-all individual resources that it supersedes are needed. If you also
-declare that a resource is an ``eager_superseder``, the rolled up
-resource will actually always be served, even if only some of the
-superseded resources are needed.
+all individual resources that it supersedes are needed.
 
 base_url
 --------
