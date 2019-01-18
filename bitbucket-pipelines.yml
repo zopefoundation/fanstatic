@@ -1,4 +1,4 @@
-# This image does not come with Java installed, so it does not work.
+# This image does not come with Java installed, so we do it manually.
 image: saaj/snake-tank
 
 pipelines:
