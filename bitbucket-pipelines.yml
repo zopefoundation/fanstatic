@@ -1,3 +1,4 @@
+# This image does not come with Java installed, so it does not work.
 image: saaj/snake-tank
 
 pipelines:
