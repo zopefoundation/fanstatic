@@ -6,6 +6,7 @@ from .test_checksum import _copy_testdata
 from zipfile import ZipFile
 import fanstatic
 import fanstatic.compiler
+import logging
 import os
 import pytest
 import subprocess
@@ -72,6 +73,8 @@ def compilers(request):
 
 
 def test_logging_when_compiling(tmpdir, compilers, caplog):
+    caplog.set_level(logging.INFO, logger='fanstatic')
+
     class WhiteSpaceRemover(fanstatic.compiler.Compiler):
         """A silly minifier, to showcase logging."""
         name = 'whitespace'
@@ -397,8 +400,9 @@ def test_converts_placeholders_to_arguments(tmpdir):
             p = super(Echo, self).process(source, target)
             return p.stdout.read()
 
+    # `-n` removes trailing newlines and is therefore not shown.
     assert Echo().process(source, target) == compat.as_bytestring(
-        '-n %s %s\n' % (source, target))
+        '%s %s' % (source, target))
 
 
 def test_coffeescript_compiler(tmpdir):
