@@ -1,17 +1,18 @@
 syntax: glob
 
-bin
-parts
-.installed.cfg
 *.egg-info
 *.pyc
 *.swp
 *~
-develop-eggs
 ./dist
+.DS_Store
+.cache
+.coverage
+.installed.cfg
+.tox
+bin
+develop-eggs
 doc/_build
 eggs
-.coverage
 htmlcov
-.tox
-.cache
+parts
