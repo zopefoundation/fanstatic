@@ -1,5 +1,20 @@
 include *.txt *.cfg *.py *.ini
+include .pep8
+
+include .installed.cfg
 exclude .installed.cfg
+
+include *.yml
+exclude *.yml
+
+include .hgignore
+exclude .hgignore
+
+include .hgtags
+exclude .hgtags
+
+exclude MANIFEST.in
+
 recursive-include fanstatic *.py
 recursive-include tests *.py *.in *.css
 recursive-include fixtures *.py *.in *.html *.css *.gz
