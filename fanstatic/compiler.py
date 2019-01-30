@@ -96,12 +96,15 @@ class Minifier(Compiler):
         return resource.fullpath(self.source_to_target(resource))
 
 
+ALL_PACKAGES = object()
+
+
 def _compile_resources(package):
     for library in fanstatic.LibraryRegistry.instance().values():
-        if not library.module.startswith(package):
-            continue
-        for resource in library.known_resources.values():
-            resource.compile(force=True)
+        if package is ALL_PACKAGES or library.module.startswith(package):
+            logger.info('Compiling resources in %s', library.name)
+            for resource in library.known_resources.values():
+                resource.compile(force=True)
 
 
 def compile_resources(argv=sys.argv):
@@ -109,7 +112,11 @@ def compile_resources(argv=sys.argv):
         description='Compiles and minifies all Resources'
         ' declared in the given package.')
     parser.add_argument(
-        'package', help='Dotted name of the package to compile')
+        '-p', '--package', dest='package',
+        help='Dotted name of the package to compile')
+    parser.add_argument(
+        '-a', '--all', dest='all',
+        action='store_true', help='Compile all known resources')
     parser.add_argument(
         '-v', '--verbose', dest='verbose',
         action='store_true', help='Verbose output')
@@ -117,7 +124,11 @@ def compile_resources(argv=sys.argv):
     if options.verbose:
         # setup logger to output to console
         logging.basicConfig(level=logging.INFO)
-    _compile_resources(options.package)
+    if options.all:
+        package = ALL_PACKAGES
+    else:
+        package = options.package
+    _compile_resources(package)
 
 
 class sdist_compile(setuptools.command.sdist.sdist):

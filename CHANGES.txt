@@ -5,8 +5,8 @@ CHANGES
 1.2 (unreleased)
 ================
 
-- Nothing changed yet.
-
+- Allow the compile resources command to compile all resources (found on
+  the path).
 
 1.1 (2019-01-22)
 ================
