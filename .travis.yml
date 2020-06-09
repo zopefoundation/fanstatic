@@ -5,6 +5,7 @@ python:
   - "3.6"
   - "3.7"
 install:
-  - "pip install -r test_requirements.txt"
+  - "pip install . -r test_requirements.txt"
+script:
   - "pip install mypackage -i file://`pwd`/fixtures/"
-script: pytest ./tests
+  - "pytest ./tests"
