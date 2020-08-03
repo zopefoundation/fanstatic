@@ -9,24 +9,20 @@ your plans!
 Sources
 -------
 
-Fanstatic's source code is maintained on bitbucket:
-http://bitbucket.org/fanstatic
+Fanstatic's source code is maintained on GitHub:
+https://github.com/fanstatic/fanstatic
 
-You can check out fanstatic using `Mercurial`_ (hg); see the bitbucket_
-documentation for more information as well.
+You can check out fanstatic using `Git`_.
 
-.. _`Mercurial`: http://mercurial.selenic.com/
+.. _`Git`: https://git-scm.com/
 
-.. _`bitbucket`: http://bitbucket.org
-
-Feel free to fork Fanstatic on bitbucket if you want to hack on it,
-and send us a pull request when you want us to merge your
-improvements.
+Feel free to fork Fanstatic on Github if you want to hack on it,
+and send us a pull request when you want us to merge your improvements.
 
 Development install of Fanstatic
 --------------------------------
 
-Fanstatic requires Python 2.6. We believe that the Fanstatic
+Fanstatic requires Python 2.7. We believe that the Fanstatic
 development installation is a good example of how to install a lot of
 useful tools into a project's sandbox automatically; read on.
 
@@ -138,7 +134,7 @@ Pre-packaged libraries
 If you want to make an existing JS library into a fanstatic package, use the
 fanstatic paster template from the :pypi:`fanstatictemplate` package.
 
-The pre-packaged libraries live in the http://bitbucket.org/fanstatic account.
+The pre-packaged libraries live in the https://github.com/fanstatic account.
 
 In order to add a new library, ask one of the fanstatic administrators to create
 a repository for you. In the new repository, run :pypi:`fanstatictemplate` and

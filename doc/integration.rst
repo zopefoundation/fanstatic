@@ -11,7 +11,7 @@ Fanstatic can be integrated with a number of web frameworks:
 
 * Django through django_fanstatic_.
 
-.. _django_fanstatic: http://bitbucket.org/fanstatic/django-fanstatic
+.. _django_fanstatic: https://github.com/fanstatic/django-fanstatic
 
 In order to integrate Fanstatic with your web framework, make sure the
 following conditions are met:
