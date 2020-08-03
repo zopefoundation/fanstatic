@@ -5,7 +5,10 @@ CHANGES
 1.2 (unreleased)
 ================
 
-- Nothing changed yet.
+Documentation
+-------------
+
+- Update documentation to reflect the current place of repositories at GitHub.
 
 
 1.1 (2019-01-22)

@@ -7,11 +7,8 @@ exclude .installed.cfg
 include *.yml
 exclude *.yml
 
-include .hgignore
-exclude .hgignore
-
-include .hgtags
-exclude .hgtags
+include .gitignore
+exclude .gitignore
 
 exclude MANIFEST.in
 
