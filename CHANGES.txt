@@ -11,6 +11,11 @@ Features
 - Use the packaging version parsing to determine whether a fanstatic library
   is installed from a dev package, and set the Library version accordingly.
 
+Backwards incompatible changes
+------------------------------
+
+- Drop support for Python 2, 3.5, 3.6, 3.7.
+
 Documentation
 -------------
 
