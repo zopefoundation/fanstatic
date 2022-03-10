@@ -14,7 +14,7 @@ def test_library_registry():
     pytest.importorskip('mypackage')
     # the 'foo' library has been placed here by the test buildout
     # fixtures/MyPackage by the entry point mechanism
-    assert compat.dict_keys(library_registry) == ['foo']
+    assert compat.dict_keys(library_registry) == ['foo', 'devfoo']
 
     # this is a real library, not an entry point
     assert isinstance(library_registry['foo'], Library)
@@ -25,15 +25,19 @@ def test_library_registry():
     bar = Library('bar', '')
     library_registry.add(bar)
     assert library_registry['bar'] is bar
-    assert sorted(compat.dict_keys(library_registry)) == ['bar', 'foo']
+    assert sorted(compat.dict_keys(library_registry)) == [
+        'bar', 'devfoo', 'foo']
 
     baz = Library('baz', '')
     library_registry[baz.name] = baz
     assert library_registry['baz'] is baz
-    assert sorted(compat.iterkeys(library_registry)) == ['bar', 'baz', 'foo']
+    assert sorted(compat.iterkeys(library_registry)) == [
+        'bar', 'baz', 'devfoo', 'foo']
 
-    # MyPackage has been installed in development mode:
-    assert library_registry['foo'].version is None
+    # MyPackage has been installed in non-development mode:
+    assert library_registry['foo'].version is not None
+    # MyDevPackage has been installed in development mode:
+    assert library_registry['devfoo'].version is None
 
 
 def test_do_add_library_after_register():

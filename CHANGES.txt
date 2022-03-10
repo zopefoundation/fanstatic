@@ -5,6 +5,12 @@ CHANGES
 1.2 (unreleased)
 ================
 
+Features
+--------
+
+- Use the packaging version parsing to determine whether a fanstatic library
+  is installed from a dev package, and set the Library version accordingly.
+
 Documentation
 -------------
 
