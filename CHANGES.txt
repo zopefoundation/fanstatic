@@ -2,7 +2,7 @@
 CHANGES
 =======
 
-1.2 (unreleased)
+1.2 (2022-03-11)
 ================
 
 Features
