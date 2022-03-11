@@ -79,9 +79,7 @@ class LibraryRegistry(Registry):
     def make_item_from_entry_point(self, entry_point):
         item = super(LibraryRegistry, self).make_item_from_entry_point(
             entry_point)
-        # If the distribution is in development mode we don't use its version.
-        # See http://peak.telecommunity.com/DevCenter/setuptools#develop
-        if entry_point.dist.precedence > pkg_resources.DEVELOP_DIST:
+        if not entry_point.dist.parsed_version.is_devrelease:
             item.version = entry_point.dist.version  # pragma: no cover
         return item
 

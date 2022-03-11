@@ -392,17 +392,16 @@ def test_converts_placeholders_to_arguments(tmpdir):
     with open(target, 'w') as f:
         f.write('target')
 
-    class Echo(fanstatic.compiler.CommandlineBase):
-        command = 'echo'
-        arguments = ['-n', SOURCE, TARGET]
+    class Cat(fanstatic.compiler.CommandlineBase):
+        command = 'cat'
+        arguments = [SOURCE, TARGET]
 
         def process(self, source, target):
-            p = super(Echo, self).process(source, target)
+            p = super(Cat, self).process(source, target)
             return p.stdout.read()
 
-    # `-n` removes trailing newlines and is therefore not shown.
-    assert Echo().process(source, target) == compat.as_bytestring(
-        '%s %s' % (source, target))
+    assert Cat().process(source, target) == compat.as_bytestring(
+        'sourcetarget')
 
 
 def test_coffeescript_compiler(tmpdir):

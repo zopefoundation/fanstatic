@@ -12,5 +12,6 @@ bin
 develop-eggs
 doc/_build
 eggs
+fixtures/mydevpackage/build
 htmlcov
 parts
