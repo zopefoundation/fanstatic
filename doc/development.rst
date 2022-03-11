@@ -26,10 +26,9 @@ Fanstatic requires Python 2.7. We believe that the Fanstatic
 development installation is a good example of how to install a lot of
 useful tools into a project's sandbox automatically; read on.
 
-To install Fanstatic for development, first check it out, then run the
-buildout::
+To install Fanstatic for development, first check it out, run buildout
+bootstrap from a virtualenv, and run buildout::
 
- $ python bootstrap.py -d
  $ bin/buildout
 
 This uses Buildout_. The buildout process will download and install
