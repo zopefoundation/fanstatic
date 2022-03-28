@@ -1,9 +1,0 @@
-language: python
-python:
-  - "3.8"
-install:
-  - "pip install . -r test_requirements.txt"
-script:
-  - "pip install mypackage -i file://`pwd`/fixtures/"
-  - "pip install `pwd`/fixtures/mydevpackage"
-  - "pytest ./tests"

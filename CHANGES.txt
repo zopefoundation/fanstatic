@@ -5,7 +5,13 @@ CHANGES
 1.3 (unreleased)
 ================
 
-- Nothing changed yet.
+- Add support for Python 3.9 and 3.10.
+
+- Fix Trove classifiers.
+
+- Move tests to GitHub Actions.
+
+- Make documentation buildable with Python 3.
 
 
 1.2 (2022-03-11)
