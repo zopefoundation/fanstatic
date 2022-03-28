@@ -2,9 +2,9 @@ from setuptools import setup, Command
 import io
 
 long_description = (
-    io.open('README.txt', encoding='utf8').read()
+    io.open('README.rst', encoding='utf8').read()
     + '\n' +
-    io.open('CHANGES.txt', encoding='utf8').read())
+    io.open('CHANGES.rst', encoding='utf8').read())
 
 install_requires = [
     'WebOb >= 1.2',
