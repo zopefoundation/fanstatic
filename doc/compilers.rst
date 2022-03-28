@@ -28,7 +28,7 @@ compiled file, and invoke the compiler if needed.
   Compiles and minifies all Resources declared in the given package.
 
 
-Fanstatic also provides a hook into :pypi:`setuptools` to run compilers during
+Fanstatic also provides a hook into ``setuptools`` to run compilers during
 sdist creation, so you can package and deploy the compiled resources and don't
 need any of the compilers in the production environment. To use this, add the
 following to the ``setup()`` call in your package's ``setup.py``::
@@ -41,7 +41,7 @@ following to the ``setup()`` call in your package's ``setup.py``::
 
 Then, run ``python setup.py sdist`` as usual to create your sdist.
 
-Note: If you are using version control plugins (e.g. :pypi:`setuptools_hg`) to
+Note: If you are using version control plugins (e.g. ``setuptools_hg``) to
 collect the files to include in your sdist, and do not check in the
 compiled/minified files, they will not be included in the sdist. In that case,
 you will need to create a ``MANIFEST.in`` file to pick them up, for example::
@@ -132,13 +132,13 @@ Fanstatic includes the following compilers:
 
 Fanstatic includes the following minifiers:
 
-:cssmin: :pypi:`cssmin`, A Python port of the YUI CSS compression algorithm,
+:cssmin: `cssmin <https://pypi.org/project/cssmin>`_, A Python port of the YUI CSS compression algorithm,
   requires the ``cssmin`` package.  Use the extras requirement
   ``fanstatic[cssmin]`` to install this dependency.
-:jsmin: :pypi:`jsmin`, A Python port of Douglas Crockford's ``jsmin``, requires
+:jsmin: `jsmin <https://pypi.org/project/jsmin>`_, A Python port of Douglas Crockford's ``jsmin``, requires
   the ``jsmin`` package. Use the extras requirement
   ``fanstatic[jsmin]`` to install this dependency.
-:closure: :pypi:`closure`, A Python wrapper around the
+:closure: `closure <https://pypi.org/project/closure>`_, A Python wrapper around the
   `Google Closure Compiler`_. Use the extras requirement
   ``fanstatic[closure]`` to install this dependency.
 

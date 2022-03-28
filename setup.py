@@ -67,6 +67,9 @@ setup(
         'cssmin': ['cssmin'],
         'jsmin': ['jsmin'],
         'test': tests_require,
+        'docs': [
+            'Sphinx',
+        ],
     },
     cmdclass={'test': PyTest},
     entry_points={
