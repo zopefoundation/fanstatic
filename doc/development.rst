@@ -131,12 +131,12 @@ Pre-packaged libraries
 ----------------------
 
 If you want to make an existing JS library into a fanstatic package, use the
-fanstatic paster template from the :pypi:`fanstatictemplate` package.
+fanstatic paster template from the ``fanstatictemplate`` package.
 
 The pre-packaged libraries live in the https://github.com/fanstatic account.
 
 In order to add a new library, ask one of the fanstatic administrators to create
-a repository for you. In the new repository, run :pypi:`fanstatictemplate` and
+a repository for you. In the new repository, run ``fanstatictemplate`` and
 push your changes.
 
 Register the newly created package on PyPI and add the fanstatic administrators

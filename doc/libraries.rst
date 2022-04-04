@@ -19,189 +19,189 @@ Here's a list of currently available libraries:
       - **library**
       - **source**
 
-    * - :pypi:`css.css3githubbuttons`
+    * - `css.css3githubbuttons <https://pypi.org/project/css.css3githubbuttons>`_
       - `CSS3 GitHub Buttons <https://github.com/necolas/css3-github-buttons>`_
       - `GitHub <https://github.com/davidjb/css.css3githubbuttons>`__
 
-    * - :pypi:`js.ace`
+    * - `js.ace <https://pypi.org/project/js.ace>`_
       - `Ajax.org Cloud9 Editor <https://github.com/ajaxorg/ace>`_
       - `GitHub <https://github.com/fanstatic/js.ace>`__
 
-    * - :pypi:`js.amcharts`
+    * - `js.amcharts <https://pypi.org/project/js.amcharts>`_
       - `amCharts <http://www.amcharts.com>`_
       - `GitHub <https://github.com/securactive/js.amcharts>`__
 
-    * - :pypi:`js.backbone`
+    * - `js.backbone <https://pypi.org/project/js.backbone>`_
       - `Backbone <http://backbonejs.org/>`_
       - `GitHub <https://github.com/podhmo/js.backbone>`__
 
-    * - :pypi:`js.bootstrap`
+    * - `js.bootstrap <https://pypi.org/project/js.bootstrap>`_
       - `Bootstrap, from Twitter <http://twitter.github.com/bootstrap/index.html>`_
       - `GitHub <https://github.com/RedTurtle/js.bootstrap>`__
 
-    * - :pypi:`js.chosen`
+    * - `js.chosen <https://pypi.org/project/js.chosen>`_
       - `Chosen <http://harvesthq.github.com/chosen/>`_
       - ?
 
-    * - :pypi:`js.ckeditor`
+    * - `js.ckeditor <https://pypi.org/project/js.ckeditor>`_
       - `CKEditor <http://ckeditor.com/>`_
       - ?
 
-    * - :pypi:`js.classy`
+    * - `js.classy <https://pypi.org/project/js.classy>`_
       - `Classy - Classes for JavaScript <http://classy.pocoo.org/>`_
       - `GitHub <https://github.com/fanstatic/js.classy>`__
 
-    * - :pypi:`js.d3`
+    * - `js.d3 <https://pypi.org/project/js.d3>`_
       - `D3.js (Data Driven Documents) <http://d3js.org/>`_
       - `GitHub <https://github.com/fanstatic/js.d3/>`__
 
-    * - :pypi:`js.d3_cloud`
+    * - `js.d3_cloud <https://pypi.org/project/js.d3_cloud>`_
       - `D3-Cloud <http://www.jasondavies.com/wordcloud/>`_ (`Wordle
         <http://wordle.net>`_-style layout for D3)
       - `GitHub <http://github.com/davidjb/js.d3_cloud/>`__
 
-    * - :pypi:`js.extjs`
+    * - `js.extjs <https://pypi.org/project/js.extjs>`_
       - _`ExtJS`: http://www.sencha.com/products/js/
       - `GitHub <http://github.com/fanstatic/js.extjs>`__
 
-    * - :pypi:`js.galleriffic`
+    * - `js.galleriffic <https://pypi.org/project/js.galleriffic>`_
       - `Galleriffic <http://www.twospy.com/galleriffic>`_
       - `GitHub <http://github.com/fanstatic/js.yui>`__
 
-    * - :pypi:`js.leaflet`
+    * - `js.leaflet <https://pypi.org/project/js.leaflet>`_
       - `Leaflet <http://leafletjs.com/>`_
       - `GitHub <https://github.com/davidjb/js.leaflet>`__
 
-    * - :pypi:`js.jquery_datalink`
+    * - `js.jquery_datalink <https://pypi.org/project/js.jquery_datalink>`_
       - the jQuery plugin `Datalink <https://github.com/nje/jquery-datalink>`_
       - `GitHub <http://github.com/fanstatic/js.jquery_datalink>`__
 
-    * - :pypi:`js.jquery_datatables`
+    * - `js.jquery_datatables <https://pypi.org/project/js.jquery_datatables>`_
       - the jQuery plugin `DataTable <http://www.datatables.net>`_
       - `GitHub <http://github.com/fanstatic/js.jquery_datatables>`__
 
-    * - :pypi:`js.jquery_expandbox`
+    * - `js.jquery_expandbox <https://pypi.org/project/js.jquery_expandbox>`_
       - `jquery.expandBox <http://projects.stephane-klein.info/jquery.expandBox/>`_
       - `GitHub <https://github.com/fanstatic/js.jquery_expandbox>`__
 
-    * - :pypi:`js.jquery_form`
+    * - `js.jquery_form <https://pypi.org/project/js.jquery_form>`_
       - the jQuery plugin `Form <http://jquery.malsup.com/form>`_
       - `GitHub <http://github.com/fanstatic/js.jquery_form>`__
 
-    * - :pypi:`js.jquery_jcrop`
+    * - `js.jquery_jcrop <https://pypi.org/project/js.jquery_jcrop>`_
       - `JCrop - Image Cropping Plugin for JQuery
         <http://deepliquid.com/content/Jcrop.html>`_
       - `GitHub <https://github.com/davidjb/js.jquery_jcrop>`__
 
-    * - :pypi:`js.jquery_jgrowl`
+    * - `js.jquery_jgrowl <https://pypi.org/project/js.jquery_jgrowl>`_
       - `jGrowl <http://stanlemon.net/projects/jgrowl.html>`_
       - `GitHub <http://github.com/fanstatic/js.jquery_jgrowl>`__
 
-    * - :pypi:`js.jquery_jqote2`
+    * - `js.jquery_jqote2 <https://pypi.org/project/js.jquery_jqote2>`_
       - `jquery.jqote2 <https://github.com/aefxx/jQote2>`_
       - `GitHub <https://github.com/fanstatic/js.jquery_jqote2>`__
 
-    * - :pypi:`js.jquery_json`
+    * - `js.jquery_json <https://pypi.org/project/js.jquery_json>`_
       - the jQuery plugin `jquery-json <http://code.google.com/p/jquery-json/>`_
       - `GitHub <http://github.com/fanstatic/js.jquery_json>`__
 
-    * - :pypi:`js.jquery_jstree`
+    * - `js.jquery_jstree <https://pypi.org/project/js.jquery_jstree>`_
       - the jQuery plugin `JsTree <http://www.jstree.com/>`_
       - `GitHub <http://github.com/fanstatic/js.jquery_jstree>`__
 
-    * - :pypi:`js.jquery_metadata`
+    * - `js.jquery_metadata <https://pypi.org/project/js.jquery_metadata>`_
       - `jQuery Metadata <http://plugins.jquery.com/project/metadata>`_
       - `GitHub <http://github.com/fanstatic/js.jquery_metadata>`__
 
-    * - :pypi:`js.jquery_qtip`
+    * - `js.jquery_qtip <https://pypi.org/project/js.jquery_qtip>`_
       - `jquery.qTip <http://craigsworks.com/projects/qtip/>`_
       - `GitHub <https://github.com/fanstatic/js.jquery_qtip>`__
 
-    * - :pypi:`js.jquery_qunit`
+    * - `js.jquery_qunit <https://pypi.org/project/js.jquery_qunit>`_
       - the jQuery plugin `QUnit <http://docs.jquery.com/Qunit>`_
       - `GitHub <http://github.com/fanstatic/js.jquery_qunit>`__
 
-    * - :pypi:`js.jquery_slimbox`
+    * - `js.jquery_slimbox <https://pypi.org/project/js.jquery_slimbox>`_
       - the jQuery plugin `Slimbox <http://www.digitalia.be/software/slimbox2>`_
       - `GitHub <http://github.com/fanstatic/js.jquery_slimbox>`__
 
-    * - :pypi:`js.jquery_tablesorter`
+    * - `js.jquery_tablesorter <https://pypi.org/project/js.jquery_tablesorter>`_
       - the jQuery plugin `tablesorter <http://tablesorter.com>`_
       - `GitHub <http://github.com/fanstatic/js.jquery_tablesorter>`__
 
-    * - :pypi:`js.jquery_textchildren`
+    * - `js.jquery_textchildren <https://pypi.org/project/js.jquery_textchildren>`_
       - the jQuery plugin `Text Children <http://plugins.learningjquery.com/textchildren>`_
       - `GitHub <http://github.com/fanstatic/js.jquery_textchildren>`__
 
-    * - :pypi:`js.jquery_tinyscrollbar`
+    * - `js.jquery_tinyscrollbar <https://pypi.org/project/js.jquery_tinyscrollbar>`_
       - the jQuery plugin `Tiny Scrollbar <http://baijs.nl/tinyscrollbar/>`_
       - Currently no repository
 
-    * - :pypi:`js.jquery_tools`
+    * - `js.jquery_tools <https://pypi.org/project/js.jquery_tools>`_
       - `jQuery tools <http://flowplayer.org/tools/index.html>`_
       - `GitHub <http://github.com/fanstatic/js.jquery_tools>`__
 
-    * - :pypi:`js.jquery_tooltip`
+    * - `js.jquery_tooltip <https://pypi.org/project/js.jquery_tooltip>`_
       - the jQuery plugin `Tooltip <http://bassistance.de/jquery-plugins/jquery-plugin-tooltip>`_
       - `GitHub <http://github.com/fanstatic/js.jquery_tooltip>`__
 
-    * - :pypi:`js.jquery_utils`
+    * - `js.jquery_utils <https://pypi.org/project/js.jquery_utils>`_
       - `jQuery Utils <http://code.google.com/p/jquery-utils/>`_
       - `GitHub <http://github.com/fanstatic/js.jquery_utils>`__
 
-    * - :pypi:`js.jquery`
+    * - `js.jquery <https://pypi.org/project/js.jquery>`_
       - `jQuery <http://jquery.com>`_
       - `GitHub <http://github.com/fanstatic/js.jquery>`__
 
-    * - :pypi:`js.jqueryui`
+    * - `js.jqueryui <https://pypi.org/project/js.jqueryui>`_
       - `jQuery UI <http://jqueryui.com>`_
       - `GitHub <http://github.com/fanstatic/js.jqueryui>`__
 
-    * - :pypi:`js.knockback`
+    * - `js.knockback <https://pypi.org/project/js.knockback>`_
       - `Knockback.js <http://kmalakoff.github.com/knockback/>`_
       - `GitHub <https://github.com/gocept/js.knockback>`__
 
-    * - :pypi:`js.knockout`
+    * - `js.knockout <https://pypi.org/project/js.knockout>`_
       - `Knockout <http://knockoutjs.com/>`_
       - `GitHub <https://github.com/gocept/js.knockout>`__
 
-    * - :pypi:`js.lesscss`
+    * - `js.lesscss <https://pypi.org/project/js.lesscss>`_
       - `less.js <http://lesscss.org/>`_
       - `GitHub <https://github.com/fanstatic/js.lesscss>`__
 
-    * - :pypi:`js.lightbox`
+    * - `js.lightbox <https://pypi.org/project/js.lightbox>`_
       - `jquery lightbox <http://leandrovieira.com/projects/jquery/lightbox/>`_
       - `GitHub <https://github.com/amleczko/js.lightbox>`__
 
-    * - :pypi:`js.mochikit`
+    * - `js.mochikit <https://pypi.org/project/js.mochikit>`_
       - `Mochikit <http://mochikit.org/>`_
       - `GitHub <https://github.com/gocept/js.mochikit>`__
 
-    * - :pypi:`js.modernizr`
+    * - `js.modernizr <https://pypi.org/project/js.modernizr>`_
       - `Modernizr <http://modernizr.com/>`_
       - ?
 
-    * - :pypi:`js.raphael`
+    * - `js.raphael <https://pypi.org/project/js.raphael>`_
       - `Raphael <http://raphaeljs.com/>`_
       - ?
 
-    * - :pypi:`js.spin`
+    * - `js.spin <https://pypi.org/project/js.spin>`_
       - `spin.js <http://fgnass.github.com/spin.js/>`_
       - ?
 
-    * - :pypi:`js.sugar`
+    * - `js.sugar <https://pypi.org/project/js.sugar>`_
       - `Sugar <http://sugarjs.com/>`_
       - `GitHub <https://github.com/disko/js.sugar>`__
 
-    * - :pypi:`js.tinymce`
+    * - `js.tinymce <https://pypi.org/project/js.tinymce>`_
       - `TinyMCE <http://tinymce.moxiecode.com>`_
       - `GitHub <http://github.com/fanstatic/js.tinymce>`__
 
-    * - :pypi:`js.underscore`
+    * - `js.underscore <https://pypi.org/project/js.underscore>`_
       - `underscore.js <http://documentcloud.github.com/underscore/>`_
       - ?
 
-    * - :pypi:`js.yui`
+    * - `js.yui <https://pypi.org/project/js.yui>`_
       - the `YUI Library <http://developer.yahoo.com/yui>`_
       - `GitHub <http://github.com/fanstatic/js.yui>`__
 
