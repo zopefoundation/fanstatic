@@ -130,7 +130,7 @@ An example
 Need an example where it's all put together? We maintain a Fanstatic
 package called ``js.jquery`` that wraps jQuery this way:
 
-  http://bitbucket.org/fanstatic/js.jquery/src
+  https://github.com/fanstatic/js.jquery
 
 It's also available on PyPI:
 
