@@ -3,11 +3,11 @@ Integration
 
 Fanstatic can be integrated with a number of web frameworks:
 
-* Zope/Grok through :pypi:`zope.fanstatic`
+* Zope/Grok through `zope.fanstatic <https://pypi.org/project/zope.fanstatic>`_
 
-* Pyramid through :pypi:`pyramid_fanstatic`
+* Pyramid through `pyramid_fanstatic <https://pypi.org/project/pyramid_fanstatic>`_
 
-* Flask through :pypi:`Flask-Fanstatic`
+* Flask through `Flask-Fanstatic <https://pypi.org/project/Flask-Fanstatic>`_
 
 * Django through django_fanstatic_.
 
@@ -27,4 +27,3 @@ following conditions are met:
   resources (such as images) that you link to from the views in your
   application.  In order to do so, we advise to support rendering URLs to
   resources from the view/page templates in your web framework.
-

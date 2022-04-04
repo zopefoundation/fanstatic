@@ -49,7 +49,7 @@ automatically load a new one.
 
 How does this work? There are two schemes: explicit versioning and an
 automatically calculated hash-based versioning. An explicit version
-looks like this (from the :pypi:`js.jquery` package)::
+looks like this (from the ``js.jquery`` package)::
 
   /fanstatic/jquery/:version:1.4.4/jquery.js
 

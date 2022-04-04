@@ -1,4 +1,4 @@
-include *.txt *.cfg *.py *.ini
+include *.txt *.cfg *.py *.ini *.rst
 include .pep8
 
 include .installed.cfg
@@ -9,8 +9,6 @@ exclude *.yml
 
 include .gitignore
 exclude .gitignore
-
-exclude MANIFEST.in
 
 recursive-include fanstatic *.py
 recursive-include tests *.py *.in *.css

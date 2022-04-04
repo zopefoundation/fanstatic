@@ -6,6 +6,5 @@ Fanstatic is a smart static resource publisher for Python. For more
 information on what it's about and how to use it, see:
 http://fanstatic.org
 
-.. image:: https://secure.travis-ci.org/fanstatic/fanstatic.png
-   :target: https://travis-ci.org/#!/fanstatic/fanstatic
-
+.. image:: https://github.com/fanstatic/fanstatic/actions/workflows/tests.yml/badge.svg
+   :target: https://github.com/fanstatic/fanstatic/actions/workflows/tests.yml
