@@ -9,7 +9,7 @@ long_description = (
 install_requires = [
     'WebOb >= 1.2',
     'setuptools',
-    'shutilwhich',
+    'shutilwhich; python_version < "3.3"',
 ]
 
 tests_require = [
@@ -34,6 +34,7 @@ class PyTest(Command):
         import subprocess
         errno = subprocess.call([sys.executable, 'runtests.py'])
         raise SystemExit(errno)
+
 
 setup(
     name='fanstatic',
