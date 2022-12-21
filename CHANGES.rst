@@ -6,6 +6,7 @@ CHANGES
 ================
 
 - Add support for Python 3.9 and 3.10.
+  Conditional support for shutilwhich for older python versions.
 
 - Fix Trove classifiers.
 
