@@ -573,16 +573,21 @@ def test_console_script_collects_resources_from_package(
 
 def test_custom_sdist_command_runs_compiler_beforehand(tmpdir, monkeypatch):
     import os
-    import shutilwhich
+    import shutil
     import webob
     import re
 
-    # Fix the dependencies.
-    environ = os.environ.copy()
-    environ['PYTHONPATH'] = ':'.join([
+    path = [
         os.path.dirname(fanstatic.__path__[0]),
         os.path.dirname(webob.__path__[0]),
-        os.path.dirname(shutilwhich.__path__[0])])
+    ]
+    if not hasattr(shutil, 'which'):
+        import shutilwhich
+        path.append(os.path.dirname(shutilwhich.__path__[0]))
+
+    # Fix the dependencies.
+    environ = os.environ.copy()
+    environ['PYTHONPATH'] = ':'.join(path)
 
     pkgdir = _copy_testdata(tmpdir)
     monkeypatch.chdir(pkgdir)
