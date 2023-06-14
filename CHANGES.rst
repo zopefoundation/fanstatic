@@ -5,8 +5,9 @@ CHANGES
 1.4 (unreleased)
 ================
 
-- Nothing changed yet.
+- Add a bare miminumal readthedocs config file as per:
 
+  https://blog.readthedocs.com/migrate-configuration-v2/
 
 1.3 (2022-12-21)
 ================
