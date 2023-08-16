@@ -9,6 +9,9 @@ CHANGES
 
   https://blog.readthedocs.com/migrate-configuration-v2/
 
+- Add support for Python 3.11.
+
+
 1.3 (2022-12-21)
 ================
 
