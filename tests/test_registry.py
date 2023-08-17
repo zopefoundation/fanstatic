@@ -14,7 +14,7 @@ def test_library_registry():
     pytest.importorskip('mypackage')
     # the 'foo' library has been placed here by the test buildout
     # fixtures/MyPackage by the entry point mechanism
-    assert compat.dict_keys(library_registry) == ['foo', 'devfoo']
+    assert set(compat.dict_keys(library_registry)) == {'foo', 'devfoo'}
 
     # this is a real library, not an entry point
     assert isinstance(library_registry['foo'], Library)
