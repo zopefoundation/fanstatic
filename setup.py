@@ -1,5 +1,8 @@
-from setuptools import setup, Command
 import io
+
+from setuptools import find_packages
+from setuptools import setup
+
 
 long_description = (
     io.open('README.rst', encoding='utf8').read()
@@ -19,23 +22,6 @@ tests_require = [
     'pytest >= 2.3',
 ]
 
-
-class PyTest(Command):
-    user_options = []
-
-    def initialize_options(self):
-        pass
-
-    def finalize_options(self):
-        pass
-
-    def run(self):
-        import sys
-        import subprocess
-        errno = subprocess.call([sys.executable, 'runtests.py'])
-        raise SystemExit(errno)
-
-
 setup(
     name='fanstatic',
     version='1.4.dev0',
@@ -47,6 +33,7 @@ setup(
         'License :: OSI Approved :: BSD License',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3 :: Only',
+        'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3.10',
@@ -55,15 +42,15 @@ setup(
     ],
     keywords='',
     author='Fanstatic Developers',
-    author_email='fanstatic@googlegroups.com',
+    author_email='zope-dev@zope.dev',
     long_description=long_description,
     license='BSD',
     url='http://fanstatic.org',
-    packages=['fanstatic'],
+    packages=find_packages('src'),
+    package_dir={'': 'src'},
     zip_safe=False,
-    python_requires='>=3.8, <4',
+    python_requires='>=3.7',
     install_requires=install_requires,
-    tests_require=tests_require,
     extras_require={
         'closure': ['closure'],
         'cssmin': ['cssmin'],
@@ -73,7 +60,6 @@ setup(
             'Sphinx',
         ],
     },
-    cmdclass={'test': PyTest},
     entry_points={
         'console_scripts': [
             'fanstatic-compile = fanstatic.compiler:compile_resources',

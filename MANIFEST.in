@@ -1,19 +1,20 @@
-include *.txt *.cfg *.py *.ini *.rst
-include .pep8
+# Generated from:
+# https://github.com/zopefoundation/meta/tree/master/config/pure-python
+include *.md
+include *.rst
+include *.txt
+include buildout.cfg
+include tox.ini
 
-include .installed.cfg
-exclude .installed.cfg
+recursive-include docs *.py
+recursive-include docs *.rst
+recursive-include docs *.txt
+recursive-include docs Makefile
 
-include *.yml
-exclude *.yml
-
-include *.yaml
-exclude *.yaml
-
-include .gitignore
-exclude .gitignore
-
-recursive-include fanstatic *.py
-recursive-include tests *.py *.in *.css
-recursive-include fixtures *.py *.in *.html *.css *.gz
-recursive-include doc *.rst Makefile *.py *.bat *.txt
+recursive-include src *.py
+include .readthedocs.yaml
+recursive-include docs *.bat
+recursive-include src *.css
+recursive-include src *.gz
+recursive-include src *.html
+recursive-include src *.in

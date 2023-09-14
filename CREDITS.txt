@@ -20,3 +20,5 @@ Credits
 * David Beitey
 
 * nilo
+
+* Michael Howitz
