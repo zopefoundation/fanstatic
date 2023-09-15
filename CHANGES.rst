@@ -5,6 +5,8 @@ CHANGES
 2.0 (unreleased)
 ================
 
+- Drop support for Python 2.7, 3.5, 3.6.
+
 - Add a bare miminumal readthedocs config file as per:
 
   https://blog.readthedocs.com/migrate-configuration-v2/
