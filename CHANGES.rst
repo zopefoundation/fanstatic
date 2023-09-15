@@ -2,7 +2,7 @@
 CHANGES
 =======
 
-1.4 (unreleased)
+2.0 (unreleased)
 ================
 
 - Add a bare miminumal readthedocs config file as per:
