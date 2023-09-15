@@ -2,7 +2,7 @@
 # https://github.com/zopefoundation/meta/tree/master/config/pure-python
 [meta]
 template = "pure-python"
-commit-id = "642f27aa"
+commit-id = "a3ddb354"
 
 [python]
 with-sphinx-doctests = false
