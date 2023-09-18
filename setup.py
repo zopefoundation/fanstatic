@@ -1,18 +1,15 @@
-import io
-
 from setuptools import find_packages
 from setuptools import setup
 
 
 long_description = (
-    io.open('README.rst', encoding='utf8').read()
+    open('README.rst', encoding='utf8').read()
     + '\n' +
-    io.open('CHANGES.rst', encoding='utf8').read())
+    open('CHANGES.rst', encoding='utf8').read())
 
 install_requires = [
     'WebOb >= 1.2',
     'setuptools',
-    'shutilwhich; python_version < "3.3"',
 ]
 
 tests_require = [
@@ -24,7 +21,7 @@ tests_require = [
 
 setup(
     name='fanstatic',
-    version='2.0.dev0',
+    version='1.4.dev0',
     description="Flexible static resources for web applications",
     classifiers=[
         'Topic :: Internet :: WWW/HTTP :: Dynamic Content',

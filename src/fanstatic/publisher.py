@@ -22,7 +22,7 @@ class BundleApp(webob.static.FileApp):
 
     def __init__(self, rootpath, bundle, filenames):
         # Let FileApp determine content_type and encoding based on bundlename.
-        super(BundleApp, self).__init__(bundle)
+        super().__init__(bundle)
         self.filenames = []
         for filename in filenames:
             fullpath = os.path.join(rootpath, filename)
@@ -68,7 +68,7 @@ class LibraryPublisher(webob.static.DirectoryApp):
         self.ignores = library.ignores
         self.library = library
         self.cached_apps = {}
-        super(LibraryPublisher, self).__init__(library.path)
+        super().__init__(library.path)
 
     @webob.dec.wsgify
     def __call__(self, req):
@@ -119,7 +119,7 @@ class LibraryPublisher(webob.static.DirectoryApp):
         return app
 
 
-class Publisher(object):
+class Publisher:
     """Fanstatic publisher WSGI application.
 
     This WSGI application serves Fanstatic :py:class:`Library`
@@ -187,7 +187,7 @@ class Publisher(object):
         return response
 
 
-class Delegator(object):
+class Delegator:
     """Fanstatic delegator WSGI framework component.
 
     This WSGI component recognizes URLs that point to Fanstatic

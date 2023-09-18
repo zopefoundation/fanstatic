@@ -14,7 +14,6 @@ from fanstatic import Inclusion
 from fanstatic import Library
 from fanstatic import Resource
 from fanstatic import Slot
-from fanstatic import compat
 from fanstatic import init_needed
 from fanstatic import set_resource_file_existence_checking
 from fanstatic.compiler import Compiler
@@ -49,7 +48,7 @@ class MockMinifier(fanstatic.compiler.Minifier):
         self.calls.append(resource)
 
 
-class MockRegistry(object):
+class MockRegistry:
 
     def __init__(self, request):
         self.request = request
@@ -90,8 +89,9 @@ def test_logging_when_compiling(tmpdir, compilers, caplog):
 
         def process(self, source, target):
             with open(target, 'wb') as output:
-                output.write(compat.as_bytestring(
-                    open(source, 'r').read().replace(' ', '')))
+                with open(source) as input:
+                    output.write(
+                        input.read().replace(' ', '').encode('utf-8'))
 
     compilers.add_compiler(WhiteSpaceRemover())
 
@@ -406,11 +406,10 @@ def test_converts_placeholders_to_arguments(tmpdir):
         arguments = [SOURCE, TARGET]
 
         def process(self, source, target):
-            p = super(Cat, self).process(source, target)
+            p = super().process(source, target)
             return p.stdout.read()
 
-    assert Cat().process(source, target) == compat.as_bytestring(
-        'sourcetarget')
+    assert Cat().process(source, target) == b'sourcetarget'
 
 
 def test_coffeescript_compiler(tmpdir):
@@ -617,7 +616,7 @@ def test_custom_sdist_command_runs_compiler_beforehand(tmpdir, monkeypatch):
 
     assert len(search.groups()) == 1
     distname = search.groups()[0]
-    dist = ZipFile(str(pkgdir / 'dist' / '{}.zip'.format(distname)))
+    dist = ZipFile(str(pkgdir / 'dist' / f'{distname}.zip'))
     assert (
-        '{}/src/somepackage/resources/style.min.css'.format(distname)
+        f'{distname}/src/somepackage/resources/style.min.css'
         in dist.namelist())

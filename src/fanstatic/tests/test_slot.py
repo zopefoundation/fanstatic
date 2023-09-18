@@ -49,7 +49,7 @@ def test_no_need_to_fill_in_not_required():
 
     needed = init_needed(resources=[a])
     # slot wasn't required and not filled in, so filled slot doesn't show up
-    assert needed.resources() == set([a])
+    assert needed.resources() == {a}
 
 
 def test_slot_with_default_uses_default_if_nothing_given_in_need():

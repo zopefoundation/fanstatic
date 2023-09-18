@@ -88,7 +88,7 @@ def sort_resources(resources):
     return sorted(resources, key=key)
 
 
-class Inclusion(object):
+class Inclusion:
     """
     An Inclusion is a container/group for a set of Resources that are needed.
     The Inclusion controls various aspects of these Resources:

@@ -11,7 +11,6 @@ import pkg_resources
 import setuptools.command.sdist
 
 import fanstatic
-from fanstatic import compat
 
 
 mtime = os.path.getmtime
@@ -24,7 +23,7 @@ class CompilerError(Exception):
     """
 
 
-class Compiler(object):
+class Compiler:
     """Generates a target file from a source file.
     """
 
@@ -85,7 +84,7 @@ class Minifier(Compiler):
         return resource.fullpath()
 
     def source_to_target(self, resource):
-        return '%s%s' % (
+        return '{}{}'.format(
             os.path.splitext(resource.relpath)[0], self.target_extension)
 
     def target_path(self, resource):
@@ -166,7 +165,7 @@ SOURCE = object()
 TARGET = object()
 
 
-class CommandlineBase(object):
+class CommandlineBase:
 
     command = NotImplemented
     arguments = []
@@ -204,7 +203,7 @@ class CoffeeScript(CommandlineBase, Compiler):
     arguments = ['--compile', '--bare', '--print', SOURCE]
 
     def process(self, source, target):
-        p = super(CoffeeScript, self).process(source, target)
+        p = super().process(source, target)
         with open(target, 'wb') as output:
             output.write(p.stdout.read())
 
@@ -233,7 +232,7 @@ class SASS(CommandlineBase, Compiler):
 SASS_COMPILER = SASS()
 
 
-class PythonPackageBase(object):
+class PythonPackageBase:
 
     package = ''
 
@@ -262,8 +261,9 @@ class CSSMin(PythonPackageBase, Minifier):
     def process(self, source, target):
         cssmin = self._import()
         with open(target, 'wb') as output:
-            css = open(source, 'r').read()
-            output.write(compat.as_bytestring(cssmin.cssmin(css)))
+            with open(source) as input:
+                css = input.read()
+                output.write(cssmin.cssmin(css).encode('utf-8'))
 
 
 CSSMIN_MINIFIER = CSSMin()
@@ -278,8 +278,9 @@ class JSMin(PythonPackageBase, Minifier):
     def process(self, source, target):
         jsmin = self._import()
         with open(target, 'wb') as output:
-            js = open(source, 'r').read()
-            output.write(compat.as_bytestring(jsmin.jsmin(js)))
+            with open(source) as input:
+                js = input.read()
+                output.write(jsmin.jsmin(js).encode('utf-8'))
 
 
 JSMIN_MINIFIER = JSMin()

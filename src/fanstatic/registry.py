@@ -72,14 +72,14 @@ class LibraryRegistry(Registry):
     def __setitem__(self, key, value):
         if self.prepared:
             raise ValueError('Registry initialized.')
-        super(LibraryRegistry, self).__setitem__(key, value)
+        super().__setitem__(key, value)
 
     def clear(self):
-        super(LibraryRegistry, self).clear()
+        super().clear()
         self.prepared = False
 
     def make_item_from_entry_point(self, entry_point):
-        item = super(LibraryRegistry, self).make_item_from_entry_point(
+        item = super().make_item_from_entry_point(
             entry_point)
         if not entry_point.dist.parsed_version.is_devrelease:
             item.version = entry_point.dist.version  # pragma: no cover
@@ -102,7 +102,7 @@ class CompilerRegistry(Registry):
     ENTRY_POINT = 'fanstatic.compilers'
 
     def __init__(self, items=()):
-        super(CompilerRegistry, self).__init__(items)
+        super().__init__(items)
         self.add(NullCompiler())
 
 
@@ -111,7 +111,7 @@ class MinifierRegistry(Registry):
     ENTRY_POINT = 'fanstatic.minifiers'
 
     def __init__(self, items=()):
-        super(MinifierRegistry, self).__init__(items)
+        super().__init__(items)
         self.add(NullCompiler())
 
 
