@@ -21,7 +21,7 @@ tests_require = [
 
 setup(
     name='fanstatic',
-    version='1.4.dev0',
+    version='1.4',
     description="Flexible static resources for web applications",
     classifiers=[
         'Topic :: Internet :: WWW/HTTP :: Dynamic Content',

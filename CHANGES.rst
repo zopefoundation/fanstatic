@@ -2,7 +2,7 @@
 CHANGES
 =======
 
-1.4 (unreleased)
+1.4 (2023-09-19)
 ================
 
 - Drop Python 2 leftovers. (Support was dropped in 1.2)
