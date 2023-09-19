@@ -5,7 +5,6 @@ from fanstatic import ConfigurationError
 from fanstatic import Fanstatic
 from fanstatic import Library
 from fanstatic import Resource
-from fanstatic import compat
 from fanstatic import get_needed
 from fanstatic import make_serf
 
@@ -103,7 +102,7 @@ def test_inject_unicode_base_url():
         return [b'<html><head></head><body></body></html>']
 
     request = webob.Request.blank('/')
-    wrapped = Fanstatic(app, base_url=compat.u('http://localhost'))
+    wrapped = Fanstatic(app, base_url='http://localhost')
     # Fanstatic used to choke on unicode content.
     request.get_response(wrapped)
 

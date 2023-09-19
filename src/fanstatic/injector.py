@@ -4,7 +4,6 @@ import fanstatic
 from fanstatic import DEBUG
 from fanstatic import MINIFIED
 from fanstatic import ConfigurationError
-from fanstatic import compat
 from fanstatic.config import convert_config
 from fanstatic.inclusion import Inclusion
 
@@ -12,7 +11,7 @@ from fanstatic.inclusion import Inclusion
 CONTENT_TYPES = ['text/html', 'text/xml', 'application/xhtml+xml']
 
 
-class Injector(object):
+class Injector:
     """Fanstatic injector WSGI framework component.
 
     This WSGI component takes care of injecting the proper resource
@@ -89,7 +88,7 @@ class Injector(object):
         return response(environ, start_response)
 
 
-class InjectorPlugin(object):
+class InjectorPlugin:
     """Base class that can be use to write an injector plugin. It will
     take out from the configuration the common options that can be
     used in conjunction with an Inclusion.
@@ -144,7 +143,7 @@ class TopBottomInjector(InjectorPlugin):
           safe.
 
         """
-        super(TopBottomInjector, self).__init__(options)
+        super().__init__(options)
         self._bottom = options.pop('bottom', False)
         self._force_bottom = options.pop('force_bottom', False)
 
@@ -179,12 +178,10 @@ class TopBottomInjector(InjectorPlugin):
         top, bottom = self.group(needed)
         if top:
             html = html.replace(
-                compat.as_bytestring('</head>'),
-                compat.as_bytestring('%s</head>' % top.render()), 1)
+                b'</head>', f'{top.render()}</head>'.encode(), 1)
         if bottom:
             html = html.replace(
-                compat.as_bytestring('</body>'),
-                compat.as_bytestring('%s</body>' % bottom.render()), 1)
+                b'</body>', f'{bottom.render()}</body>'.encode(), 1)
         return html
 
 

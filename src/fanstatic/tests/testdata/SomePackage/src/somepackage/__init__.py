@@ -1,5 +1,4 @@
 from fanstatic import Minifier
-from fanstatic import compat
 
 
 class DummyMinifier(Minifier):
@@ -10,7 +9,7 @@ class DummyMinifier(Minifier):
 
     def process(self, source, target):
         with open(target, 'wb') as output:
-            output.write(compat.as_bytestring('dummy'))
+            output.write(b'dummy')
 
 
 DUMMY = DummyMinifier()

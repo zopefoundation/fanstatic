@@ -55,7 +55,7 @@ def make_fanstatic(app, global_config, **local_config):
     return Fanstatic(app, injector=injector, **local_config)
 
 
-class Serf(object):
+class Serf:
     """Serf WSGI application.
 
     Serve a very simple HTML page while needing a resource. Can be

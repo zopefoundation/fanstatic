@@ -3,7 +3,6 @@ import pytest
 from fanstatic import ConfigurationError
 from fanstatic import Library
 from fanstatic import Resource
-from fanstatic import compat
 from fanstatic import init_needed
 from fanstatic import make_injector
 from fanstatic.injector import InjectorPlugin
@@ -17,9 +16,7 @@ class TopInjector(InjectorPlugin):
 
     def __call__(self, html, needed):
         needed_html = self.make_inclusion(needed).render()
-        return html.replace(
-            compat.as_bytestring('<head>'),
-            compat.as_bytestring('<head>%s' % needed_html), 1)
+        return html.replace(b'<head>', f'<head>{needed_html}'.encode(), 1)
 
 
 def test_injector_based_on_injectorplugin():
@@ -33,11 +30,11 @@ def test_injector_based_on_injectorplugin():
     html = b'<html><head></head><body></body></html>'
 
     assert inj(html, needed) == \
-        compat.as_bytestring('''<html><head><link rel="stylesheet" type="text/css" href="/fanstatic/foo/a.css" />
-<link rel="stylesheet" type="text/css" href="/fanstatic/foo/b.css" /></head><body></body></html>''')  # noqa: E501 line too long
+        b'''<html><head><link rel="stylesheet" type="text/css" href="/fanstatic/foo/a.css" />
+<link rel="stylesheet" type="text/css" href="/fanstatic/foo/b.css" /></head><body></body></html>'''  # noqa: E501 line too long
 
 
-class MockRegistry(object):
+class MockRegistry:
 
     def __init__(self, request):
         self.request = request

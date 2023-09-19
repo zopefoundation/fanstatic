@@ -4,7 +4,6 @@ import threading
 
 import fanstatic.checksum
 import fanstatic.registry
-from fanstatic import compat
 
 
 DEFAULT_SIGNATURE = 'fanstatic'
@@ -98,7 +97,7 @@ class SlotError(Exception):
     """
 
 
-class Library(object):
+class Library:
     """The resource library.
 
     This object defines which directory is published and can be
@@ -148,7 +147,7 @@ class Library(object):
             fanstatic.get_library_registry().add(self)
 
     def __repr__(self):
-        return "<Library '%s' at '%s'>" % (self.name, self.path)
+        return "<Library '{}' at '{}'>".format(self.name, self.path)
 
     def init_library_nr(self):
         """This can only be called once all resources are known.
@@ -163,7 +162,7 @@ class Library(object):
         # the maximum library number is the maximum number of the
         # depending libraries + 1
         max_library_nr = 0
-        for resource in compat.itervalues(self.known_resources):
+        for resource in self.known_resources.values():
             for depend in resource.depends:
                 for asset in depend.list_assets():
                     # we don't care about resources in the same library
@@ -265,27 +264,27 @@ register_inclusion_renderer = inclusion_renderers.register
 
 
 def render_ico(url):
-    return '<link rel="shortcut icon" type="image/x-icon" href="%s"/>' % (url,)
+    return f'<link rel="shortcut icon" type="image/x-icon" href="{url}"/>'
 
 
 def render_css(url):
-    return '<link rel="stylesheet" type="text/css" href="%s" />' % (url,)
+    return f'<link rel="stylesheet" type="text/css" href="{url}" />'
 
 
 def render_js(url):
-    return '<script type="text/javascript" src="%s"></script>' % (url,)
+    return f'<script type="text/javascript" src="{url}"></script>'
 
 
 def render_print_css(url):
     return (
-        '<link rel="stylesheet" type="text/css" href="%s" '
-        'media="print" />') % (url,)
+        f'<link rel="stylesheet" type="text/css" href="{url}" media="print" />'
+    )
 
 
 def render_screen_css(url):
     return (
-        '<link rel="stylesheet" type="text/css" media="screen" '
-        'href="%s" />') % (url,)
+        '<link rel="stylesheet" type="text/css" media="screen"'
+        f' href="{url}" />')
 
 
 register_inclusion_renderer('.css', render_css, 10)
@@ -295,7 +294,7 @@ register_inclusion_renderer('.js', render_js, 20)
 register_inclusion_renderer('.ico', render_ico, 30)
 
 
-class Renderable(object):
+class Renderable:
     """A renderable.
 
     A renderable must have a library attribute and a dependency_nr.
@@ -309,7 +308,7 @@ class Renderable(object):
         raise NotImplementedError()
 
 
-class Dependable(object):
+class Dependable:
     """Dependables have a dependencies and an a resources attributes.
     """
     resources = None
@@ -350,13 +349,13 @@ class Asset(Dependable):
         self.library.register(self)
 
     def set_dependencies(self, depends):
-        assert not isinstance(depends, compat.basestring)
+        assert not isinstance(depends, str)
         if depends is not None:
             self.depends = set(depends)
         else:
             self.depends = set()
 
-        self.resources = set([self])
+        self.resources = {self}
         for depend in self.depends:
             depend.supports.add(self)
             self.resources.update(depend.resources)
@@ -369,7 +368,7 @@ class Asset(Dependable):
         self.library.check_dependency_cycle(self)
 
     def list_assets(self):
-        return set([self])
+        return {self}
 
     def init_dependency_nr(self):
         # on dependency within the library
@@ -437,7 +436,7 @@ class Resource(Renderable, Asset):
                  source=None,
                  mode_parent=None):
         self.relpath = relpath
-        super(Resource, self).__init__(library, depends)
+        super().__init__(library, depends)
         self.dirname, self.filename = os.path.split(relpath)
         if self.dirname and not self.dirname.endswith('/'):
             self.dirname += '/'
@@ -458,7 +457,7 @@ class Resource(Renderable, Asset):
         self.minifier = fanstatic.registry.MinifierRegistry.instance()[
             minifier]
         self.minified = minified
-        if (self.minified and not isinstance(self.minified, compat.basestring)
+        if (self.minified and not isinstance(self.minified, str)
                 and self.minifier.available):
             raise ConfigurationError(
                 "Since %s specifies minifier %s, passing another "
@@ -479,7 +478,7 @@ class Resource(Renderable, Asset):
             path = self.compiler.source_path(self)
             if self.compiler.available and not os.path.exists(path):
                 raise UnknownResourceError(
-                    "Source file %s for %s does not exist" % (
+                    "Source file {} for {} does not exist".format(
                         path, self.fullpath()))
 
         self.bottom = bottom
@@ -499,13 +498,13 @@ class Resource(Renderable, Asset):
             # If we do not know about the filename extension inclusion
             # order, we render the resource after all others.
             self.order, _ = inclusion_renderers.get(
-                self.ext, (compat.maxsize, None))
+                self.ext, (sys.maxsize, None))
 
         self.modes = {}
         for mode_name, argument in [(DEBUG, debug), (MINIFIED, self.minified)]:
             if argument is None:
                 continue
-            elif isinstance(argument, compat.basestring):
+            elif isinstance(argument, str):
                 # this if is kludgy, but better than unrolling the loop
                 if mode_name == MINIFIED:
                     mode_parent = self.minifier.available and self
@@ -524,7 +523,7 @@ class Resource(Renderable, Asset):
 
             self.modes[mode_name] = mode_resource
 
-        assert not isinstance(supersedes, compat.basestring)
+        assert not isinstance(supersedes, str)
         self.supersedes = supersedes or []
 
         self.rollups = []
@@ -550,10 +549,10 @@ class Resource(Renderable, Asset):
             self.minifier(self, force=force)
 
     def render(self, library_url):
-        return self.renderer('%s/%s' % (library_url, self.relpath))
+        return self.renderer('{}/{}'.format(library_url, self.relpath))
 
     def __repr__(self):
-        return "<Resource '%s' in library '%s'>" % (
+        return "<Resource '{}' in library '{}'>".format(
             self.relpath, self.library.name)
 
     def mode(self, mode):
@@ -623,7 +622,7 @@ class Slot(Asset):
     def __init__(self, library, extension, depends=None,
                  required=REQUIRED_DEFAULT_MARKER,
                  default=None):
-        super(Slot, self).__init__(library, depends)
+        super().__init__(library, depends)
         # We need to detect if required was set to true explicitly.
         if required is True and default is not None:
             raise ValueError('A slot with a default is not required and can '
@@ -658,7 +657,7 @@ class FilledSlot(Renderable):
         self.dependency_nr = slot.dependency_nr
 
         self.modes = {}
-        for key, resource in compat.iteritems(resource.modes):
+        for key, resource in resource.modes.items():
             self.modes[key] = FilledSlot(slot, resource)
 
         if not resource.depends.issubset(slot.depends):
@@ -675,7 +674,7 @@ class FilledSlot(Renderable):
         self.filledby.compile(force=force)
 
     def __repr__(self):
-        return "<FilledSlot '%s' in library '%s'>" % (
+        return "<FilledSlot '{}' in library '{}'>".format(
             self.relpath, self.library.name)
 
     def mode(self, mode):
@@ -716,7 +715,7 @@ class Group(Dependable):
             dependable.resources.update(self.resources)
 
     def list_assets(self):
-        assets = set([])
+        assets = set()
         for depend in self.depends:
             assets.update(depend.list_assets())
         return assets
@@ -743,7 +742,7 @@ class Group(Dependable):
 GroupResource = Group
 
 
-class NeededResources(object):
+class NeededResources:
     """The current selection of needed resources..
 
     The ``NeededResources`` instance maintains a set of needed
@@ -925,7 +924,7 @@ class NeededResources(object):
         return library_url
 
 
-class DummyNeededResources(object):
+class DummyNeededResources:
     """A dummy implementation of the needed resources.
 
     This class implements the same API as the NeededResources class,
@@ -1028,7 +1027,7 @@ class Bundle(Renderable):
     def render(self, library_url):
         # URL may become too long:
         # http://www.boutell.com/newfaq/misc/urllength.html
-        return self.renderer('%s/%s' % (library_url, self.relpath))
+        return self.renderer('{}/{}'.format(library_url, self.relpath))
 
     def fits(self, resource):
         if resource.dont_bundle:

@@ -15,7 +15,6 @@ from fanstatic import Resource
 from fanstatic import UnknownResourceError
 from fanstatic import UnknownResourceExtensionError
 from fanstatic import clear_needed
-from fanstatic import compat
 from fanstatic import del_needed
 from fanstatic import get_needed
 from fanstatic import init_needed
@@ -38,7 +37,7 @@ def test_resource():
     needed = init_needed()
     needed.need(y1)
 
-    assert needed.resources() == set([x2, x1, y1])
+    assert needed.resources() == {x2, x1, y1}
 
 
 def test_resource_file_exists(tmpdir):
@@ -64,7 +63,7 @@ def test_resource_register_with_library():
     x1 = Resource(foo, 'a.js', minified='a.min.js')
 
     assert len(foo.known_resources) == 2
-    assert x1 in compat.dict_values(foo.known_resources)
+    assert x1 in foo.known_resources.values()
 
     # Can not use the same relpath for two Resource declarations.
     with pytest.raises(ConfigurationError):
@@ -80,10 +79,10 @@ def test_group_resource():
     needed = init_needed()
     needed.need(group)
 
-    assert group.resources == set([x1, x2])
+    assert group.resources == {x1, x2}
 
     more_stuff = Resource(foo, 'more_stuff.js', depends=[group])
-    assert more_stuff.resources == set([x1, x2, more_stuff])
+    assert more_stuff.resources == {x1, x2, more_stuff}
 
 
 def test_convenience_need_not_initialized():
@@ -148,11 +147,11 @@ def test_convenience_need():
 
     needed = init_needed()
     assert get_needed() == needed
-    assert get_needed().resources() == set([])
+    assert get_needed().resources() == set()
 
     y1.need()
 
-    assert get_needed().resources() == set([x2, x1, y1])
+    assert get_needed().resources() == {x2, x1, y1}
 
 
 def test_convenience_group_resource_need():
@@ -164,11 +163,11 @@ def test_convenience_group_resource_need():
 
     needed = init_needed()
     assert get_needed() == needed
-    assert get_needed().resources() == set([])
+    assert get_needed().resources() == set()
 
     group.need()
 
-    assert get_needed().resources() == set([x2, x1, y1])
+    assert get_needed().resources() == {x2, x1, y1}
 
 
 def test_add_dependency_resource_to_resource():
@@ -177,32 +176,32 @@ def test_add_dependency_resource_to_resource():
     b1 = Resource(foo, 'b1.js', depends=[a1])
     c1 = Resource(foo, 'c1.js', depends=[b1])
 
-    assert a1.depends == set([])
-    assert a1.resources == set([a1])
+    assert a1.depends == set()
+    assert a1.resources == {a1}
 
-    assert b1.depends == set([a1])
-    assert b1.resources == set([a1, b1])
+    assert b1.depends == {a1}
+    assert b1.resources == {a1, b1}
 
-    assert c1.depends == set([b1])
-    assert c1.resources == set([a1, b1, c1])
+    assert c1.depends == {b1}
+    assert c1.resources == {a1, b1, c1}
 
     a2 = Resource(foo, 'a2.js')
     b1.add_dependency(a2)
 
-    assert b1.depends == set([a1, a2])
-    assert b1.resources == set([a1, a2, b1])
+    assert b1.depends == {a1, a2}
+    assert b1.resources == {a1, a2, b1}
 
-    assert c1.depends == set([b1])
-    assert c1.resources == set([a1, a2, b1, c1])
+    assert c1.depends == {b1}
+    assert c1.resources == {a1, a2, b1, c1}
 
     # Adding it twice does not change anything.
     b1.add_dependency(a2)
 
-    assert b1.depends == set([a1, a2])
-    assert b1.resources == set([a1, a2, b1])
+    assert b1.depends == {a1, a2}
+    assert b1.resources == {a1, a2, b1}
 
-    assert c1.depends == set([b1])
-    assert c1.resources == set([a1, a2, b1, c1])
+    assert c1.depends == {b1}
+    assert c1.resources == {a1, a2, b1, c1}
 
 
 def test_cannot_add_dependency_loop():
@@ -220,33 +219,33 @@ def test_add_dependency_group_to_resource():
     b1 = Resource(foo, 'b1.js', depends=[a1])
     c1 = Resource(foo, 'c1.js', depends=[b1])
 
-    assert a1.depends == set([])
-    assert a1.resources == set([a1])
+    assert a1.depends == set()
+    assert a1.resources == {a1}
 
-    assert b1.depends == set([a1])
-    assert b1.resources == set([a1, b1])
+    assert b1.depends == {a1}
+    assert b1.resources == {a1, b1}
 
-    assert c1.depends == set([b1])
-    assert c1.resources == set([a1, b1, c1])
+    assert c1.depends == {b1}
+    assert c1.resources == {a1, b1, c1}
 
     a2 = Resource(foo, 'a2.js')
     a3 = Group([a1, a2])
     b1.add_dependency(a3)
 
-    assert b1.depends == set([a1, a3])
-    assert b1.resources == set([a1, a2, b1])
+    assert b1.depends == {a1, a3}
+    assert b1.resources == {a1, a2, b1}
 
-    assert c1.depends == set([b1])
-    assert c1.resources == set([a1, a2, b1, c1])
+    assert c1.depends == {b1}
+    assert c1.resources == {a1, a2, b1, c1}
 
     # Adding it twice does not change anything.
     b1.add_dependency(a3)
 
-    assert b1.depends == set([a1, a3])
-    assert b1.resources == set([a1, a2, b1])
+    assert b1.depends == {a1, a3}
+    assert b1.resources == {a1, a2, b1}
 
-    assert c1.depends == set([b1])
-    assert c1.resources == set([a1, a2, b1, c1])
+    assert c1.depends == {b1}
+    assert c1.resources == {a1, a2, b1, c1}
 
 
 def test_add_dependency_resource_to_group():
@@ -255,32 +254,32 @@ def test_add_dependency_resource_to_group():
     b1 = Group([a1])
     c1 = Resource(foo, 'c1.js', depends=[b1])
 
-    assert a1.depends == set([])
-    assert a1.resources == set([a1])
+    assert a1.depends == set()
+    assert a1.resources == {a1}
 
-    assert b1.depends == set([a1])
-    assert b1.resources == set([a1])
+    assert b1.depends == {a1}
+    assert b1.resources == {a1}
 
-    assert c1.depends == set([b1])
-    assert c1.resources == set([a1, c1])
+    assert c1.depends == {b1}
+    assert c1.resources == {a1, c1}
 
     a2 = Resource(foo, 'a2.js')
     b1.add_dependency(a2)
 
-    assert b1.depends == set([a1, a2])
-    assert b1.resources == set([a1, a2])
+    assert b1.depends == {a1, a2}
+    assert b1.resources == {a1, a2}
 
-    assert c1.depends == set([b1])
-    assert c1.resources == set([a1, a2, c1])
+    assert c1.depends == {b1}
+    assert c1.resources == {a1, a2, c1}
 
     # Adding it twice does not change anything.
     b1.add_dependency(a2)
 
-    assert b1.depends == set([a1, a2])
-    assert b1.resources == set([a1, a2])
+    assert b1.depends == {a1, a2}
+    assert b1.resources == {a1, a2}
 
-    assert c1.depends == set([b1])
-    assert c1.resources == set([a1, a2, c1])
+    assert c1.depends == {b1}
+    assert c1.resources == {a1, a2, c1}
 
 
 def test_dependables():
@@ -292,39 +291,39 @@ def test_dependables():
     g2 = Group([g1])
     g3 = Group([g1, g2])
 
-    assert a.supports == set([g1])
-    assert a.list_assets() == set([a])
-    assert a.list_supporting() == set([c, g1, g2, g3])
+    assert a.supports == {g1}
+    assert a.list_assets() == {a}
+    assert a.list_supporting() == {c, g1, g2, g3}
 
-    assert b.supports == set([g1])
-    assert b.list_assets() == set([b])
-    assert b.list_supporting() == set([c, g1, g2, g3])
+    assert b.supports == {g1}
+    assert b.list_assets() == {b}
+    assert b.list_supporting() == {c, g1, g2, g3}
 
-    assert c.depends == set([g1])
-    assert c.resources == set([a, b, c])
-    assert c.list_assets() == set([c])
-    assert c.list_supporting() == set([])
+    assert c.depends == {g1}
+    assert c.resources == {a, b, c}
+    assert c.list_assets() == {c}
+    assert c.list_supporting() == set()
 
-    assert g1.depends == set([a, b])
-    assert g1.resources == set([a, b])
-    assert g1.supports == set([c, g2, g3])
-    assert g1.list_assets() == set([a, b])
-    assert g1.list_supporting() == set([c, g2, g3])
+    assert g1.depends == {a, b}
+    assert g1.resources == {a, b}
+    assert g1.supports == {c, g2, g3}
+    assert g1.list_assets() == {a, b}
+    assert g1.list_supporting() == {c, g2, g3}
 
-    assert g2.depends == set([g1])
-    assert g2.resources == set([a, b])
-    assert g2.supports == set([g3])
-    assert g2.list_assets() == set([a, b])
-    assert g2.list_supporting() == set([g3])
+    assert g2.depends == {g1}
+    assert g2.resources == {a, b}
+    assert g2.supports == {g3}
+    assert g2.list_assets() == {a, b}
+    assert g2.list_supporting() == {g3}
 
-    assert g3.depends == set([g1, g2])
-    assert g3.resources == set([a, b])
-    assert g3.list_assets() == set([a, b])
-    assert g3.list_supporting() == set([])
+    assert g3.depends == {g1, g2}
+    assert g3.resources == {a, b}
+    assert g3.list_assets() == {a, b}
+    assert g3.list_supporting() == set()
 
     needed = init_needed()
     needed.need(c)
-    assert needed.resources() == set([a, b, c])
+    assert needed.resources() == {a, b, c}
 
 
 def test_redundant_resource():
@@ -478,7 +477,7 @@ def test_rollup():
     b2 = Resource(foo, 'b2.js')
     giant = Resource(foo, 'giant.js', supersedes=[b1, b2])
 
-    assert rollup_resources([b1, b2]) == set([giant])
+    assert rollup_resources([b1, b2]) == {giant}
 
 
 def test_rollup_cannot():
@@ -488,7 +487,7 @@ def test_rollup_cannot():
 
     Resource(foo, 'giant.js', supersedes=[b1, b2])
 
-    assert rollup_resources([b1]) == set([b1])
+    assert rollup_resources([b1]) == {b1}
 
 
 def test_rollup_larger():
@@ -498,9 +497,9 @@ def test_rollup_larger():
     c3 = Resource(foo, 'c3.css')
     giant = Resource(foo, 'giant.css', supersedes=[c1, c2, c3])
 
-    assert rollup_resources([c1]) == set([c1])
-    assert rollup_resources([c1, c2]) == set([c1, c2])
-    assert rollup_resources([c1, c2, c3]) == set([giant])
+    assert rollup_resources([c1]) == {c1}
+    assert rollup_resources([c1, c2]) == {c1, c2}
+    assert rollup_resources([c1, c2, c3]) == {giant}
 
 
 def test_rollup_size_competing():
@@ -512,7 +511,7 @@ def test_rollup_size_competing():
     giant_bigger = Resource(foo, 'giant-bigger.js',
                             supersedes=[d1, d2, d3])
 
-    assert rollup_resources([d1, d2, d3]) == set([giant_bigger])
+    assert rollup_resources([d1, d2, d3]) == {giant_bigger}
 
 
 def test_rollup_with_slot():
@@ -754,7 +753,7 @@ def test_library_url_with_url_caching(tmpdir):
 def test_inclusion_renderers():
     assert sorted(
         [(order, key)
-         for key, (order, _) in compat.dict_items(inclusion_renderers)]
+         for key, (order, _) in inclusion_renderers.items()]
     ) == [(10, '.css'), (20, '.js'), (30, '.ico')]
     _, renderer = inclusion_renderers['.js']
     assert renderer('http://localhost/script.js') == (
@@ -852,7 +851,7 @@ def test_resource_subclass_render():
 
     class MyResource(Resource):
         def render(self, library_url):
-            return '<myresource reference="%s/%s"/>' % (
+            return '<myresource reference="{}/{}"/>'.format(
                 library_url, self.relpath)
 
     a = MyResource(foo, 'printstylesheet.css')
@@ -873,14 +872,14 @@ def test_clear():
     a5 = Resource(foo, 'a5.js', depends=[a4, a3])
 
     needed = init_needed(resources=[a1, a2, a3])
-    assert needed.resources() == set([a1, a2, a3])
+    assert needed.resources() == {a1, a2, a3}
     # For some reason,for example an error page needs to be rendered,
     # the currently needed resources need to be cleared.
     needed.clear()
     assert len(needed.resources()) == 0
     needed.need(a4)
     needed.need(a5)
-    assert needed.resources() == set([a1, a2, a4, a3, a5])
+    assert needed.resources() == {a1, a2, a4, a3, a5}
 
 
 def test_convenience_clear():

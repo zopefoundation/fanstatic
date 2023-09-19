@@ -2,8 +2,6 @@ import hashlib
 import os
 from datetime import datetime
 
-from fanstatic import compat
-
 
 VCS_NAMES = ['.svn', '.git', '.bzr', '.hg']
 IGNORED_EXTENSIONS = ['.swp', '.tmp', '.pyc', '.pyo']
@@ -38,7 +36,7 @@ def mtime(path):
 def md5(path):
     chcksm = hashlib.md5()
     for path in sorted(list(list_directory(path, include_directories=False))):
-        chcksm.update(compat.as_bytestring(path))
+        chcksm.update(path.encode('utf-8'))
         try:
             f = open(path, 'rb')
             while True:
