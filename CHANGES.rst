@@ -15,10 +15,6 @@ CHANGES
 
 - Drop Python 2 leftovers. (Support was dropped in 1.2)
 
-- Add a bare miminumal readthedocs config file as per:
-
-  https://blog.readthedocs.com/migrate-configuration-v2/
-
 - Add support for Python 3.7, 3.11.
 
 
