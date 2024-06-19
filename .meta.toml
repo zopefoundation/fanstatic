@@ -2,7 +2,7 @@
 # https://github.com/zopefoundation/meta/tree/master/config/pure-python
 [meta]
 template = "pure-python"
-commit-id = "a3ddb354"
+commit-id = "b21fbbf2"
 
 [python]
 with-sphinx-doctests = false
@@ -42,6 +42,7 @@ additional-config = [
 
 [manifest]
 additional-rules = [
+    "include *.yaml",
     "include .readthedocs.yaml",
     "recursive-include docs *.bat",
     "recursive-include src *.css",
