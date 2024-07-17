@@ -2,7 +2,7 @@
 # https://github.com/zopefoundation/meta/tree/master/config/pure-python
 [meta]
 template = "pure-python"
-commit-id = "c412f00f"
+commit-id = "6e808865"
 
 [python]
 with-sphinx-doctests = false
@@ -18,7 +18,7 @@ testenv-deps = [
     "pytest-cov",
     ]
 testenv-commands = [
-    "pip install mypackage -i file://{toxinidir}/src/fanstatic/tests/fixtures/",
+    "pip install mypackage --index-url=file://{toxinidir}/src/fanstatic/tests/fixtures/ --extra-index-url=https://pypi.org/simple",
     "pip install -e {toxinidir}/src/fanstatic/tests/fixtures/mydevpackage",
     "pytest []",
     ]
