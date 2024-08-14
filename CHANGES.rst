@@ -145,8 +145,6 @@ Other changes
 - Bugfix in sdist_compile: compile resources in *all* packages contained in a
   distribution.
 
-- Fix tox/travis setup and update to buildout v2.
-
 1.0a (2013-04-18)
 =================
 
@@ -179,10 +177,6 @@ Other changes
 - Alex Grönholm added python3 and pypy support.
 
 - Using tox to test on python2.6/2.7/3.2/3.3/pypy.
-
-- Mirroring the bitbucket repo to github in order to run tests on travis-ci:
-
-  https://travis-ci.org/#!/fanstatic/fanstatic
 
 0.14a (2012-10-07)
 ==================
