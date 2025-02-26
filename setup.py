@@ -9,6 +9,7 @@ long_description = (
 
 install_requires = [
     'WebOb >= 1.2',
+    'packaging',
     'setuptools',
 ]
 

@@ -1,6 +1,7 @@
+import importlib.metadata
 import threading
 
-import pkg_resources
+import packaging.version
 
 from fanstatic.compiler import NullCompiler
 
@@ -20,7 +21,12 @@ class Registry(dict):
         self[item.name] = item
 
     def load_items_from_entry_points(self):
-        for entry_point in pkg_resources.iter_entry_points(self.ENTRY_POINT):
+        try:
+            entry_points = importlib.metadata.entry_points(
+                group=self.ENTRY_POINT)
+        except TypeError:  # Python < 3.10
+            entry_points = importlib.metadata.entry_points()[self.ENTRY_POINT]
+        for entry_point in entry_points:
             self.add(self.make_item_from_entry_point(entry_point))
 
     def make_item_from_entry_point(self, entry_point):
@@ -81,7 +87,8 @@ class LibraryRegistry(Registry):
     def make_item_from_entry_point(self, entry_point):
         item = super().make_item_from_entry_point(
             entry_point)
-        if not entry_point.dist.parsed_version.is_devrelease:
+        version = packaging.version.parse(entry_point.dist.version)
+        if not version.is_devrelease:
             item.version = entry_point.dist.version  # pragma: no cover
         return item
 

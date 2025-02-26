@@ -9,6 +9,8 @@ CHANGES
 
 - Drop support for Python 3.7.
 
+- Switch loading registry entrypoints from pkg_resources to importlib.metadata
+
 
 1.4 (2023-09-19)
 ================
