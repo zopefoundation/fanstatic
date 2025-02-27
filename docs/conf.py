@@ -12,7 +12,7 @@
 # serve to show the default.
 
 import sys, os
-import pkg_resources
+import importlib.metadata
 from datetime import datetime
 
 # Define the canonical URL to use custom domain on Read the Docs
@@ -58,7 +58,7 @@ copyright = u'2010 - %s, Fanstatic Developers' % datetime.today().year
 # built documents.
 #
 # The short X.Y version.
-version = pkg_resources.get_distribution('fanstatic').version
+version = importlib.metadata.version('fanstatic')
 # The full version, including alpha/beta/rc tags.
 release = version
 if release.endswith('dev'):
