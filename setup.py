@@ -41,7 +41,7 @@ setup(
     author_email='zope-dev@zope.dev',
     long_description=long_description,
     license='BSD',
-    url='http://fanstatic.org',
+    url='https://www.fanstatic.org',
     packages=find_packages('src'),
     package_dir={'': 'src'},
     zip_safe=False,
