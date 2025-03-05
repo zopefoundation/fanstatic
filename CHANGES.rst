@@ -5,15 +5,12 @@ CHANGES
 1.5 (unreleased)
 ================
 
-- Add support for Python 3.13.
+- Add support for Python 3.12, 3.13.
 
-- Drop support for Python 3.8.
+- Drop support for Python 3.7, 3.8.
 
-- Add support for Python 3.12.
-
-- Drop support for Python 3.7.
-
-- Switch loading registry entrypoints from pkg_resources to importlib.metadata
+- Switch loading registry entrypoints from ``pkg_resources`` to
+  ``importlib.metadata``.
 
 
 1.4 (2023-09-19)
