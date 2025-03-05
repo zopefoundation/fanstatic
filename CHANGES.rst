@@ -5,6 +5,8 @@ CHANGES
 1.5 (unreleased)
 ================
 
+- Add support for Python 3.13.
+
 - Drop support for Python 3.8.
 
 - Add support for Python 3.12.
