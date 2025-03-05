@@ -248,7 +248,7 @@ class PythonPackageBase:
     def _import(self):
         try:
             return __import__(self.package, globals=globals(), fromlist=[''])
-        except ImportError:
+        except ModuleNotFoundError:
             raise CompilerError('Package `%s` not available.' % self.package)
 
 

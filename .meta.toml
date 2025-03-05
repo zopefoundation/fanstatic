@@ -2,7 +2,7 @@
 # https://github.com/zopefoundation/meta/tree/master/config/pure-python
 [meta]
 template = "pure-python"
-commit-id = "6e808865"
+commit-id = "0ce77409"
 
 [python]
 with-sphinx-doctests = false
@@ -18,9 +18,13 @@ testenv-deps = [
     "pytest-cov",
     ]
 testenv-commands = [
-    "pip install mypackage --index-url=file://{toxinidir}/src/fanstatic/tests/fixtures/ --extra-index-url=https://pypi.org/simple",
-    "pip install -e {toxinidir}/src/fanstatic/tests/fixtures/mydevpackage",
+    "uv pip install mypackage --index-url=file://{toxinidir}/src/fanstatic/tests/fixtures/ --extra-index-url=https://pypi.org/simple",
+    "uv pip install -e {toxinidir}/src/fanstatic/tests/fixtures/mydevpackage",
     "pytest []",
+    ]
+testenv-additional = [
+    "allowlist_externals =",
+    "    uv",
     ]
 coverage-command = "pytest --cov=src --cov-report= --cov-config=tox.ini {posargs}"
 
@@ -43,7 +47,6 @@ additional-config = [
 [manifest]
 additional-rules = [
     "include *.yaml",
-    "include .readthedocs.yaml",
     "recursive-include docs *.bat",
     "recursive-include src *.css",
     "recursive-include src *.gz",
