@@ -18,9 +18,13 @@ testenv-deps = [
     "pytest-cov",
     ]
 testenv-commands = [
-    "pip install mypackage --index-url=file://{toxinidir}/src/fanstatic/tests/fixtures/ --extra-index-url=https://pypi.org/simple",
-    "pip install -e {toxinidir}/src/fanstatic/tests/fixtures/mydevpackage",
+    "uv pip install mypackage --index-url=file://{toxinidir}/src/fanstatic/tests/fixtures/ --extra-index-url=https://pypi.org/simple",
+    "uv pip install -e {toxinidir}/src/fanstatic/tests/fixtures/mydevpackage",
     "pytest []",
+    ]
+testenv-additional = [
+    "allowlist_externals =",
+    "    uv",
     ]
 coverage-command = "pytest --cov=src --cov-report= --cov-config=tox.ini {posargs}"
 
