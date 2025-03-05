@@ -147,7 +147,7 @@ class Library:
             fanstatic.get_library_registry().add(self)
 
     def __repr__(self):
-        return "<Library '{}' at '{}'>".format(self.name, self.path)
+        return f"<Library '{self.name}' at '{self.path}'>"
 
     def init_library_nr(self):
         """This can only be called once all resources are known.
@@ -549,7 +549,7 @@ class Resource(Renderable, Asset):
             self.minifier(self, force=force)
 
     def render(self, library_url):
-        return self.renderer('{}/{}'.format(library_url, self.relpath))
+        return self.renderer(f'{library_url}/{self.relpath}')
 
     def __repr__(self):
         return "<Resource '{}' in library '{}'>".format(
@@ -1027,7 +1027,7 @@ class Bundle(Renderable):
     def render(self, library_url):
         # URL may become too long:
         # http://www.boutell.com/newfaq/misc/urllength.html
-        return self.renderer('{}/{}'.format(library_url, self.relpath))
+        return self.renderer(f'{library_url}/{self.relpath}')
 
     def fits(self, resource):
         if resource.dont_bundle:

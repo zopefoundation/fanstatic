@@ -5,7 +5,7 @@ from setuptools import setup
 try:
     import fanstatic
     cmdclass = {'sdist': fanstatic.sdist_compile}
-except ImportError:
+except ModuleNotFoundError:
     cmdclass = {}
 
 setup(name='somepackage',
