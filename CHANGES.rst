@@ -5,7 +5,7 @@ CHANGES
 1.6 (unreleased)
 ================
 
-- Nothing changed yet.
+- Remove ``pkg_resources`` from our ``sdist_compile`` command.
 
 
 1.5 (2025-03-05)

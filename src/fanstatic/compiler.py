@@ -6,8 +6,6 @@ import sys
 import time
 from shutil import which
 
-import pkg_resources
-
 import setuptools.command.sdist
 
 import fanstatic
@@ -134,14 +132,13 @@ class sdist_compile(setuptools.command.sdist.sdist):
         """Make our distribution available in this Python interpreter,
         so that we can access its entry points and import it.
         """
-        # find_distributions() needs the egg-info to be able to find anything.
+        # We need egg-info e.g. to load entrypoints.
         # Since our superclass runs egg_info as its first action anyway (and
         # commands are run only once), there's no harm in doing it even
         # earlier here.
         self.run_command('egg_info')
         for directory in self.distribution.package_dir.values():
-            for dist in pkg_resources.find_distributions(directory):
-                pkg_resources.working_set.add(dist)
+            sys.path.insert(0, directory)
 
 
 class NullCompiler(Compiler):
