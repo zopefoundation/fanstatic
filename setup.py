@@ -22,7 +22,7 @@ tests_require = [
 
 setup(
     name='fanstatic',
-    version='1.6',
+    version='1.7.dev0',
     description="Flexible static resources for web applications",
     classifiers=[
         'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
