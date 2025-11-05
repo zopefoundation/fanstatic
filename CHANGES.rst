@@ -5,7 +5,7 @@ CHANGES
 1.7 (unreleased)
 ================
 
-- Nothing changed yet.
+- Drop support for Python 3.9.
 
 
 1.6 (2025-11-04)
