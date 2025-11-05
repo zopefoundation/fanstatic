@@ -22,7 +22,7 @@ tests_require = [
 
 setup(
     name='fanstatic',
-    version='1.6.dev0',
+    version='1.7.dev0',
     description="Flexible static resources for web applications",
     classifiers=[
         'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
@@ -30,11 +30,11 @@ setup(
         'Intended Audience :: Developers',
         'License :: OSI Approved :: BSD License',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3.10',
         'Programming Language :: Python :: 3.11',
         'Programming Language :: Python :: 3.12',
         'Programming Language :: Python :: 3.13',
+        'Programming Language :: Python :: 3.14',
         'Development Status :: 5 - Production/Stable',
     ],
     keywords='',
@@ -46,7 +46,7 @@ setup(
     packages=find_packages('src'),
     package_dir={'': 'src'},
     zip_safe=False,
-    python_requires='>=3.9',
+    python_requires='>=3.10',
     install_requires=install_requires,
     extras_require={
         'closure': ['closure'],

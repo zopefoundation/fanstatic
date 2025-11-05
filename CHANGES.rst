@@ -2,7 +2,14 @@
 CHANGES
 =======
 
-1.6 (unreleased)
+1.7 (unreleased)
+================
+
+- Add support for Python 3.14.
+
+- Drop support for Python 3.9.
+
+1.6 (2025-11-04)
 ================
 
 - Remove ``pkg_resources`` from our ``sdist_compile`` command.
