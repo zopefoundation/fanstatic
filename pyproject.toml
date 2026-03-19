@@ -1,13 +1,85 @@
-# 
-# Generated from:
-# https://github.com/zopefoundation/meta/tree/master/config/pure-python
-
+# Generated with zope.meta (https://zopemeta.readthedocs.io/) from:
+# https://github.com/zopefoundation/meta/tree/master/src/zope/meta/pure-python
 [build-system]
 requires = [
     "setuptools >= 78.1.1,< 81",
     "wheel",
 ]
 build-backend = "setuptools.build_meta"
+
+
+[project]
+name = "fanstatic"
+version = "1.7.dev0"
+description = "Flexible static resources for web applications"
+license = "BSD-3-Clause"
+classifiers = [
+    "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
+    "Topic :: Internet :: WWW/HTTP :: WSGI :: Middleware",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Development Status :: 5 - Production/Stable",
+]
+dynamic = ["readme"]
+requires-python = ">=3.10"
+authors = [
+    {name = "Fanstatic Developers",email = "zope-dev@zope.dev"},
+]
+maintainers = [
+    {name = "Plone Foundation and contributors",email = "zope-dev@zope.dev"},
+]
+dependencies = [
+    "WebOb >= 1.2",
+    "packaging",
+    "setuptools",
+]
+
+[project.scripts]
+fanstatic-compile = "fanstatic.compiler:compile_resources"
+
+[project.entry-points."paste.filter_app_factory"]
+fanstatic = "fanstatic:make_fanstatic"
+injector = "fanstatic:make_injector"
+
+[project.entry-points."paste.app_factory"]
+serf = "fanstatic:make_serf"
+publisher = "fanstatic:make_publisher"
+
+[project.entry-points."fanstatic.injectors"]
+topbottom = "fanstatic.injector:TopBottomInjector"
+
+[project.entry-points."fanstatic.compilers"]
+coffee = "fanstatic.compiler:COFFEE_COMPILER"
+less = "fanstatic.compiler:LESS_COMPILER"
+sass = "fanstatic.compiler:SASS_COMPILER"
+
+[project.entry-points."fanstatic.minifiers"]
+cssmin = "fanstatic.compiler:CSSMIN_MINIFIER"
+jsmin = "fanstatic.compiler:JSMIN_MINIFIER"
+closure = "fanstatic.compiler:CLOSURE_MINIFIER"
+
+[project.optional-dependencies]
+closure = ["closure"]
+cssmin = ["cssmin"]
+jsmin = ["jsmin"]
+test = [
+    "closure",
+    "cssmin",
+    "jsmin",
+    "pytest >= 2.3",
+]
+docs = ["Sphinx"]
+
+[project.urls]
+Documentation = "https://www.fanstatic.org/"
+Source = "https://github.com/zopefoundation/fanstatic"
+Issues = "https://github.com/zopefoundation/fanstatic/issues"
+Changelog = "https://raw.githubusercontent.com/zopefoundation/fanstatic/master/CHANGES.rst"
 
 [tool.coverage.run]
 branch = true
@@ -32,3 +104,7 @@ exclude_lines = [
 
 [tool.coverage.html]
 directory = "parts/htmlcov"
+
+[tool.setuptools.dynamic]
+readme = {file = ["README.rst", "CHANGES.rst"]}
+
