@@ -1,8 +1,8 @@
 import os
 import shutil
 import time
-
-from pkg_resources import resource_filename
+from importlib.resources import as_file
+from importlib.resources import files
 
 from fanstatic.checksum import IGNORED_EXTENSIONS
 from fanstatic.checksum import VCS_NAMES
@@ -12,9 +12,10 @@ from fanstatic.checksum import mtime
 
 
 def _copy_testdata(tmpdir):
-    src = resource_filename('fanstatic.tests', 'testdata/SomePackage')
-    dst = tmpdir / 'SomePackage'
-    shutil.copytree(src, str(dst))
+    ref = files('fanstatic.tests').joinpath('testdata/SomePackage')
+    with as_file(ref) as src:
+        dst = tmpdir / 'SomePackage'
+        shutil.copytree(src, str(dst))
     return dst
 
 
