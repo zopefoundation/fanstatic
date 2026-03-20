@@ -10,7 +10,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "fanstatic"
-version = "1.7.dev0"
+version = "1.7"
 description = "Flexible static resources for web applications"
 license = "BSD-3-Clause"
 classifiers = [
