@@ -186,4 +186,3 @@ the separate components would look like this::
   publisher_signature = baz
 
 .. _`Paste Deployment`: http://pythonpaste.org/deploy/
-
