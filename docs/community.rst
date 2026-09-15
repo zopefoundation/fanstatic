@@ -24,5 +24,3 @@ IRC
 Come to the ``#fanstatic`` IRC channel on FreeNode_.
 
 .. _FreeNode: http://freenode.net/
-
-
