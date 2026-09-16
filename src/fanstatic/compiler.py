@@ -287,9 +287,20 @@ CLOSURE_MINIFIER = Closure()
 
 
 def __getattr__(name):
-    # BBB sdist_compile moved to fanstatic.sdist, so that importing fanstatic
-    # no longer imports setuptools.
+    # BBB sdist_compile moved to fanstatic.sdist, so that importing
+    # fanstatic no longer imports setuptools.
     if name == 'sdist_compile':
-        from fanstatic.sdist import sdist_compile
+        try:
+            from fanstatic.sdist import sdist_compile
+        except ImportError as e:
+            # __getattr__ must raise AttributeError, otherwise hasattr() and
+            # getattr() with a default propagate this instead of reporting a
+            # missing attribute.
+            raise AttributeError(
+                'sdist_compile requires setuptools to be installed') from e
         return sdist_compile
     raise AttributeError(f'module {__name__!r} has no attribute {name!r}')
+
+
+def __dir__():
+    return sorted([*globals(), 'sdist_compile'])

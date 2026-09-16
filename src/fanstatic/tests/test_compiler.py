@@ -9,6 +9,7 @@ import pytest
 
 import fanstatic
 import fanstatic.compiler
+import fanstatic.sdist
 from fanstatic import MINIFIED
 from fanstatic import Inclusion
 from fanstatic import Library
@@ -578,6 +579,30 @@ def test_console_script_collects_resources_from_package(
     fanstatic.compiler._compile_resources('mypackage')
     assert len(calls) == 1
     assert calls[0] == (mypackage.style, True)
+
+
+def test_importing_fanstatic_does_not_import_setuptools():
+    # sdist_compile is the only part of fanstatic that needs setuptools, and it
+    # is resolved lazily, so merely serving resources must not drag it in.
+    result = subprocess.run(
+        [sys.executable, '-c',
+         'import sys, fanstatic; print("setuptools" in sys.modules)'],
+        capture_output=True)
+    assert result.stdout.decode().strip() == 'False', result.stderr.decode()
+
+
+def test_sdist_compile_is_reachable_from_both_old_import_locations():
+    assert fanstatic.sdist_compile is fanstatic.sdist.sdist_compile
+    assert fanstatic.compiler.sdist_compile is fanstatic.sdist.sdist_compile
+    assert 'sdist_compile' in dir(fanstatic)
+    assert 'sdist_compile' in dir(fanstatic.compiler)
+
+
+def test_unknown_attribute_raises_attribute_error():
+    with pytest.raises(AttributeError):
+        fanstatic.no_such_thing
+    with pytest.raises(AttributeError):
+        fanstatic.compiler.no_such_thing
 
 
 def test_custom_sdist_command_runs_compiler_beforehand(tmpdir, monkeypatch):

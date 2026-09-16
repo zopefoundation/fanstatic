@@ -63,7 +63,10 @@ jsmin = "fanstatic.compiler:JSMIN_MINIFIER"
 closure = "fanstatic.compiler:CLOSURE_MINIFIER"
 
 [project.optional-dependencies]
-closure = ["closure"]
+# closure imports pkg_resources but does not depend on setuptools itself, and
+# setuptools 82 dropped pkg_resources. Without this, the minifier is merely
+# "unavailable" and resources are silently served unminified.
+closure = ["closure", "setuptools < 82"]
 cssmin = ["cssmin"]
 jsmin = ["jsmin"]
 test = [
@@ -71,9 +74,6 @@ test = [
     "cssmin",
     "jsmin",
     "pytest >= 2.3",
-    # The tests run ``setup.py sdist`` to exercise sdist_compile, and closure
-    # still imports pkg_resources, which setuptools 82 dropped.
-    "setuptools >= 78.1.1, < 82",
 ]
 docs = ["Sphinx"]
 
