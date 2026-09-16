@@ -5,7 +5,11 @@ CHANGES
 1.8 (unreleased)
 ================
 
-- Nothing changed yet.
+- Do not import ``setuptools`` when importing ``fanstatic``.  The
+  ``sdist_compile`` command moved to ``fanstatic.sdist`` and
+  ``fanstatic.sdist_compile`` imports it lazily, so ``setuptools`` is only
+  needed by the ``setup.py`` that uses the command.  It is no longer a
+  dependency of ``fanstatic`` itself.
 
 
 1.7 (2026-03-20)

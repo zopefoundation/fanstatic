@@ -1,6 +1,5 @@
 from fanstatic.compiler import Compiler
 from fanstatic.compiler import Minifier
-from fanstatic.compiler import sdist_compile
 from fanstatic.core import BUNDLE_PREFIX
 from fanstatic.core import DEBUG
 from fanstatic.core import DEFAULT_SIGNATURE
@@ -43,3 +42,12 @@ from fanstatic.wsgi import Fanstatic
 from fanstatic.wsgi import Serf
 from fanstatic.wsgi import make_fanstatic
 from fanstatic.wsgi import make_serf
+
+
+def __getattr__(name):
+    # Imported lazily, because it is only useful from a setup.py and we do not
+    # want importing fanstatic to import setuptools.
+    if name == 'sdist_compile':
+        from fanstatic.sdist import sdist_compile
+        return sdist_compile
+    raise AttributeError(f'module {__name__!r} has no attribute {name!r}')

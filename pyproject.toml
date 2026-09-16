@@ -36,7 +36,6 @@ maintainers = [
 dependencies = [
     "WebOb >= 1.2",
     "packaging",
-    "setuptools",
 ]
 
 [project.scripts]
@@ -72,6 +71,9 @@ test = [
     "cssmin",
     "jsmin",
     "pytest >= 2.3",
+    # The tests run ``setup.py sdist`` to exercise sdist_compile, and closure
+    # still imports pkg_resources, which setuptools 82 dropped.
+    "setuptools >= 78.1.1, < 82",
 ]
 docs = ["Sphinx"]
 
