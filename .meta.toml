@@ -27,7 +27,10 @@ testenv-additional = [
     "allowlist_externals =",
     "    uv",
     ]
-coverage-command = "pytest --cov=src --cov-report= --cov-config=tox.ini {posargs}"
+coverage-command = [
+    'python -m pip install "setuptools >= 78.1.1, < 82"',
+    "pytest --cov=src --cov-report= --cov-config=tox.ini {posargs}",
+    ]
 
 [coverage]
 fail-under = 94
