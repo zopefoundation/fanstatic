@@ -2,7 +2,13 @@
 CHANGES
 =======
 
-1.8 (unreleased)
+1.9 (unreleased)
+================
+
+- Nothing changed yet.
+
+
+1.8 (2026-09-18)
 ================
 
 - Do not import ``setuptools`` when importing ``fanstatic``.  The
