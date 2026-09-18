@@ -1,6 +1,5 @@
 from fanstatic.compiler import Compiler
 from fanstatic.compiler import Minifier
-from fanstatic.compiler import sdist_compile
 from fanstatic.core import BUNDLE_PREFIX
 from fanstatic.core import DEBUG
 from fanstatic.core import DEFAULT_SIGNATURE
@@ -43,3 +42,29 @@ from fanstatic.wsgi import Fanstatic
 from fanstatic.wsgi import Serf
 from fanstatic.wsgi import make_fanstatic
 from fanstatic.wsgi import make_serf
+
+
+# sdist_compile is resolved lazily by __getattr__ below, so it is not part of
+# the module namespace that ``import *`` would pick up by itself.
+__all__ = [name for name in globals() if not name.startswith('_')]
+__all__.append('sdist_compile')
+
+
+def __getattr__(name):
+    # Imported lazily, because it is only useful from a setup.py and we do
+    # not want importing fanstatic to import setuptools.
+    if name == 'sdist_compile':
+        try:
+            from fanstatic.sdist import sdist_compile
+        except ImportError as e:
+            # __getattr__ must raise AttributeError, otherwise hasattr() and
+            # getattr() with a default propagate this instead of reporting a
+            # missing attribute.
+            raise AttributeError(
+                'sdist_compile requires setuptools to be installed') from e
+        return sdist_compile
+    raise AttributeError(f'module {__name__!r} has no attribute {name!r}')
+
+
+def __dir__():
+    return sorted([*globals(), 'sdist_compile'])

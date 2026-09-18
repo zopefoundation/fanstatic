@@ -7,7 +7,6 @@ requires = [
 ]
 build-backend = "setuptools.build_meta"
 
-
 [project]
 name = "fanstatic"
 version = "1.8.dev0"
@@ -36,7 +35,6 @@ maintainers = [
 dependencies = [
     "WebOb >= 1.2",
     "packaging",
-    "setuptools",
 ]
 
 [project.scripts]
@@ -64,7 +62,10 @@ jsmin = "fanstatic.compiler:JSMIN_MINIFIER"
 closure = "fanstatic.compiler:CLOSURE_MINIFIER"
 
 [project.optional-dependencies]
-closure = ["closure"]
+# closure imports pkg_resources but does not depend on setuptools itself, and
+# setuptools 82 dropped pkg_resources. Without this, the minifier is merely
+# "unavailable" and resources are silently served unminified.
+closure = ["closure", "setuptools < 82"]
 cssmin = ["cssmin"]
 jsmin = ["jsmin"]
 test = [
